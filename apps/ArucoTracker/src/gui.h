@@ -12,7 +12,7 @@ typedef std::shared_ptr<ofxDatButton> ofxDatButtonRef;
 
 class ofxDatButton {
 public:
-    ofxDatButton() {}
+    ofxDatButton() {mActive = false;}
     static ofxDatButtonRef create() {
         return std::make_shared<ofxDatButton>();
     }

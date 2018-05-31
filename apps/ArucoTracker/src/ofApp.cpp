@@ -5,6 +5,8 @@ using namespace cv;
 
 //--------------------------------------------------------------
 void ofApp::setup() {
+
+  ofSetBackgroundAuto(false);
   ofBackground(0);
 
   setupCalibration();
@@ -17,7 +19,7 @@ void ofApp::updateGrid() {
   float startGridX = mGridStartX->ofParamInt;
   float startGridY = mGridStartY->ofParamInt;
 
-  float stepX = mGridSpaceY->ofParamInt;
+  float stepX = mGridSpaceX->ofParamInt;
   float stepY = mGridSpaceY->ofParamInt;
 
   float gapX = mGridGapX->ofParamInt;
@@ -26,10 +28,10 @@ void ofApp::updateGrid() {
   int maxMarkers = GRID_WIDTH * GRID_HEIGHT;
 
   int i = 0;
+  int indeY = 0;
   for (auto &m : mMarkers) {
 
-    int indeX = int(i / float(GRID_WIDTH));
-    int indeY = (i % GRID_HEIGHT);
+    int indeX = (i % (int)GRID_WIDTH);
 
     float x = indeX * stepX + indeX * gapX + startGridX;
     float y = indeY * stepY + indeY * gapY + startGridY;
@@ -39,12 +41,16 @@ void ofApp::updateGrid() {
 
     m.setPos(glm::vec2(x, y));
     i++;
+
+    if (indeX >= GRID_WIDTH - 1) {
+      indeY++;
+    }
   }
 }
 
 void ofApp::setupGUI() {
   mBDebugVideo = ofxDatButton::create();
-  mBDebugVideo->button = new ofxDatGuiButton("Debug View");
+  mBDebugVideo->button = new ofxDatGuiToggle("Debug View");
   mBDebugVideo->button->setPosition(10, 10);
   mBDebugVideo->button->setWidth(100, .4);
   mBDebugVideo->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
@@ -93,7 +99,7 @@ void ofApp::setupGUI() {
 
   mGridStartX = ofxDatSlider::create();
   mGridStartX->slider =
-      new ofxDatGuiSlider(mGridStartX->ofParamInt.set("start  X", 50, 0, 200));
+      new ofxDatGuiSlider(mGridStartX->ofParamInt.set("start  X", 50, 0, 500));
   mGridStartX->slider->setWidth(390, .4);
   mGridStartX->slider->setPosition(sliderStartX, 120);
   mGridStartX->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
@@ -104,7 +110,7 @@ void ofApp::setupGUI() {
 
   mGridStartY = ofxDatSlider::create();
   mGridStartY->slider =
-      new ofxDatGuiSlider(mGridStartY->ofParamInt.set("start  Y", 50, 0, 200));
+      new ofxDatGuiSlider(mGridStartY->ofParamInt.set("start  Y", 50, 0, 500));
   mGridStartY->slider->setWidth(390, .4);
   mGridStartY->slider->setPosition(sliderStartX, 150);
   mGridStartY->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
@@ -169,6 +175,8 @@ void ofApp::setupCalibration() {
   vidGrabber.setDesiredFrameRate(60);
   vidGrabber.initGrabber(1280, 720);
 
+  vidImg.allocate(1280, 720, OF_IMAGE_COLOR);
+
   // inputVideo.open(camId);
   // if (!inputVideo.isOpened()) { // check if we succeeded
   //    std::cout << "error input cam" << std::endl;
@@ -205,12 +213,12 @@ void ofApp::setupCalibration() {
   int numH = GRID_HEIGHT;
 
   int maxMarkers = numW * numH;
+  int indeY = 0;
   for (int i = 0; i < maxMarkers; i++) {
     MarkerAruco m;
     m.setId(i);
 
-    int indeX = int(i / float(numW));
-    int indeY = (i % numH);
+    int indeX = (i % numW);
 
     float x = indeX * stepX + indeX * gapX + startGridX;
     float y = indeY * stepY + indeY * gapY + startGridY;
@@ -220,7 +228,9 @@ void ofApp::setupCalibration() {
 
     m.setPos(glm::vec2(x, y));
     mMarkers.push_back(m);
-    std::cout << x << " " << y << std::endl;
+    if (indeX >= numW - 1) {
+      indeY++;
+    }
   }
 }
 
@@ -275,6 +285,7 @@ void ofApp::update() {
     imageCopy.copyTo(vidMat);
 
     ofxCv::toOf(vidMat, vidImg.getPixels());
+    vidImg.update();
     // std::cout << "got img and aruco" << std::endl;
   }
 
@@ -302,20 +313,17 @@ void ofApp::updateGUI() {
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-  ofBackground(0);
+  ofSetColor(0, 0, 0, 255);
+  ofRect(0, 0, ofGetWidth(), ofGetHeight());
 
   if (mBDebugVideo->mActive) {
-    ofSetColor(255);
-    ofxCv::drawMat(vidMat, 0, 0, 1920, 1080);
-  }
-
-  /*
     if (vidImg.isAllocated()) {
+
       ofSetColor(255);
-      vidImg.draw(320, 0, 320, 240);
+      vidImg.draw(0, 0, 1920, 1080);
+      vidGrabber.draw(0, 240, 320, 240);
     }
-    vidGrabber.draw(0, 240, 320, 240);
-    */
+  }
 
   if (mBShowGrid->mActive) {
     ofSetColor(0, 200, 200);
@@ -335,7 +343,7 @@ void ofApp::draw() {
       int k = 0;
       for (auto &cen : centroid) {
         float dis = ofDist(cen.x, cen.y, pos.x, pos.y);
-        if (dis > 1 && dis < 13) {
+        if (dis >= 1 && dis < 13) {
           ofSetColor(255, 0, 0);
           ofDrawCircle(pos.x, pos.y, 7, 7);
           mk.setId(tagsIds.at(k));
@@ -381,8 +389,12 @@ void ofApp::drawGUI() {
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
-  if (key = 'g') {
+  if (key == 'g') {
     mDrawGUI = !mDrawGUI;
+  }
+
+  if (key == '1') {
+    cout << mBDebugVideo->mActive << std::endl;
   }
 }
 
