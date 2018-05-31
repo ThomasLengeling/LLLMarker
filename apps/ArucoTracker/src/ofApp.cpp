@@ -187,7 +187,6 @@ void ofApp::setupCalibration() {
   // collected frames for calibration
   vector<vector<vector<Point2f>>> allCorners;
   vector<vector<int>> allIds;
-  Size imgSize;
 
   // fill markers
 
