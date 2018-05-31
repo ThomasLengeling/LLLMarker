@@ -13,6 +13,35 @@ void ofApp::setup() {
   std::cout << "finished setup" << std::endl;
 }
 
+void ofApp::updateGrid() {
+  float startGridX = mGridStartX->ofParamInt;
+  float startGridY = mGridStartY->ofParamInt;
+
+  float stepX = mGridSpaceY->ofParamInt;
+  float stepY = mGridSpaceY->ofParamInt;
+
+  float gapX = mGridGapX->ofParamInt;
+  float gapY = mGridGapY->ofParamInt;
+
+  int maxMarkers = GRID_WIDTH * GRID_HEIGHT;
+
+  int i = 0;
+  for (auto &m : mMarkers) {
+
+    int indeX = int(i / float(GRID_WIDTH));
+    int indeY = (i % GRID_HEIGHT);
+
+    float x = indeX * stepX + indeX * gapX + startGridX;
+    float y = indeY * stepY + indeY * gapY + startGridY;
+
+    m.setRectPos(glm::vec2(x - stepX / 2.0, y - stepY / 2.0),
+                 glm::vec2(stepX, stepY));
+
+    m.setPos(glm::vec2(x, y));
+    i++;
+  }
+}
+
 void ofApp::setupGUI() {
   mBDebugVideo = ofxDatButton::create();
   mBDebugVideo->button = new ofxDatGuiButton("Debug View");
@@ -42,70 +71,68 @@ void ofApp::setupGUI() {
 
   mGridSpaceX = ofxDatSlider::create();
   mGridSpaceX->slider = new ofxDatGuiSlider(
-      mGridSpaceX->ofParamInt.set("grid space X", 50, 0, 100));
+      mGridSpaceX->ofParamInt.set("grid space X", 50, 0, 200));
   mGridSpaceX->slider->setWidth(390, .4);
   mGridSpaceX->slider->setPosition(sliderStartX, 60);
 
   mGridSpaceX->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
-    float startGridX = 1280 * 0.35;
-    float startGridY = 720 * 0.3;
-
-    float stepX = v.value;
-    float stepY = 50.0;
-
-    float gapX = 3;
-    float gapY = 3;
-
-    int numW = 19;
-    int numH = 13;
-
-    int maxMarkers = numW * numH;
-    int i = 0;
-    for (auto &m : mMarkers) {
-
-      int indeX = int(i / float(numW));
-      int indeY = (i % numH);
-
-      float x = indeX * stepX + indeX * gapX + startGridX;
-      float y = indeY * stepY + indeY * gapY + startGridY;
-
-      m.setRectPos(glm::vec2(x - stepX / 2.0, y - stepY / 2.0),
-                   glm::vec2(stepX, stepY));
-
-      m.setPos(glm::vec2(x, y));
-      i++;
-    }
+    mGridSpaceX->ofParamInt = v.value;
+    updateGrid();
   });
 
   mGridSpaceY = ofxDatSlider::create();
   mGridSpaceY->slider = new ofxDatGuiSlider(
-      mGridSpaceY->ofParamInt.set("grid space Y", 50, 0, 100));
+      mGridSpaceY->ofParamInt.set("grid space Y", 50, 0, 200));
   mGridSpaceY->slider->setWidth(390, .4);
   mGridSpaceY->slider->setPosition(sliderStartX, 90);
+  mGridSpaceY->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
+    mGridSpaceY->ofParamInt = v.value;
+    ;
+    updateGrid();
+  });
 
-  mGridSizeX = ofxDatSlider::create();
-  mGridSizeX->slider = new ofxDatGuiSlider(
-      mGridSizeX->ofParamInt.set("grid size X", 50, 0, 100));
-  mGridSizeX->slider->setWidth(390, .4);
-  mGridSizeX->slider->setPosition(sliderStartX, 120);
+  mGridStartX = ofxDatSlider::create();
+  mGridStartX->slider =
+      new ofxDatGuiSlider(mGridStartX->ofParamInt.set("start  X", 50, 0, 200));
+  mGridStartX->slider->setWidth(390, .4);
+  mGridStartX->slider->setPosition(sliderStartX, 120);
+  mGridStartX->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
+    mGridStartX->ofParamInt = v.value;
+    ;
+    updateGrid();
+  });
 
-  mGridSizeY = ofxDatSlider::create();
-  mGridSizeY->slider = new ofxDatGuiSlider(
-      mGridSizeY->ofParamInt.set("grid size Y", 50, 0, 100));
-  mGridSizeY->slider->setWidth(390, .4);
-  mGridSizeY->slider->setPosition(sliderStartX, 150);
+  mGridStartY = ofxDatSlider::create();
+  mGridStartY->slider =
+      new ofxDatGuiSlider(mGridStartY->ofParamInt.set("start  Y", 50, 0, 200));
+  mGridStartY->slider->setWidth(390, .4);
+  mGridStartY->slider->setPosition(sliderStartX, 150);
+  mGridStartY->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
+    mGridStartY->ofParamInt = v.value;
+    ;
+    updateGrid();
+  });
 
   mGridGapX = ofxDatSlider::create();
   mGridGapX->slider =
-      new ofxDatGuiSlider(mGridGapX->ofParamInt.set("grid gap X", 50, 0, 100));
+      new ofxDatGuiSlider(mGridGapX->ofParamInt.set("grid gap X", 50, 0, 200));
   mGridGapX->slider->setWidth(390, .4);
   mGridGapX->slider->setPosition(sliderStartX, 180);
+  mGridGapX->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
+    mGridGapX->ofParamInt = v.value;
+    ;
+    updateGrid();
+  });
 
   mGridGapY = ofxDatSlider::create();
   mGridGapY->slider =
-      new ofxDatGuiSlider(mGridGapY->ofParamInt.set("grid gap Y", 50, 0, 100));
+      new ofxDatGuiSlider(mGridGapY->ofParamInt.set("grid gap Y", 50, 0, 200));
   mGridGapY->slider->setWidth(390, .4);
   mGridGapY->slider->setPosition(sliderStartX, 210);
+  mGridGapY->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
+    mGridGapY->ofParamInt = v.value;
+    updateGrid();
+  });
 }
 
 void ofApp::setupCalibration() {
@@ -175,12 +202,12 @@ void ofApp::setupCalibration() {
   float gapX = 3;
   float gapY = 3;
 
-  int numW = 19;
-  int numH = 13;
+  int numW = GRID_WIDTH;
+  int numH = GRID_HEIGHT;
 
   int maxMarkers = numW * numH;
   for (int i = 0; i < maxMarkers; i++) {
-    Marker m;
+    MarkerAruco m;
     m.setId(i);
 
     int indeX = int(i / float(numW));
@@ -267,8 +294,8 @@ void ofApp::updateGUI() {
   mGridSpaceX->slider->update();
   mGridSpaceY->slider->update();
 
-  mGridSizeX->slider->update();
-  mGridSizeY->slider->update();
+  mGridStartX->slider->update();
+  mGridStartY->slider->update();
 
   mGridGapX->slider->update();
   mGridGapY->slider->update();
@@ -346,8 +373,8 @@ void ofApp::drawGUI() {
   mGridSpaceX->slider->draw();
   mGridSpaceY->slider->draw();
 
-  mGridSizeX->slider->draw();
-  mGridSizeY->slider->draw();
+  mGridStartX->slider->draw();
+  mGridStartY->slider->draw();
 
   mGridGapX->slider->draw();
   mGridGapY->slider->draw();

@@ -2,22 +2,25 @@
 
 #include "ofMain.h"
 
-#include "ofxCv.h"
-#include "ofxOpenCv.h"
-#include "ofxDatGui.h"
-#include "gui.h"
+#include <ctime>
+#include <iostream>
+#include <vector>
 
 #include <opencv2/aruco.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include <ctime>
-#include <iostream>
-#include <vector>
+//addons
+#include "ofxCv.h"
+#include "ofxOpenCv.h"
+#include "ofxDatGui.h"
+#include "gui.h"
 
-#include "Marker.h"
+#include "MarkerAruco.h"
 
+#define  GRID_WIDTH   19
+#define  GRID_HEIGHT  13
 
 class ofApp : public ofBaseApp{
 
@@ -46,8 +49,8 @@ class ofApp : public ofBaseApp{
 		ofxDatSliderRef mGridSpaceX;
 		ofxDatSliderRef mGridSpaceY;
 
-		ofxDatSliderRef mGridSizeX;
-		ofxDatSliderRef mGridSizeY;
+		ofxDatSliderRef mGridStartX;
+		ofxDatSliderRef mGridStartY;
 
 		ofxDatSliderRef mGridGapX;
 		ofxDatSliderRef mGridGapY;
@@ -71,10 +74,14 @@ class ofApp : public ofBaseApp{
 
 
 		//check if found marker
-		std::vector< Marker > mMarkers;
+		std::vector< MarkerAruco > mMarkers;
 		bool		    mVideoMarkers;
 
+		void 			updateGrid();
+
 		int foundMarkers;
+
+
 
 		//Video grabber
 		ofVideoGrabber 		vidGrabber;

@@ -33,7 +33,7 @@ public:
 	}
 
 	ofxDatGuiSlider *  slider;
-	ofParameter<int> ofParamInt;
+	ofParameter<int>   ofParamInt;
 	ofEventListener    sliderListener;
 
 };
