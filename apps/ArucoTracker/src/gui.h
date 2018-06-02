@@ -1,5 +1,13 @@
 #pragma once
 
+/*
+
+Thomas Sanchez Lengeling
+May, 2018
+
+LLL
+*/
+
 #include "ofMain.h"
 #include "ofxDatGui.h"
 

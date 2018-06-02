@@ -1,3 +1,11 @@
+/*
+
+Thomas Sanchez Lengeling
+May, 2018
+
+LLL
+*/
+
 #pragma once
 
 #include "ofMain.h"
@@ -21,6 +29,9 @@
 
 #define  GRID_WIDTH   19
 #define  GRID_HEIGHT  13
+
+#define CAM_WIDTH  1920
+#define CAM_HEIGHT 1080
 
 class ofApp : public ofBaseApp{
 
@@ -78,6 +89,14 @@ class ofApp : public ofBaseApp{
 		bool		    mVideoMarkers;
 
 		void 			updateGrid();
+		void 			recordGrid();
+
+		//clean Detection
+		void 			cleanDetection();
+		int 			mCleanIterMax;
+		int				mCleanCouter;
+
+		void          	drawArucoMarkers();
 
 		int foundMarkers;
 
@@ -95,7 +114,10 @@ class ofApp : public ofBaseApp{
 
 		std::vector< glm::vec2 > centroid;
 		std::vector< int > tagsIds;
+
+
 		//aruco
+		cv::Ptr<cv::aruco::Board> board;
 		cv::VideoCapture inputVideo;
 		cv::Ptr<cv::aruco::Dictionary> dictionary;
 		cv::Ptr<cv::aruco::DetectorParameters> detectorParams;

@@ -7,10 +7,14 @@ using namespace cv;
 void ofApp::setup() {
 
   ofSetBackgroundAuto(false);
+  ofSetFrameRate(120);
   ofBackground(0);
 
   setupCalibration();
   setupGUI();
+
+  // cleaner
+  mCleanIterMax = 60;
 
   std::cout << "finished setup" << std::endl;
 }
@@ -50,7 +54,7 @@ void ofApp::updateGrid() {
 
 void ofApp::setupGUI() {
   mBDebugVideo = ofxDatButton::create();
-  mBDebugVideo->button = new ofxDatGuiToggle("Debug View");
+  mBDebugVideo->button = new ofxDatGuiToggle("Debug View", true);
   mBDebugVideo->button->setPosition(10, 10);
   mBDebugVideo->button->setWidth(100, .4);
   mBDebugVideo->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
@@ -143,10 +147,10 @@ void ofApp::setupGUI() {
 
 void ofApp::setupCalibration() {
 
-  int markersX = 5;
-  int markersY = 5;
-  float markerLength = 0.0165;
-  float markerSeparation = 0.0045;
+  int markersX = GRID_WIDTH;
+  int markersY = GRID_HEIGHT;
+  float markerLength = 0.0162;     // 0.0165
+  float markerSeparation = 0.0042; // 0045
   int dictionaryId = 11;
   string outputFile = "./cal.txt";
 
@@ -163,9 +167,21 @@ void ofApp::setupCalibration() {
     calibrationFlags |= CALIB_ZERO_TANGENT_DIST;
   if (parser.get<bool>("pc"))
     calibrationFlags |= CALIB_FIX_PRINCIPAL_POINT;
-*/
+    */
 
   detectorParams = aruco::DetectorParameters::create();
+
+  // detectorParams->adaptiveThreshWinSizeMin = 5;
+  // detectorParams->adaptiveThreshWinSizeMax = 50;
+  // detectorParams->adaptiveThreshWinSizeStep = 10;
+
+  detectorParams->perspectiveRemovePixelPerCell = 10;
+  detectorParams->perspectiveRemoveIgnoredMarginPerCell = 0.3;
+
+  detectorParams->errorCorrectionRate = 0.7;
+  detectorParams->maxErroneousBitsInBorderRate = 0.3;
+
+  detectorParams->minOtsuStdDev = 2;
 
   bool refindStrategy = false;
   int camId = 0;
@@ -173,9 +189,9 @@ void ofApp::setupCalibration() {
 
   vidGrabber.setDeviceID(0);
   vidGrabber.setDesiredFrameRate(60);
-  vidGrabber.initGrabber(1280, 720);
+  vidGrabber.initGrabber(CAM_WIDTH, CAM_HEIGHT);
 
-  vidImg.allocate(1280, 720, OF_IMAGE_COLOR);
+  vidImg.allocate(CAM_WIDTH, CAM_HEIGHT, OF_IMAGE_COLOR);
 
   // inputVideo.open(camId);
   // if (!inputVideo.isOpened()) { // check if we succeeded
@@ -190,7 +206,7 @@ void ofApp::setupCalibration() {
   // create board object
   Ptr<aruco::GridBoard> gridboard = aruco::GridBoard::create(
       markersX, markersY, markerLength, markerSeparation, dictionary);
-  Ptr<aruco::Board> board = gridboard.staticCast<aruco::Board>();
+  board = gridboard.staticCast<aruco::Board>();
 
   // collected frames for calibration
   vector<vector<vector<Point2f>>> allCorners;
@@ -234,6 +250,13 @@ void ofApp::setupCalibration() {
   }
 }
 
+void ofApp::cleanDetection() {
+  if (mCleanCouter > mCleanIterMax) {
+    mCleanCouter = 0;
+  }
+  mCleanCouter++;
+}
+
 //--------------------------------------------------------------
 void ofApp::update() {
 
@@ -250,8 +273,8 @@ void ofApp::update() {
     centroid.clear();
     tagsIds.clear();
 
-    aruco::detectMarkers(imageCopy, dictionary, corners, ids, detectorParams,
-                         rejected);
+    aruco::detectMarkers(imageCopy, dictionary, corners, ids, detectorParams);
+    aruco::refineDetectedMarkers(imageCopy, board, corners, ids, rejected);
 
     if (ids.size() > 0) {
 
@@ -280,12 +303,12 @@ void ofApp::update() {
           tagsIds.push_back(id);
         }
       }
+
+      imageCopy.copyTo(vidMat);
+
+      ofxCv::toOf(vidMat, vidImg.getPixels());
+      vidImg.update();
     }
-
-    imageCopy.copyTo(vidMat);
-
-    ofxCv::toOf(vidMat, vidImg.getPixels());
-    vidImg.update();
     // std::cout << "got img and aruco" << std::endl;
   }
 
@@ -294,6 +317,8 @@ void ofApp::update() {
     updateGUI();
   }
 }
+//--------------------------------------------------------------
+void ofApp::drawArucoMarkers() {}
 
 //--------------------------------------------------------------
 void ofApp::updateGUI() {
@@ -311,6 +336,32 @@ void ofApp::updateGUI() {
   mGridGapY->slider->update();
 }
 
+void ofApp::recordGrid() {
+  if (centroid.size() == mMarkers.size()) {
+    std::cout << centroid.size() << " markes = " << GRID_WIDTH * GRID_HEIGHT
+              << std::endl;
+  }
+
+  /*
+    for (int i = 0; i < cornersDetected.total(); i++) {
+      cv::Mat currentMarker = cornersDetected.getMat(i);
+      cv::Point2f cent(0, 0);
+
+      for (int p = 0; p < 4; p++) {
+        cent += currentMarker.ptr<cv::Point2f>(0)[p];
+      }
+    }
+  */
+  for (auto &mk : mMarkers) {
+    glm::vec2 pos = mk.getPos();
+
+    for (auto &cen : centroid) {
+      float centX = cen.x;
+      float centY = cen.y;
+    }
+  }
+}
+
 //--------------------------------------------------------------
 void ofApp::draw() {
   ofSetColor(0, 0, 0, 255);
@@ -320,8 +371,16 @@ void ofApp::draw() {
     if (vidImg.isAllocated()) {
 
       ofSetColor(255);
-      vidImg.draw(0, 0, 1920, 1080);
-      vidGrabber.draw(0, 240, 320, 240);
+      vidImg.draw(0, 0, ofGetWidth(), ofGetHeight());
+      // vidGrabber.draw(0, 240, 320, 240);
+    }
+  }
+
+  if (mBCalibrateVideo->mActive) {
+    if (vidImg.isAllocated()) {
+
+      ofSetColor(255);
+      vidGrabber.draw(0, 0, ofGetWidth(), ofGetHeight());
     }
   }
 
@@ -358,6 +417,9 @@ void ofApp::draw() {
       mk.drawRect();
     }
   }
+
+  // record grid
+  recordGrid();
 
   // draw GUI
   if (mDrawGUI) {

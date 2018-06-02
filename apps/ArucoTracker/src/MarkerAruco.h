@@ -1,11 +1,25 @@
+/*
+
+Thomas Sanchez Lengeling
+May, 2018
+
+LLL
+*/
 #pragma once
 #include "ofMain.h"
+
+class MarkerAruco;
+class RectAruco;
+
+typedef std::shared_ptr<MarkerAruco> MarkerArucoRef;
 
 class RectAruco{
 public:
     RectAruco();
 
     void setRectPos(glm::vec2 corner, glm::vec2 length);
+    void setRectPos(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, glm::vec2 p3);
+    void setRectPos(std::vector<glm::vec2> & vec);
     void drawRect();
 
 private:
@@ -16,20 +30,25 @@ class MarkerAruco : public RectAruco{
 public:
     MarkerAruco() : RectAruco() {}
 
-    void setId(int i){id = i;}
-    void setPos(glm::vec2 mpos){pos = mpos;}
+    static MarkerArucoRef create(){
+        return std::make_shared<MarkerAruco>();
+    }
 
-    glm::vec2 getPos(){return pos;}
-    int getId(){return id;}
+    void setId(int i){mId = i;}
+    void setPos(glm::vec2 mpos){mPos = mpos;}
 
-    void enableOn(){enable = true;}
-    void enableOff(){enable = false;}
+    glm::vec2 getPos(){return mPos;}
+    int getId(){return mId;}
 
-    bool isEnable(){return enable;}
+    void enableOn(){mEnable = true;}
+    void enableOff(){mEnable = false;}
+
+    bool isEnable(){return mEnable;}
 
 private:
-    int       id;
-    glm::vec2 pos;
-    bool      enable;
+    int       mId;
+    int       mOrientation;
+    glm::vec2 mPos;
+    bool      mEnable;
 
 };
