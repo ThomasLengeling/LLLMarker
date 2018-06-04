@@ -13,6 +13,8 @@ LLL
 #include <ctime>
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <map>
 
 #include <opencv2/aruco.hpp>
 #include <opencv2/calib3d.hpp>
@@ -32,6 +34,14 @@ LLL
 
 #define CAM_WIDTH  1920
 #define CAM_HEIGHT 1080
+
+#define MAX_MARKERS 1000
+
+struct cvAruco{
+	glm::vec2 pos;
+	int id;
+	bool enable;
+};
 
 class ofApp : public ofBaseApp{
 
@@ -90,11 +100,14 @@ class ofApp : public ofBaseApp{
 
 		void 			updateGrid();
 		void 			recordGrid();
+		bool			mRecordOnce;
 
 		//clean Detection
 		void 			cleanDetection();
-		int 			mCleanIterMax;
-		int				mCleanCouter;
+		int 			mWindowIterMax;
+		int				mWindowCounter;
+
+		std::vector< std::vector< cvAruco > > mControids;
 
 		void          	drawArucoMarkers();
 
@@ -104,6 +117,7 @@ class ofApp : public ofBaseApp{
 
 		//Video grabber
 		ofVideoGrabber 		vidGrabber;
+		ofFbo				mFlipFbo;
 
 		ofImage				vidImg;
 		cv::Mat				vidMat;
@@ -114,6 +128,11 @@ class ofApp : public ofBaseApp{
 
 		std::vector< glm::vec2 > centroid;
 		std::vector< int > tagsIds;
+
+		std::vector< cvAruco > mControid;
+
+		std::vector<int> mFullIds;
+
 
 
 		//aruco

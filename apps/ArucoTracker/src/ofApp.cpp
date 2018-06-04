@@ -10,11 +10,21 @@ void ofApp::setup() {
   ofSetFrameRate(120);
   ofBackground(0);
 
+  mFlipFbo.allocate(CAM_WIDTH, CAM_HEIGHT, GL_RGBA);
+  mFlipFbo.begin();
+  ofBackground(0);
+  ofClear(0);
+  mFlipFbo.end();
+
   setupCalibration();
   setupGUI();
 
   // cleaner
-  mCleanIterMax = 60;
+  mWindowCounter = 0;
+  mWindowIterMax = 20;
+
+  // record grid
+  mRecordOnce = false;
 
   std::cout << "finished setup" << std::endl;
 }
@@ -251,10 +261,56 @@ void ofApp::setupCalibration() {
 }
 
 void ofApp::cleanDetection() {
-  if (mCleanCouter > mCleanIterMax) {
-    mCleanCouter = 0;
+  if (mWindowCounter >= mWindowIterMax) {
+    mWindowCounter = 0;
+
+    if (mFullIds.size() > 0) {
+
+      // clasical probabilty of ocurance
+      std::map<int, int> idsCounter;
+      for (int i = 0; i < GRID_WIDTH * GRID_HEIGHT; i++) {
+        idsCounter.emplace(mFullIds.at(i), 0);
+      }
+
+      for (auto &markers : mControids) {
+        for (auto &centros : markers) {
+          int id = centros.id;
+          idsCounter[id]++;
+        }
+      }
+
+      int i = 0;
+      for (auto &ids : idsCounter) {
+        int freq = ids.second;
+        float pro = freq / (float)mWindowIterMax;
+        if (pro > 0.6) {
+          ids.second = 1;
+        } else {
+          ids.second = 0;
+        }
+
+        std::cout << ids.first << " " << ids.second << " " << i << std::endl;
+        i++;
+      }
+
+      // enable and deactive the markers
+      for (auto &ids : idsCounter) {
+        for (auto &mk : mMarkers) {
+          if (mk.getId() == ids.first) {
+            if (ids.second == 1) {
+              mk.enableOn();
+            } else {
+              mk.enableOff();
+            }
+            break;
+          }
+        }
+      }
+      // done activation and disactivation
+    }
+    mControids.clear();
   }
-  mCleanCouter++;
+  mWindowCounter++;
 }
 
 //--------------------------------------------------------------
@@ -264,7 +320,30 @@ void ofApp::update() {
 
   if (vidGrabber.isFrameNew()) {
 
-    Mat imageCopy = ofxCv::toCv(vidGrabber.getPixels());
+    mFlipFbo.begin();
+    vidGrabber.draw(CAM_WIDTH, 0, -CAM_WIDTH, CAM_HEIGHT);
+    mFlipFbo.end();
+
+    ofPixels pixels = vidGrabber.getPixels();
+    // pixels.mirror(false, true);
+    pixels.rotate90(2);
+
+    // pixels.mirror(true, false);
+
+    // ofImage image;
+    // image.setFromPixels(pixels);
+    // image.rotate90(3);
+    // image.mirror(true, false);
+    // image.update();
+    Mat imageCopy = ofxCv::toCv(pixels);
+
+    // Mat imageCopy = ofxCv::toCv(mFlipFbo.getTexture());
+    // Mat imageCopy0 = ofxCv::toCv(vidGrabber.getPixels());
+    // Mat imageCopy = ofxCv::toCv(vidGrabber.getPixels());
+    // Mat imageCopy;
+    // ofxCv::imitate(imageCopy, imageCopy0);
+    // cv::flip(imageCopy0, imageCopy, 1);
+    // image.update();
 
     // detect markers
     ids.clear();
@@ -272,6 +351,7 @@ void ofApp::update() {
     rejected.clear();
     centroid.clear();
     tagsIds.clear();
+    mControid.clear();
 
     aruco::detectMarkers(imageCopy, dictionary, corners, ids, detectorParams);
     aruco::refineDetectedMarkers(imageCopy, board, corners, ids, rejected);
@@ -295,14 +375,21 @@ void ofApp::update() {
         }
 
         cent = cent / 4.;
+        cvAruco cva;
+        cva.pos = glm::vec2(cent.x, cent.y);
         centroid.push_back(glm::vec2(cent.x, cent.y));
 
         // get ids
         if (idsDetected.total() != 0) {
           int id = idsDetected.getMat().ptr<int>(0)[i];
           tagsIds.push_back(id);
+          cva.id = id;
         }
+
+        mControid.push_back(cva);
       }
+      mControids.push_back(mControid);
+      cleanDetection();
 
       imageCopy.copyTo(vidMat);
 
@@ -337,9 +424,51 @@ void ofApp::updateGUI() {
 }
 
 void ofApp::recordGrid() {
-  if (centroid.size() == mMarkers.size()) {
-    std::cout << centroid.size() << " markes = " << GRID_WIDTH * GRID_HEIGHT
-              << std::endl;
+  if (mRecordOnce) {
+    if (centroid.size() == mMarkers.size()) {
+      std::cout << centroid.size() << " markes = " << GRID_WIDTH * GRID_HEIGHT
+                << std::endl;
+
+      int i = 0;
+      for (auto &mk : mMarkers) {
+        glm::vec2 pos = mk.getPos();
+        glm::vec2 cpos = mControid.at(i).pos;
+        mk.setPos(cpos);
+
+        mk.setRectPos(glm::vec2(cpos.x - 20 / 2.0, cpos.y - 20 / 2.0),
+                      glm::vec2(20, 20));
+
+        i++;
+      }
+
+      // set ids
+      mFullIds.clear();
+      for (auto &mk : mMarkers) {
+        glm::vec2 pos = mk.getPos();
+        int k = 0;
+        for (auto &cen : centroid) {
+          float dis = ofDist(cen.x, cen.y, pos.x, pos.y);
+          if (dis >= 0.0 && dis < 10) {
+            mk.setId(tagsIds.at(k));
+            mFullIds.push_back(tagsIds.at(k));
+            break;
+          }
+          k++;
+        }
+      }
+
+      sort(mFullIds.begin(), mFullIds.end());
+
+      std::cout << "ids" << std::endl;
+      for (auto &id : mFullIds) {
+        std::cout << id << std::endl;
+      }
+
+      std::cout << "num Uniques " << mFullIds.size() << std::endl;
+
+      mRecordOnce = false;
+      std::cout << "finished recording" << std::endl;
+    }
   }
 
   /*
@@ -352,14 +481,6 @@ void ofApp::recordGrid() {
       }
     }
   */
-  for (auto &mk : mMarkers) {
-    glm::vec2 pos = mk.getPos();
-
-    for (auto &cen : centroid) {
-      float centX = cen.x;
-      float centY = cen.y;
-    }
-  }
 }
 
 //--------------------------------------------------------------
@@ -380,9 +501,45 @@ void ofApp::draw() {
     if (vidImg.isAllocated()) {
 
       ofSetColor(255);
-      vidGrabber.draw(0, 0, ofGetWidth(), ofGetHeight());
+      vidGrabber.draw(0, 0, 240, 240);
+      vidImg.draw(0, 0, ofGetWidth(), ofGetHeight());
+    }
+
+    for (auto &mk : mMarkers) {
+      glm::vec2 pos = mk.getPos();
+
+      if (mk.isEnable()) {
+        ofSetColor(255);
+        ofDrawCircle(pos.x, pos.y, 10, 10);
+      } else {
+        ofSetColor(255, 255, 0);
+        ofDrawCircle(pos.x, pos.y, 5, 5);
+      }
+      ofSetColor(255);
+      ofDrawBitmapString(mk.getId(), pos.x - 15, pos.y - 5);
     }
   }
+
+  /*
+    sort(mControid.begin(), mControid.end(),
+         [](const auto &lhs, const auto &rhs) { return lhs.id < rhs.id; });
+    int i = 0;
+    for (auto &cen : mControid) {
+      ofSetColor(i);
+      ofDrawCircle(cen.pos.x, cen.pos.y, 3, 3);
+      ofDrawBitmapString(i, cen.pos.x - 8, cen.pos.y);
+      i++;
+    }
+
+    int j = 0;
+    for (auto &mk : mMarkers) {
+      glm::vec2 pos = mk.getPos();
+
+      ofSetColor(i);
+      ofDrawCircle(pos.x, pos.y, 5, 5);
+      j++;
+    }
+    */
 
   if (mBShowGrid->mActive) {
     ofSetColor(0, 200, 200);
@@ -393,29 +550,33 @@ void ofApp::draw() {
                          centroid.at(i).y - 7);
     }
 
+    int r = 0;
     for (auto &mk : mMarkers) {
       glm::vec2 pos = mk.getPos();
 
       ofSetColor(50, 100, 220);
-      ofDrawCircle(pos.x, pos.y, 5, 5);
+      ofDrawCircle(pos.x, pos.y, 10, 10);
 
       int k = 0;
       for (auto &cen : centroid) {
         float dis = ofDist(cen.x, cen.y, pos.x, pos.y);
-        if (dis >= 1 && dis < 13) {
+        if (dis >= 0.0 && dis < 10) {
           ofSetColor(255, 0, 0);
           ofDrawCircle(pos.x, pos.y, 7, 7);
           mk.setId(tagsIds.at(k));
+          r++;
           break;
         }
         k++;
       }
 
       ofSetColor(255);
-      ofDrawBitmapString(mk.getId(), pos.x - 2, pos.y - 10);
+      ofDrawBitmapString(mk.getId(), pos.x - 15, pos.y - 5);
 
       mk.drawRect();
     }
+
+    // std::cout << "registered: " << r << std::endl;
   }
 
   // record grid
@@ -456,7 +617,11 @@ void ofApp::keyPressed(int key) {
   }
 
   if (key == '1') {
-    cout << mBDebugVideo->mActive << std::endl;
+    mRecordOnce = true;
+    std::cout << "record grid positions" << std::endl;
+  }
+
+  if (key == '2') {
   }
 }
 
