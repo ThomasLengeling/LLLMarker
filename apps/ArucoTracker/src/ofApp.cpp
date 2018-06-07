@@ -24,7 +24,9 @@ void ofApp::setup() {
   mWindowIterMax = 20;
 
   // record grid
-  mRecordOnce = false;
+  mRecordOnce = true;
+
+  setupConnection();
 
   std::cout << "finished setup" << std::endl;
 }
@@ -54,12 +56,25 @@ void ofApp::updateGrid() {
                  glm::vec2(stepX, stepY));
 
     m.setPos(glm::vec2(x, y));
+
     i++;
 
     if (indeX >= GRID_WIDTH - 1) {
       indeY++;
     }
   }
+}
+
+void ofApp::setupConnection() {
+  ofxUDPSettings settings;
+  settings.sendTo("172.20.10.2", 15800);
+  settings.blocking = false;
+
+  udpConnection.Setup(settings);
+  std::cout << "setup UDP connection " << std::endl;
+
+  string message = "connected to Aruco Detector";
+  udpConnection.Send(message.c_str(), message.length());
 }
 
 void ofApp::setupGUI() {
@@ -70,6 +85,7 @@ void ofApp::setupGUI() {
   mBDebugVideo->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
     mBDebugVideo->mActive = !mBDebugVideo->mActive;
   });
+  mBDebugVideo->mActive = true;
 
   mBCalibrateVideo = ofxDatButton::create();
   mBCalibrateVideo->button = new ofxDatGuiButton("Calibrate Camera");
@@ -78,6 +94,7 @@ void ofApp::setupGUI() {
   mBCalibrateVideo->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
     mBCalibrateVideo->mActive = !mBCalibrateVideo->mActive;
   });
+  mBCalibrateVideo->mActive = true;
 
   mBShowGrid = ofxDatButton::create();
   mBShowGrid->button = new ofxDatGuiButton("Show Grid");
@@ -188,7 +205,7 @@ void ofApp::setupCalibration() {
   detectorParams->perspectiveRemovePixelPerCell = 10;
   detectorParams->perspectiveRemoveIgnoredMarginPerCell = 0.3;
 
-  detectorParams->errorCorrectionRate = 0.7;
+  detectorParams->errorCorrectionRate = 0.55;
   detectorParams->maxErroneousBitsInBorderRate = 0.3;
 
   detectorParams->minOtsuStdDev = 2;
@@ -222,40 +239,61 @@ void ofApp::setupCalibration() {
   vector<vector<vector<Point2f>>> allCorners;
   vector<vector<int>> allIds;
 
-  // fill markers
+  ofFile file("gridpos.json");
 
-  // set the max region
+  if (file.exists()) {
+    ofJson js;
+    file >> js;
+    int i = 0;
+    for (auto &gridPos : js) {
+      MarkerAruco m;
+      m.setId(-1);
 
-  float startGridX = 1280 * 0.05;
-  float startGridY = 720 * 0.05;
+      float posx = gridPos[to_string(i)]["posx"];
+      float posy = gridPos[to_string(i)]["posy"];
 
-  float stepX = 50.0;
-  float stepY = 50.0;
+      m.setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
 
-  float gapX = 3;
-  float gapY = 3;
+      m.setPos(glm::vec2(posx, posy));
+      m.setGridId(i);
+      mMarkers.push_back(m);
+      i++;
+    }
+  } else {
+    // fill markers
+    // set the max region
+    float startGridX = 1280 * 0.05;
+    float startGridY = 720 * 0.05;
 
-  int numW = GRID_WIDTH;
-  int numH = GRID_HEIGHT;
+    float stepX = 50.0;
+    float stepY = 50.0;
 
-  int maxMarkers = numW * numH;
-  int indeY = 0;
-  for (int i = 0; i < maxMarkers; i++) {
-    MarkerAruco m;
-    m.setId(i);
+    float gapX = 3;
+    float gapY = 3;
 
-    int indeX = (i % numW);
+    int numW = GRID_WIDTH;
+    int numH = GRID_HEIGHT;
 
-    float x = indeX * stepX + indeX * gapX + startGridX;
-    float y = indeY * stepY + indeY * gapY + startGridY;
+    int maxMarkers = numW * numH;
+    int indeY = 0;
+    for (int i = 0; i < maxMarkers; i++) {
+      MarkerAruco m;
+      m.setId(i);
 
-    m.setRectPos(glm::vec2(x - stepX / 2.0, y - stepY / 2.0),
-                 glm::vec2(stepX, stepY));
+      int indeX = (i % numW);
 
-    m.setPos(glm::vec2(x, y));
-    mMarkers.push_back(m);
-    if (indeX >= numW - 1) {
-      indeY++;
+      float x = indeX * stepX + indeX * gapX + startGridX;
+      float y = indeY * stepY + indeY * gapY + startGridY;
+
+      m.setRectPos(glm::vec2(x - stepX / 2.0, y - stepY / 2.0),
+                   glm::vec2(stepX, stepY));
+
+      m.setPos(glm::vec2(x, y));
+      m.setGridId(i);
+      mMarkers.push_back(m);
+      if (indeX >= numW - 1) {
+        indeY++;
+      }
     }
   }
 }
@@ -268,46 +306,73 @@ void ofApp::cleanDetection() {
 
       // clasical probabilty of ocurance
       std::map<int, int> idsCounter;
+      std::map<int, int> proCounter;
+      std::map<int, int> centerCounter;
+
       for (int i = 0; i < GRID_WIDTH * GRID_HEIGHT; i++) {
-        idsCounter.emplace(mFullIds.at(i), 0);
+        idsCounter.emplace(i, 0); // mFullIds.at(i), 0);
+        proCounter.emplace(i, 0);
       }
 
+      // ids from 0 -1000, max number of counters
+      for (int i = 0; i < MAX_MARKERS; i++) {
+        centerCounter.emplace(i, 0);
+      }
+
+      for (auto &mk : mMarkers) {
+        mk.resetProba();
+      }
+
+      // calculate the frequency of ocurance
       for (auto &markers : mControids) {
         for (auto &centros : markers) {
-          int id = centros.id;
-          idsCounter[id]++;
+
+          glm::vec2 pos = centros.pos;
+
+          int k = 0;
+          for (auto &mk : mMarkers) {
+            glm::vec2 boardPos = mk.getPos();
+            float dis = ofDist(pos.x, pos.y, boardPos.x, boardPos.y);
+            if (dis >= 0 && dis <= 18) {
+              idsCounter[k] = centros.id;
+              mk.incProba();
+              break;
+            }
+            k++;
+          }
         }
       }
 
       int i = 0;
-      for (auto &ids : idsCounter) {
-        int freq = ids.second;
-        float pro = freq / (float)mWindowIterMax;
-        if (pro > 0.6) {
-          ids.second = 1;
-        } else {
-          ids.second = 0;
-        }
+      std::string enables = "e";
+      std::string ids = "i";
+      for (auto &mk : mMarkers) {
+        float proba = mk.getProba(mWindowIterMax);
+        enables += " ";
+        ids += " ";
+        if (proba >= 0.2) {
+          mk.enableOn();
+          mk.setId(idsCounter[i]);
 
-        std::cout << ids.first << " " << ids.second << " " << i << std::endl;
+          enables += "1";
+          ids += to_string(mk.getId());
+        } else {
+          mk.enableOff();
+          mk.setId(-1);
+
+          enables += "-1";
+          ids += "-1";
+        }
         i++;
       }
 
-      // enable and deactive the markers
-      for (auto &ids : idsCounter) {
-        for (auto &mk : mMarkers) {
-          if (mk.getId() == ids.first) {
-            if (ids.second == 1) {
-              mk.enableOn();
-            } else {
-              mk.enableOff();
-            }
-            break;
-          }
-        }
-      }
-      // done activation and disactivation
+      // send udp with on or off
+      udpConnection.Send(enables.c_str(), enables.length());
+      udpConnection.Send(ids.c_str(), ids.length());
     }
+
+    // done activation and disactivation
+
     mControids.clear();
   }
   mWindowCounter++;
@@ -429,28 +494,38 @@ void ofApp::recordGrid() {
       std::cout << centroid.size() << " markes = " << GRID_WIDTH * GRID_HEIGHT
                 << std::endl;
 
-      int i = 0;
-      for (auto &mk : mMarkers) {
-        glm::vec2 pos = mk.getPos();
-        glm::vec2 cpos = mControid.at(i).pos;
-        mk.setPos(cpos);
+      /*
+int i = 0;
+std::vector<int> LUTgrid;
+for (auto &mk : mMarkers) {
+glm::vec2 pos = mk.getPos();
+glm::vec2 cpos = mControid.at(i).pos;
+mk.setPos(cpos);
 
-        mk.setRectPos(glm::vec2(cpos.x - 20 / 2.0, cpos.y - 20 / 2.0),
-                      glm::vec2(20, 20));
+mk.setRectPos(glm::vec2(cpos.x - 20 / 2.0, cpos.y - 20 / 2.0),
+      glm::vec2(20, 20));
 
-        i++;
-      }
+i++;
+}
+
+sort(mMarkers.begin(), mMarkers.end(), [](auto &lhs, auto &rhs) {
+return lhs.getPos().x < rhs.getPos().x;
+});
+*/
 
       // set ids
       mFullIds.clear();
       for (auto &mk : mMarkers) {
         glm::vec2 pos = mk.getPos();
         int k = 0;
-        for (auto &cen : centroid) {
-          float dis = ofDist(cen.x, cen.y, pos.x, pos.y);
-          if (dis >= 0.0 && dis < 10) {
+        for (auto &centroDet : mControid) {
+          glm::vec2 cenPos = centroDet.pos;
+          float dis = ofDist(cenPos.x, cenPos.y, pos.x, pos.y);
+          if (dis >= 0.0 && dis <= 10) {
             mk.setId(tagsIds.at(k));
             mFullIds.push_back(tagsIds.at(k));
+            // calculate grid positions
+
             break;
           }
           k++;
@@ -470,17 +545,6 @@ void ofApp::recordGrid() {
       std::cout << "finished recording" << std::endl;
     }
   }
-
-  /*
-    for (int i = 0; i < cornersDetected.total(); i++) {
-      cv::Mat currentMarker = cornersDetected.getMat(i);
-      cv::Point2f cent(0, 0);
-
-      for (int p = 0; p < 4; p++) {
-        cent += currentMarker.ptr<cv::Point2f>(0)[p];
-      }
-    }
-  */
 }
 
 //--------------------------------------------------------------
@@ -510,13 +574,15 @@ void ofApp::draw() {
 
       if (mk.isEnable()) {
         ofSetColor(255);
-        ofDrawCircle(pos.x, pos.y, 10, 10);
+        ofDrawCircle(pos.x, pos.y, 7, 7);
       } else {
         ofSetColor(255, 255, 0);
-        ofDrawCircle(pos.x, pos.y, 5, 5);
+        ofDrawCircle(pos.x, pos.y, 4, 4);
       }
       ofSetColor(255);
-      ofDrawBitmapString(mk.getId(), pos.x - 15, pos.y - 5);
+      ofDrawBitmapString(mk.getId(), pos.x - 20, pos.y - 7);
+
+      ofDrawBitmapString(mk.getGridId(), pos.x - 25, pos.y - 17);
     }
   }
 
@@ -571,7 +637,7 @@ void ofApp::draw() {
       }
 
       ofSetColor(255);
-      ofDrawBitmapString(mk.getId(), pos.x - 15, pos.y - 5);
+      ofDrawBitmapString(mk.getId(), pos.x - 20, pos.y - 7);
 
       mk.drawRect();
     }
@@ -622,6 +688,19 @@ void ofApp::keyPressed(int key) {
   }
 
   if (key == '2') {
+    // save json
+
+    ofJson writer;
+    int i = 0;
+    for (auto &mk : mMarkers) {
+      ofJson pt;
+      pt[to_string(i)]["posx"] = mk.getPos().x;
+      pt[to_string(i)]["posy"] = mk.getPos().y;
+      writer.push_back(pt);
+      i++;
+    }
+    std::cout << "json write" << std::endl;
+    ofSaveJson("gridpos.json", writer);
   }
 }
 
@@ -632,7 +711,15 @@ void ofApp::keyReleased(int key) {}
 void ofApp::mouseMoved(int x, int y) {}
 
 //--------------------------------------------------------------
-void ofApp::mouseDragged(int x, int y, int button) {}
+void ofApp::mouseDragged(int x, int y, int button) {
+  for (auto &mk : mMarkers) {
+    glm::vec2 pos = mk.getPos();
+    float dist = ofDist(pos.x, pos.y, x, y);
+    if (dist >= 0.0 && dist <= 20) {
+      mk.setPos(glm::vec2(x, y));
+    }
+  }
+}
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button) {}

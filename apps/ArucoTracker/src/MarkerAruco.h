@@ -8,8 +8,16 @@ LLL
 #pragma once
 #include "ofMain.h"
 
+//block types
+enum BlockType{
+    grid = 0,
+    knob = 1,
+    button= 2
+}
+
 class MarkerAruco;
 class RectAruco;
+class ProbabiltyAruco;
 
 typedef std::shared_ptr<MarkerAruco> MarkerArucoRef;
 
@@ -26,29 +34,61 @@ private:
     std::vector<glm::vec2> mVertex;
 };
 
-class MarkerAruco : public RectAruco{
+class ProbabiltyAruco{
 public:
-    MarkerAruco() : RectAruco() {}
+    ProbabiltyAruco();
+
+    void incProba();
+    float getProba(int num);
+    void resetProba();
+private:
+    float mProba;
+    int   mInc;
+};
+
+class MarkerAruco : public RectAruco, public ProbabiltyAruco{
+public:
+    MarkerAruco() : RectAruco(), ProbabiltyAruco() {
+        mGridId = -1;
+        mId = -1;
+        type = 0;
+    }
 
     static MarkerArucoRef create(){
         return std::make_shared<MarkerAruco>();
     }
 
     void setId(int i){mId = i;}
-    void setPos(glm::vec2 mpos){mPos = mpos;}
-
-    glm::vec2 getPos(){return mPos;}
     int getId(){return mId;}
+
+    void setGridId(int i){mGridId = i;}
+    int getGridId(){return mGridId;}
+
+    void setPos(glm::vec2 mpos){mPos = mpos;}
+    glm::vec2 getPos(){return mPos;}
+
 
     void enableOn(){mEnable = true;}
     void enableOff(){mEnable = false;}
 
     bool isEnable(){return mEnable;}
 
+    float getProb(){return mProb;}
+    void setProb(float p){mProb = p;}
+
+    void setBlockType(BlockType bt){type = mBType;}
+
+
 private:
     int       mId;
+    int       mGridId;
+
     int       mOrientation;
     glm::vec2 mPos;
     bool      mEnable;
+
+    BlockType mBType;
+
+    float     mProb;
 
 };

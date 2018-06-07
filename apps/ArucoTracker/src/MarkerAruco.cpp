@@ -1,7 +1,20 @@
 #include "MarkerAruco.h"
 
 //--------------------------------------------------------------
+ProbabiltyAruco::ProbabiltyAruco() {
+  mProba = 0.0;
+  mInc = 0;
+}
 
+void ProbabiltyAruco::incProba() { mInc++; }
+float ProbabiltyAruco::getProba(int maxNum) {
+  return ((float)mInc / (float)maxNum);
+}
+
+void ProbabiltyAruco::resetProba() {
+  mProba = 0.0;
+  mInc = 0;
+}
 //--------------------------------------------------------------
 RectAruco::RectAruco() {
   for (int i = 0; i < 4; i++) {

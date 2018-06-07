@@ -9,6 +9,7 @@ LLL
 #pragma once
 
 #include "ofMain.h"
+#include "ofxNetwork.h"
 
 #include <ctime>
 #include <iostream>
@@ -25,8 +26,8 @@ LLL
 #include "ofxCv.h"
 #include "ofxOpenCv.h"
 #include "ofxDatGui.h"
-#include "gui.h"
 
+#include "gui.h"
 #include "MarkerAruco.h"
 
 #define  GRID_WIDTH   19
@@ -140,5 +141,9 @@ class ofApp : public ofBaseApp{
 		cv::VideoCapture inputVideo;
 		cv::Ptr<cv::aruco::Dictionary> dictionary;
 		cv::Ptr<cv::aruco::DetectorParameters> detectorParams;
+
+		//send commands
+		ofxUDPManager udpConnection;
+		void setupConnection();
 
 };
