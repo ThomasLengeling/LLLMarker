@@ -7,13 +7,8 @@ LLL
 */
 #pragma once
 #include "ofMain.h"
+#include "Common.h"
 
-//block types
-enum BlockType{
-    grid = 0,
-    knob = 1,
-    button= 2
-}
 
 class MarkerAruco;
 class RectAruco;
@@ -51,7 +46,7 @@ public:
     MarkerAruco() : RectAruco(), ProbabiltyAruco() {
         mGridId = -1;
         mId = -1;
-        type = 0;
+        mBType = BlockType::grid;
     }
 
     static MarkerArucoRef create(){
@@ -76,8 +71,8 @@ public:
     float getProb(){return mProb;}
     void setProb(float p){mProb = p;}
 
-    void setBlockType(BlockType bt){type = mBType;}
-
+    void setBlockType(BlockType bt){mBType = bt;}
+    int getBlockType(){return mBType;}
 
 private:
     int       mId;

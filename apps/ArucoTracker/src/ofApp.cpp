@@ -6,6 +6,10 @@ using namespace cv;
 //--------------------------------------------------------------
 void ofApp::setup() {
 
+  // DEBUG
+  mDebug = true;
+  std::cout << "Debuging: " << mDebug << std::endl;
+
   ofSetBackgroundAuto(false);
   ofSetFrameRate(120);
   ofBackground(0);
@@ -27,6 +31,53 @@ void ofApp::setup() {
   mRecordOnce = true;
 
   setupConnection();
+
+  std::cout << "setup knob" << std::endl;
+  mKnobAmenitie = KnobAruco::create();
+  ofFile file("gridpos.json");
+  if (file.exists()) {
+    ofJson js;
+    file >> js;
+    int i = 0;
+    cout << js << endl;
+    for (auto &gridPos : js) {
+
+      int type = gridPos[to_string(i)]["type"];
+
+      if (type == BlockType::knobStatic) {
+        float posx = gridPos[to_string(i)]["posx"];
+        float posy = gridPos[to_string(i)]["posy"];
+        mKnobAmenitie->setStaticPos(glm::vec2(posx, posy));
+        mKnobAmenitie->setStaticGridId(i);
+        MarkerAruco m;
+        m.setId(-1);
+        m.setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
+        m.setPos(glm::vec2(posx, posy));
+        m.setGridId(i);
+        m.setBlockType(BlockType::knobStatic);
+        mMarkers.push_back(m);
+        std::cout << "knob statics Id:" << i << std::endl;
+      }
+      if (type == BlockType::knobDynamic) {
+        float posx = gridPos[to_string(i)]["posx"];
+        float posy = gridPos[to_string(i)]["posy"];
+        mKnobAmenitie->setDynamicPos(glm::vec2(posx, posy));
+        mKnobAmenitie->setDynamicGridId(i);
+        MarkerAruco m;
+        m.setId(-1);
+        m.setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
+        m.setPos(glm::vec2(posx, posy));
+        m.setGridId(i);
+        m.setBlockType(BlockType::knobDynamic);
+        mMarkers.push_back(m);
+        std::cout << "knob dynamic Id:" << i << std::endl;
+      }
+
+      i++;
+    }
+  } else {
+    std::cout << "setup failed Knob" << std::endl;
+  }
 
   std::cout << "finished setup" << std::endl;
 }
@@ -239,60 +290,67 @@ void ofApp::setupCalibration() {
   vector<vector<vector<Point2f>>> allCorners;
   vector<vector<int>> allIds;
 
-  ofFile file("gridpos.json");
+  {
+    std::cout << "loading gridpos json" << std::endl;
+    ofFile file("gridpos.json");
+    if (file.exists()) {
+      ofJson js;
+      file >> js;
+      int i = 0;
+      for (auto &gridPos : js) {
+        MarkerAruco m;
+        m.setId(-1);
 
-  if (file.exists()) {
-    ofJson js;
-    file >> js;
-    int i = 0;
-    for (auto &gridPos : js) {
-      MarkerAruco m;
-      m.setId(-1);
+        int type = gridPos[to_string(i)]["type"];
 
-      float posx = gridPos[to_string(i)]["posx"];
-      float posy = gridPos[to_string(i)]["posy"];
+        if (type == BlockType::grid) {
 
-      m.setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
+          float posx = gridPos[to_string(i)]["posx"];
+          float posy = gridPos[to_string(i)]["posy"];
 
-      m.setPos(glm::vec2(posx, posy));
-      m.setGridId(i);
-      mMarkers.push_back(m);
-      i++;
-    }
-  } else {
-    // fill markers
-    // set the max region
-    float startGridX = 1280 * 0.05;
-    float startGridY = 720 * 0.05;
+          m.setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
 
-    float stepX = 50.0;
-    float stepY = 50.0;
+          m.setPos(glm::vec2(posx, posy));
+          m.setGridId(i);
+          mMarkers.push_back(m);
+        }
+        i++;
+      }
+    } else {
+      // fill markers
+      // set the max region
+      float startGridX = 1280 * 0.05;
+      float startGridY = 720 * 0.05;
 
-    float gapX = 3;
-    float gapY = 3;
+      float stepX = 50.0;
+      float stepY = 50.0;
 
-    int numW = GRID_WIDTH;
-    int numH = GRID_HEIGHT;
+      float gapX = 3;
+      float gapY = 3;
 
-    int maxMarkers = numW * numH;
-    int indeY = 0;
-    for (int i = 0; i < maxMarkers; i++) {
-      MarkerAruco m;
-      m.setId(i);
+      int numW = GRID_WIDTH;
+      int numH = GRID_HEIGHT;
 
-      int indeX = (i % numW);
+      int maxMarkers = numW * numH;
+      int indeY = 0;
+      for (int i = 0; i < maxMarkers; i++) {
+        MarkerAruco m;
+        m.setId(i);
 
-      float x = indeX * stepX + indeX * gapX + startGridX;
-      float y = indeY * stepY + indeY * gapY + startGridY;
+        int indeX = (i % numW);
 
-      m.setRectPos(glm::vec2(x - stepX / 2.0, y - stepY / 2.0),
-                   glm::vec2(stepX, stepY));
+        float x = indeX * stepX + indeX * gapX + startGridX;
+        float y = indeY * stepY + indeY * gapY + startGridY;
 
-      m.setPos(glm::vec2(x, y));
-      m.setGridId(i);
-      mMarkers.push_back(m);
-      if (indeX >= numW - 1) {
-        indeY++;
+        m.setRectPos(glm::vec2(x - stepX / 2.0, y - stepY / 2.0),
+                     glm::vec2(stepX, stepY));
+
+        m.setPos(glm::vec2(x, y));
+        m.setGridId(i);
+        mMarkers.push_back(m);
+        if (indeX >= numW - 1) {
+          indeY++;
+        }
       }
     }
   }
@@ -356,6 +414,14 @@ void ofApp::cleanDetection() {
 
           enables += "1";
           ids += to_string(mk.getId());
+
+          if (mk.getBlockType() == BlockType::knobStatic) {
+            std::string msg = "skn " + to_string(mk.getId()) + " " +
+                              to_string(mk.getPos().x) + " " +
+                              to_string(mk.getPos().y);
+            udpConnection.Send(msg.c_str(), msg.length());
+          }
+
         } else {
           mk.enableOff();
           mk.setId(-1);
@@ -494,25 +560,6 @@ void ofApp::recordGrid() {
       std::cout << centroid.size() << " markes = " << GRID_WIDTH * GRID_HEIGHT
                 << std::endl;
 
-      /*
-int i = 0;
-std::vector<int> LUTgrid;
-for (auto &mk : mMarkers) {
-glm::vec2 pos = mk.getPos();
-glm::vec2 cpos = mControid.at(i).pos;
-mk.setPos(cpos);
-
-mk.setRectPos(glm::vec2(cpos.x - 20 / 2.0, cpos.y - 20 / 2.0),
-      glm::vec2(20, 20));
-
-i++;
-}
-
-sort(mMarkers.begin(), mMarkers.end(), [](auto &lhs, auto &rhs) {
-return lhs.getPos().x < rhs.getPos().x;
-});
-*/
-
       // set ids
       mFullIds.clear();
       for (auto &mk : mMarkers) {
@@ -534,11 +581,12 @@ return lhs.getPos().x < rhs.getPos().x;
 
       sort(mFullIds.begin(), mFullIds.end());
 
-      std::cout << "ids" << std::endl;
-      for (auto &id : mFullIds) {
-        std::cout << id << std::endl;
-      }
-
+      /*
+            std::cout << "ids" << std::endl;
+            for (auto &id : mFullIds) {
+              std::cout << id << std::endl;
+            }
+      */
       std::cout << "num Uniques " << mFullIds.size() << std::endl;
 
       mRecordOnce = false;
@@ -583,7 +631,30 @@ void ofApp::draw() {
       ofDrawBitmapString(mk.getId(), pos.x - 20, pos.y - 7);
 
       ofDrawBitmapString(mk.getGridId(), pos.x - 25, pos.y - 17);
+
+      if (mk.getGridId() == mKnobAmenitie->getDynamicGridId()) {
+
+        for (auto &cen : mControid) {
+          glm::vec2 cenPos = cen.pos;
+          float dis = ofDist(cenPos.x, cenPos.y, pos.x, pos.y);
+          if (dis >= 0.0 && dis < 28) {
+            mKnobAmenitie->setDynamicPos(cen);
+            mk.setPos(cen);
+            cenPos.mMType = mKnobAmenitie.getType();
+            ofDrawBitmapString(mk.getGridId(), pos.x - 25, pos.y - 17);
+
+            {
+              std::string msg =
+                  "dkn " + to_string(cen.x) + " " + to_string(cen.y);
+              udpConnection.Send(msg.c_str(), msg.length());
+            }
+            break;
+          }
+        }
+      }
     }
+
+    mKnobAmenitie->drawArc();
   }
 
   /*
@@ -624,8 +695,10 @@ void ofApp::draw() {
       ofDrawCircle(pos.x, pos.y, 10, 10);
 
       int k = 0;
-      for (auto &cen : centroid) {
-        float dis = ofDist(cen.x, cen.y, pos.x, pos.y);
+
+      for (auto &cen : mControid) {
+        glm::vec2 cenPos = cen.pos;
+        float dis = ofDist(cenPos.x, cenPos.y, pos.x, pos.y);
         if (dis >= 0.0 && dis < 10) {
           ofSetColor(255, 0, 0);
           ofDrawCircle(pos.x, pos.y, 7, 7);
@@ -644,6 +717,8 @@ void ofApp::draw() {
 
     // std::cout << "registered: " << r << std::endl;
   }
+
+  mKnobAmenitie->draw();
 
   // record grid
   recordGrid();
@@ -694,13 +769,37 @@ void ofApp::keyPressed(int key) {
     int i = 0;
     for (auto &mk : mMarkers) {
       ofJson pt;
-      pt[to_string(i)]["posx"] = mk.getPos().x;
-      pt[to_string(i)]["posy"] = mk.getPos().y;
+      if (i < GRID_WIDTH * GRID_HEIGHT) {
+        pt[to_string(i)]["posx"] = mk.getPos().x;
+        pt[to_string(i)]["posy"] = mk.getPos().y;
+        pt[to_string(i)]["type"] = mk.getBlockType();
+        writer.push_back(pt);
+      }
+      i++;
+    }
+
+    {
+      ofJson pt;
+      pt[to_string(i)]["posx"] = mKnobAmenitie->getStaticPos().x;
+      pt[to_string(i)]["posy"] = mKnobAmenitie->getStaticPos().y;
+      pt[to_string(i)]["type"] = BlockType::knobStatic;
       writer.push_back(pt);
       i++;
     }
+
+    {
+      ofJson pt;
+      pt[to_string(i)]["posx"] = mKnobAmenitie->getDynamicPos().x;
+      pt[to_string(i)]["posy"] = mKnobAmenitie->getDynamicPos().y;
+      pt[to_string(i)]["type"] = BlockType::knobDynamic;
+      writer.push_back(pt);
+    }
     std::cout << "json write" << std::endl;
     ofSaveJson("gridpos.json", writer);
+  }
+
+  if (key == 'd') {
+    mDebug = !mDebug;
   }
 }
 
@@ -712,12 +811,34 @@ void ofApp::mouseMoved(int x, int y) {}
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button) {
-  for (auto &mk : mMarkers) {
-    glm::vec2 pos = mk.getPos();
-    float dist = ofDist(pos.x, pos.y, x, y);
-    if (dist >= 0.0 && dist <= 20) {
-      mk.setPos(glm::vec2(x, y));
+  if (mDebug) {
+    for (auto &mk : mMarkers) {
+      glm::vec2 pos = mk.getPos();
+      float dist = ofDist(pos.x, pos.y, x, y);
+      if (dist >= 0.0 && dist <= 15) {
+        mk.setPos(glm::vec2(x, y));
+      }
     }
+
+    // Physical GUI
+    {
+      glm::vec2 pos = mKnobAmenitie->getStaticPos();
+
+      float dist = ofDist(pos.x, pos.y, x, y);
+      if (dist >= 0.0 && dist <= 15) {
+        mKnobAmenitie->setStaticPos(glm::vec2(x, y));
+      }
+    }
+
+    {
+      glm::vec2 pos = mKnobAmenitie->getDynamicPos();
+
+      float dist = ofDist(pos.x, pos.y, x, y);
+      if (dist >= 0.0 && dist <= 15) {
+        mKnobAmenitie->setDynamicPos(glm::vec2(x, y));
+      }
+    }
+    //
   }
 }
 

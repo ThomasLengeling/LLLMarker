@@ -29,6 +29,9 @@ LLL
 
 #include "gui.h"
 #include "MarkerAruco.h"
+#include "KnobAruco.h"
+#include "Common.h"
+#include "Block.h"
 
 #define  GRID_WIDTH   19
 #define  GRID_HEIGHT  13
@@ -42,6 +45,7 @@ struct cvAruco{
 	glm::vec2 pos;
 	int id;
 	bool enable;
+	MarkerType mMType;
 };
 
 class ofApp : public ofBaseApp{
@@ -62,6 +66,9 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+
+		//system values
+		bool 	mDebug;
 
 		//GUI
 		ofxDatButtonRef mBDebugVideo;
@@ -113,6 +120,9 @@ class ofApp : public ofBaseApp{
 		void          	drawArucoMarkers();
 
 		int foundMarkers;
+
+		//knob
+		KnobArucoRef  mKnobAmenitie;
 
 
 
