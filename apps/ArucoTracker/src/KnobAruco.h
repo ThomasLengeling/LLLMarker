@@ -15,13 +15,13 @@ public:
         return std::make_shared<KnobAruco>();
     }
 
-    int getType(){return mBType;}
+    int getBlockType(){return mBType;}
 
-    void setStaticGridId(int id){mStaticGridId =id;}
-    void setDynamicGridId(int id){mDynamicGridId =id;}
+    void setStaticGridId(int & id){mStaticGridId =id;}
+    void setDynamicGridId(int & id){mDynamicGridId =id;}
 
-    void setStaticId(int id){mStaticId =id;}
-    void setDynamicId(int id){mDynamicId =id;}
+    void setStaticId(int & id){mStaticId =id;}
+    void setDynamicId(int & id){mDynamicId =id;}
 
     int getStaticId(){return mStaticId;}
     int getDynamicId(){return mDynamicId;}

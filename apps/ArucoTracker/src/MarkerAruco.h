@@ -62,7 +62,6 @@ public:
     void setPos(glm::vec2 mpos){mPos = mpos;}
     glm::vec2 getPos(){return mPos;}
 
-
     void enableOn(){mEnable = true;}
     void enableOff(){mEnable = false;}
 
@@ -74,16 +73,17 @@ public:
     void setBlockType(BlockType bt){mBType = bt;}
     int getBlockType(){return mBType;}
 
+
 private:
-    int       mId;
-    int       mGridId;
+    int        mId;
+    int        mGridId;
 
-    int       mOrientation;
-    glm::vec2 mPos;
-    bool      mEnable;
+    int        mOrientation;
+    glm::vec2  mPos;
+    bool       mEnable;
 
-    BlockType mBType;
+    BlockType  mBType;
 
-    float     mProb;
+    float      mProb;
 
 };

@@ -3,14 +3,14 @@
 
 
 //block types
-enum BlockType{
+enum BlockType : int{
     grid = 0,
     knobStatic = 1,
     knobDynamic = 2,
     button= 3
 };
 
-enum MarkerName{
+enum MarkerName : int{
     house_0 = 0,
     house_1 = 1,
     house_2 = 2,
@@ -25,6 +25,17 @@ public:
     MarkerType(){
         mName = "";
         setType(0);
+    }
+
+    MarkerType( const  MarkerType & obj){
+        //std::cout<<"copy mt"<<std::endl;
+        mColor = obj.mColor;
+        mName = obj.mName;
+        mType = obj.mType;
+    }
+
+    MarkerName getType(){
+        return mType;
     }
 
     void setType(int t){
@@ -50,6 +61,7 @@ public:
             break;
         }
     }
+
 
 private:
     ofColor mColor;

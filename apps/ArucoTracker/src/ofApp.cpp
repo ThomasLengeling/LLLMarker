@@ -79,6 +79,11 @@ void ofApp::setup() {
     std::cout << "setup failed Knob" << std::endl;
   }
 
+  for (auto &m : mMarkers) {
+    Block block;
+    mBlocks.push_back(block);
+  }
+
   std::cout << "finished setup" << std::endl;
 }
 
@@ -385,16 +390,16 @@ void ofApp::cleanDetection() {
       for (auto &markers : mControids) {
         for (auto &centros : markers) {
 
-          glm::vec2 pos = centros.pos;
+          glm::vec2 pos = centros.mPos;
 
           int k = 0;
           for (auto &mk : mMarkers) {
             glm::vec2 boardPos = mk.getPos();
             float dis = ofDist(pos.x, pos.y, boardPos.x, boardPos.y);
             if (dis >= 0 && dis <= 18) {
-              idsCounter[k] = centros.id;
+              idsCounter[k] = centros.mId;
               mk.incProba();
-              break;
+              // not sure i need it break;
             }
             k++;
           }
@@ -416,9 +421,13 @@ void ofApp::cleanDetection() {
           ids += to_string(mk.getId());
 
           if (mk.getBlockType() == BlockType::knobStatic) {
-            std::string msg = "skn " + to_string(mk.getId()) + " " +
-                              to_string(mk.getPos().x) + " " +
-                              to_string(mk.getPos().y);
+            std::string msg =
+                "skn " + to_string(mk.getId()) + " " +
+                to_string(
+                    static_cast<int>(mKnobAmenitie->getType().getType())) +
+                " " + to_string(mk.getPos().x) + " " + to_string(mk.getPos().y);
+
+            cout << "sent: " << msg << std::endl;
             udpConnection.Send(msg.c_str(), msg.length());
           }
 
@@ -435,6 +444,19 @@ void ofApp::cleanDetection() {
       // send udp with on or off
       udpConnection.Send(enables.c_str(), enables.length());
       udpConnection.Send(ids.c_str(), ids.length());
+
+      /// blocks
+      {
+        std::string types = "t";
+        for (auto &block : mBlocks) {
+          types += " ";
+          int t = 0;
+          t = static_cast<int>(block.mMType.getType());
+          types += to_string(t);
+        }
+        // send udp with on or off
+        udpConnection.Send(types.c_str(), types.length());
+      }
     }
 
     // done activation and disactivation
@@ -506,15 +528,15 @@ void ofApp::update() {
         }
 
         cent = cent / 4.;
-        cvAruco cva;
-        cva.pos = glm::vec2(cent.x, cent.y);
+        Block cva;
+        cva.mPos = glm::vec2(cent.x, cent.y);
         centroid.push_back(glm::vec2(cent.x, cent.y));
 
         // get ids
         if (idsDetected.total() != 0) {
           int id = idsDetected.getMat().ptr<int>(0)[i];
           tagsIds.push_back(id);
-          cva.id = id;
+          cva.mId = id;
         }
 
         mControid.push_back(cva);
@@ -556,8 +578,8 @@ void ofApp::updateGUI() {
 
 void ofApp::recordGrid() {
   if (mRecordOnce) {
-    if (centroid.size() == mMarkers.size()) {
-      std::cout << centroid.size() << " markes = " << GRID_WIDTH * GRID_HEIGHT
+    if (mControid.size() == mMarkers.size()) {
+      std::cout << mControid.size() << " markes = " << GRID_WIDTH * GRID_HEIGHT
                 << std::endl;
 
       // set ids
@@ -566,9 +588,9 @@ void ofApp::recordGrid() {
         glm::vec2 pos = mk.getPos();
         int k = 0;
         for (auto &centroDet : mControid) {
-          glm::vec2 cenPos = centroDet.pos;
+          glm::vec2 cenPos = centroDet.mPos;
           float dis = ofDist(cenPos.x, cenPos.y, pos.x, pos.y);
-          if (dis >= 0.0 && dis <= 10) {
+          if (dis >= 0.0 && dis <= 28) {
             mk.setId(tagsIds.at(k));
             mFullIds.push_back(tagsIds.at(k));
             // calculate grid positions
@@ -580,6 +602,16 @@ void ofApp::recordGrid() {
       }
 
       sort(mFullIds.begin(), mFullIds.end());
+
+      std::cout << "full " << mFullIds.size() << std::endl;
+      {
+        int i = 0;
+        for (auto &block : mBlocks) {
+          block.mId = mMarkers.at(i).getId();
+          std::cout << block.mId << " " << mMarkers.at(i).getId() << std::endl;
+          i++;
+        }
+      }
 
       /*
             std::cout << "ids" << std::endl;
@@ -617,6 +649,17 @@ void ofApp::draw() {
       vidImg.draw(0, 0, ofGetWidth(), ofGetHeight());
     }
 
+    // update block
+    for (auto &block : mBlocks) {
+      int id = block.mId;
+      // get marker Id from knob and update the block
+      if (id == mKnobAmenitie->getDynamicId()) {
+        block.mMType = mKnobAmenitie->getType();
+        std::cout << block.mId << " " << mKnobAmenitie->getType().getType()
+                  << " " << mKnobAmenitie->getDynamicGridId() << std::endl;
+      }
+    }
+
     for (auto &mk : mMarkers) {
       glm::vec2 pos = mk.getPos();
 
@@ -635,17 +678,22 @@ void ofApp::draw() {
       if (mk.getGridId() == mKnobAmenitie->getDynamicGridId()) {
 
         for (auto &cen : mControid) {
-          glm::vec2 cenPos = cen.pos;
+          glm::vec2 cenPos = cen.mPos;
           float dis = ofDist(cenPos.x, cenPos.y, pos.x, pos.y);
-          if (dis >= 0.0 && dis < 28) {
-            mKnobAmenitie->setDynamicPos(cen);
-            mk.setPos(cen);
-            cenPos.mMType = mKnobAmenitie.getType();
+          if (dis >= 0.0 && dis < 32) {
+            mKnobAmenitie->setDynamicPos(cenPos);
+            mKnobAmenitie->setDynamicId(cen.mId);
+            mk.setPos(cenPos);
+
             ofDrawBitmapString(mk.getGridId(), pos.x - 25, pos.y - 17);
 
             {
-              std::string msg =
-                  "dkn " + to_string(cen.x) + " " + to_string(cen.y);
+              std::string msg = "dkn " + to_string(cenPos.x) + " " +
+                                to_string(cenPos.y) + " " +
+                                to_string(mKnobAmenitie->getDynamicId());
+
+              std::cout << msg << std::endl;
+
               udpConnection.Send(msg.c_str(), msg.length());
             }
             break;
@@ -697,7 +745,7 @@ void ofApp::draw() {
       int k = 0;
 
       for (auto &cen : mControid) {
-        glm::vec2 cenPos = cen.pos;
+        glm::vec2 cenPos = cen.mPos;
         float dis = ofDist(cenPos.x, cenPos.y, pos.x, pos.y);
         if (dis >= 0.0 && dis < 10) {
           ofSetColor(255, 0, 0);

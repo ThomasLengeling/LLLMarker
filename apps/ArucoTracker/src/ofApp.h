@@ -41,12 +41,6 @@ LLL
 
 #define MAX_MARKERS 1000
 
-struct cvAruco{
-	glm::vec2 pos;
-	int id;
-	bool enable;
-	MarkerType mMType;
-};
 
 class ofApp : public ofBaseApp{
 
@@ -115,7 +109,7 @@ class ofApp : public ofBaseApp{
 		int 			mWindowIterMax;
 		int				mWindowCounter;
 
-		std::vector< std::vector< cvAruco > > mControids;
+		std::vector< std::vector< Block > > mControids;
 
 		void          	drawArucoMarkers();
 
@@ -140,7 +134,9 @@ class ofApp : public ofBaseApp{
 		std::vector< glm::vec2 > centroid;
 		std::vector< int > tagsIds;
 
-		std::vector< cvAruco > mControid;
+		std::vector< Block > mControid;
+
+		std::vector< Block> mBlocks;
 
 		std::vector<int> mFullIds;
 
