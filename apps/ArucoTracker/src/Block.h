@@ -2,6 +2,9 @@
 #include "ofMain.h"
 #include "Common.h"
 
+/*
+Class for each  Physical Block
+*/
 
 class Block{
 

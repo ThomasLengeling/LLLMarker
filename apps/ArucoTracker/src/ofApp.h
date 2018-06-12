@@ -100,11 +100,14 @@ class ofApp : public ofBaseApp{
 		std::vector< MarkerAruco > mMarkers;
 		bool		    mVideoMarkers;
 
+		void 			setupGridPos();
+
 		void 			updateGrid();
 		void 			recordGrid();
 		bool			mRecordOnce;
 
 		//clean Detection
+		void            setupCleaner();
 		void 			cleanDetection();
 		int 			mWindowIterMax;
 		int				mWindowCounter;
@@ -117,6 +120,7 @@ class ofApp : public ofBaseApp{
 
 		//knob
 		KnobArucoRef  mKnobAmenitie;
+		void          setupKnob();
 
 
 
