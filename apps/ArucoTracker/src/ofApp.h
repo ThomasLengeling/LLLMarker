@@ -1,10 +1,21 @@
+/*
+
+Thomas Sanchez Lengeling
+May, 2018
+
+LLL
+*/
+
 #pragma once
 
 #include "ofMain.h"
+#include "ofxNetwork.h"
 
 #include <ctime>
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <map>
 
 #include <opencv2/aruco.hpp>
 #include <opencv2/calib3d.hpp>
@@ -15,12 +26,21 @@
 #include "ofxCv.h"
 #include "ofxOpenCv.h"
 #include "ofxDatGui.h"
-#include "gui.h"
 
+#include "gui.h"
 #include "MarkerAruco.h"
+#include "KnobAruco.h"
+#include "Common.h"
+#include "Block.h"
 
 #define  GRID_WIDTH   19
 #define  GRID_HEIGHT  13
+
+#define CAM_WIDTH  1920
+#define CAM_HEIGHT 1080
+
+#define MAX_MARKERS 1000
+
 
 class ofApp : public ofBaseApp{
 
@@ -40,6 +60,9 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+
+		//system values
+		bool 	mDebug;
 
 		//GUI
 		ofxDatButtonRef mBDebugVideo;
@@ -78,13 +101,28 @@ class ofApp : public ofBaseApp{
 		bool		    mVideoMarkers;
 
 		void 			updateGrid();
+		void 			recordGrid();
+		bool			mRecordOnce;
+
+		//clean Detection
+		void 			cleanDetection();
+		int 			mWindowIterMax;
+		int				mWindowCounter;
+
+		std::vector< std::vector< Block > > mControids;
+
+		void          	drawArucoMarkers();
 
 		int foundMarkers;
+
+		//knob
+		KnobArucoRef  mKnobAmenitie;
 
 
 
 		//Video grabber
 		ofVideoGrabber 		vidGrabber;
+		ofFbo				mFlipFbo;
 
 		ofImage				vidImg;
 		cv::Mat				vidMat;
@@ -95,9 +133,23 @@ class ofApp : public ofBaseApp{
 
 		std::vector< glm::vec2 > centroid;
 		std::vector< int > tagsIds;
+
+		std::vector< Block > mControid;
+
+		std::vector< Block> mBlocks;
+
+		std::vector<int> mFullIds;
+
+
+
 		//aruco
+		cv::Ptr<cv::aruco::Board> board;
 		cv::VideoCapture inputVideo;
 		cv::Ptr<cv::aruco::Dictionary> dictionary;
 		cv::Ptr<cv::aruco::DetectorParameters> detectorParams;
+
+		//send commands
+		ofxUDPManager udpConnection;
+		void setupConnection();
 
 };

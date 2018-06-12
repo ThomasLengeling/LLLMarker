@@ -1,5 +1,13 @@
 #pragma once
 
+/*
+
+Thomas Sanchez Lengeling
+May, 2018
+
+LLL
+*/
+
 #include "ofMain.h"
 #include "ofxDatGui.h"
 
@@ -12,7 +20,7 @@ typedef std::shared_ptr<ofxDatButton> ofxDatButtonRef;
 
 class ofxDatButton {
 public:
-    ofxDatButton() {}
+    ofxDatButton() {mActive = false;}
     static ofxDatButtonRef create() {
         return std::make_shared<ofxDatButton>();
     }
