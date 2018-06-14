@@ -15,15 +15,59 @@ void receive( byte[] data, String ip, int port ) {  // <-- extended handler
 
   // get the "real" message =
   // forget the ";\n" at the end <-- !!! only for a communication with Pd !!!
-  data = subset(data, 0, data.length-2);
+  data = subset(data, 0, data.length-1);
   String message = new String( data );
+
+  // read the header
+  {
+    String[] splitH = splitTokens(message, " \n");
+    if (splitH[0].equals("header")) {
+      println("got header");
+      int i =0;
+     
+      for ( String header : splitH) {
+        if (header.equals("ncols")) {
+          println("ncosls "+splitH[i+1]);
+        }
+        if (header.equals("nrows")) {
+          println("nrows "+splitH[i+1]);
+        }
+        if(header.equals("cellsize")){
+            println("cell "+splitH[i+1]);
+        }
+        i++;
+      }
+    }
+  }
+  
+   // read the types
+  {
+    String[] splitT = message.split(" ");
+    int i =0;
+    if (splitT[0].equals("type")) {
+      // println("got types");
+      for ( String type : splitT) {
+        if ((type).equals("type")) {
+          continue;
+        } else {
+          if ( i < gridHeight * gridWidht) {
+            MarkerType mt = new MarkerType();
+            mt.setType(int(type));
+            markerManager.updateTypeMarker(i, mt);
+          }
+          i++;
+        }
+      }
+    }
+  }
+
 
   //enables
   {
     String[] splitE = message.split(" ");
     int i =0;
     if (splitE[0].equals("e")) {
-      println("got enables");
+      //println("got enables");
       for ( String enables : splitE) {
         if (enables.equals("e")) {
           continue;
@@ -42,7 +86,7 @@ void receive( byte[] data, String ip, int port ) {  // <-- extended handler
     String[] splitI = message.split(" ");
     int i =0;
     if (splitI[0].equals("i")) {
-      println("got ids");
+      //println("got ids");
       for ( String ids : splitI) {
         if (ids.equals("i")) {
           continue;
@@ -57,26 +101,6 @@ void receive( byte[] data, String ip, int port ) {  // <-- extended handler
   }
 
 
-  //types
-  {
-    String[] splitT = message.split(" ");
-    int i =0;
-    if (splitT[0].equals("t")) {
-      println("got types");
-      for ( String type : splitT) {
-        if ((type).equals("t")) {
-          continue;
-        } else {
-          if ( i < gridHeight * gridWidht) {
-            MarkerType mt = new MarkerType();
-            mt.setType(int(type));
-            markerManager.updateTypeMarker(i, mt);
-          }
-          i++;
-        }
-      }
-    }
-  }
 
 
   {
@@ -93,7 +117,7 @@ void receive( byte[] data, String ip, int port ) {  // <-- extended handler
         int idStatic = int(splitT[1]);
         mKnob.setCenterPos(map(float(splitT[3]), 0, 1920, width, 0) +30, map(float(splitT[4]), 0, 1080, 0, height));
         mKnob.type.setType(int(splitT[2]));
-        println("id :"+ idStatic +" "+int(splitT[2]));
+        //println("id :"+ idStatic +" "+int(splitT[2]));
       }
     }
   }
