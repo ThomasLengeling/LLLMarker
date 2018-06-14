@@ -190,7 +190,7 @@ void ofApp::cleanDetection() {
       }
 
       ofFile mTypeFile;
-      mTypeFile.open("ids.ecs", ofFile::WriteOnly);
+      mTypeFile.open("ids.acs", ofFile::WriteOnly);
       mTypeFile << mUDPHeader << fileIds;
 
       // send udp with on or off
