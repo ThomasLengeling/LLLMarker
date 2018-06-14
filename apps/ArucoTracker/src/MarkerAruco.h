@@ -47,6 +47,7 @@ public:
         mGridId = -1;
         mId = -1;
         mBType = BlockType::grid;
+        mIdType = std::make_pair(-1, 0);
     }
 
     static MarkerArucoRef create(){
@@ -73,6 +74,11 @@ public:
     void setBlockType(BlockType bt){mBType = bt;}
     int getBlockType(){return mBType;}
 
+    void makePairIdType(int id, int type);
+    void updateType(int type);
+    void updateId(int id);
+    std::pair<int, int> getIdTypePair();
+
 
 private:
     int        mId;
@@ -84,6 +90,11 @@ private:
 
     BlockType  mBType;
 
+    MarkerType mCurrentType;
+
     float      mProb;
+
+    //id correponds the type
+    std::pair<int, int> mIdType;
 
 };

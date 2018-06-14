@@ -6,15 +6,20 @@ void ofApp::setupConnection() {
     settings.blocking = false;
     udpConnection.Setup(settings);
 
-    string message = "connected to Aruco Detector";
-    udpConnection.Send(message.c_str(), message.length());
+    if(mDebug){
+        string message = "connected to Aruco Detector";
+        udpConnection.Send(message.c_str(), message.length());
+    }
 }
 //-----------------------------------------------------------------------------
 void ofApp::setupBlocks(){
-    for (auto &m : mMarkers) {
+    for(int i = 0; i < MAX_MARKERS; i++){
       Block block;
+      block.mIdType.first = i;
       mBlocks.push_back(block);
     }
+
+    mTypeFile.open("types.txt", ofFile::WriteOnly);
 }
 //-----------------------------------------------------------------------------
 void ofApp::setupGridPos(){
@@ -238,7 +243,7 @@ void ofApp::setupCalibration() {
   float markerLength = 0.0162;     // 0.0165
   float markerSeparation = 0.0042; // 0045
   int dictionaryId = 11;
-  string outputFile = "./cal.txt";
+  std::string outputFile = "./cal.txt";
 
   int calibrationFlags = 0;
   float aspectRatio = 1;
@@ -255,7 +260,7 @@ void ofApp::setupCalibration() {
     calibrationFlags |= CALIB_FIX_PRINCIPAL_POINT;
     */
 
-  detectorParams = aruco::DetectorParameters::create();
+  detectorParams = cv::aruco::DetectorParameters::create();
 
   // detectorParams->adaptiveThreshWinSizeMin = 5;
   // detectorParams->adaptiveThreshWinSizeMax = 50;
@@ -271,7 +276,6 @@ void ofApp::setupCalibration() {
 
   bool refindStrategy = false;
   int camId = 0;
-  String video;
 
   vidGrabber.setDeviceID(0);
   vidGrabber.setDesiredFrameRate(60);
@@ -286,17 +290,17 @@ void ofApp::setupCalibration() {
 
   std::cout << "loading input video" << std::endl;
 
-  dictionary = aruco::getPredefinedDictionary(
-      aruco::PREDEFINED_DICTIONARY_NAME(dictionaryId));
+  dictionary = cv::aruco::getPredefinedDictionary(
+      cv::aruco::PREDEFINED_DICTIONARY_NAME(dictionaryId));
 
   // create board object
-  Ptr<aruco::GridBoard> gridboard = aruco::GridBoard::create(
+  cv::Ptr<cv::aruco::GridBoard> gridboard = cv::aruco::GridBoard::create(
       markersX, markersY, markerLength, markerSeparation, dictionary);
-  board = gridboard.staticCast<aruco::Board>();
+  board = gridboard.staticCast<cv::aruco::Board>();
 
   // collected frames for calibration
-  vector<vector<vector<Point2f>>> allCorners;
-  vector<vector<int>> allIds;
+  std::vector<std::vector<std::vector<cv::Point2f>>> allCorners;
+  std::vector<std::vector<int>> allIds;
 
 
 }

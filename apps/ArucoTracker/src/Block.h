@@ -14,6 +14,7 @@ public:
         mPos = glm::vec2(0, 0);
         mId = -1;
         mEnable = false;
+        mIdType = std::make_pair(mId, 0);
     }
 
 
@@ -21,6 +22,8 @@ public:
     int mId;
     bool mEnable;
     MarkerType mMType;
+
+    std::pair<int, int> mIdType;
 
 private:
 

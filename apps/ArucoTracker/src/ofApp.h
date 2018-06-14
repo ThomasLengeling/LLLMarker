@@ -122,6 +122,9 @@ class ofApp : public ofBaseApp{
 		KnobArucoRef  mKnobAmenitie;
 		void          setupKnob();
 
+		//blocks
+		void          setupBlocks();
+
 
 
 		//Video grabber
@@ -140,11 +143,9 @@ class ofApp : public ofBaseApp{
 
 		std::vector< Block > mControid;
 
-		std::vector< Block> mBlocks;
+		std::vector< Block>  mBlocks;
 
 		std::vector<int> mFullIds;
-
-
 
 		//aruco
 		cv::Ptr<cv::aruco::Board> board;
@@ -152,8 +153,13 @@ class ofApp : public ofBaseApp{
 		cv::Ptr<cv::aruco::Dictionary> dictionary;
 		cv::Ptr<cv::aruco::DetectorParameters> detectorParams;
 
+		int mMinFoundId;
+		int mMaxFoundId;
+
 		//send commands
 		ofxUDPManager udpConnection;
 		void setupConnection();
+		std::string mUDPHeader;
+		ofFile mTypeFile;
 
 };

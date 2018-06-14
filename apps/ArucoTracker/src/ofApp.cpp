@@ -11,6 +11,9 @@ void ofApp::setup() {
   mDebug = true;
   ofLog(OF_LOG_NOTICE) << "Debuging: " << mDebug << std::endl;
 
+  mMinFoundId = 100;
+  mMaxFoundId = 0;
+
   ofSetBackgroundAuto(false);
   ofSetFrameRate(120);
   ofBackground(0);
@@ -30,6 +33,18 @@ void ofApp::setup() {
   setupBlocks();
 
   ofLog(OF_LOG_NOTICE) << "finished setup" << std::endl;
+
+  mUDPHeader += "header \n";
+  mUDPHeader += "ncols " + to_string(GRID_WIDTH) + " \n";
+  mUDPHeader += "nrows " + to_string(GRID_HEIGHT) + " \n";
+  mUDPHeader += "xllcorner " + to_string(0) + " \n";
+  mUDPHeader += "yllcorner " + to_string(0) + " \n";
+  mUDPHeader += "cellsize " + to_string(1) + " \n";
+  mUDPHeader += "NODATA_value " + to_string(-1) + " \n";
+
+  ofLog(OF_LOG_NOTICE) << "Header :" << mUDPHeader << std::endl;
+
+  udpConnection.Send(mUDPHeader.c_str(), mUDPHeader.length());
 }
 
 void ofApp::updateGrid() {
@@ -111,6 +126,7 @@ void ofApp::cleanDetection() {
         }
       }
 
+      // send upd data and activations;
       int i = 0;
       std::string enables = "e";
       std::string ids = "i";
@@ -121,13 +137,21 @@ void ofApp::cleanDetection() {
         if (proba >= 0.2) {
           mk.enableOn();
           mk.setId(idsCounter[i]);
+          mk.updateId(idsCounter[i]);
 
           enables += "1";
-          ids += to_string(mk.getId());
+          ids += to_string(mk.getIdTypePair().first);
+
+          // find id and update it;
+          for (auto &blocks : mBlocks) {
+            if (blocks.mIdType.first == mk.getIdTypePair().first) {
+              mk.updateType(blocks.mIdType.second);
+            }
+          }
 
           if (mk.getBlockType() == BlockType::knobStatic) {
             std::string msg =
-                "skn " + to_string(mk.getId()) + " " +
+                "skn " + to_string(mk.getIdTypePair().first) + " " +
                 to_string(
                     static_cast<int>(mKnobAmenitie->getType().getType())) +
                 " " + to_string(mk.getPos().x) + " " + to_string(mk.getPos().y);
@@ -152,21 +176,28 @@ void ofApp::cleanDetection() {
 
       /// blocks
       {
-        std::string types = "t";
-        for (auto &block : mBlocks) {
-          types += " ";
+        std::string types = "type \n";
+        for (auto &mk : mMarkers) {
           int t = 0;
-          t = static_cast<int>(block.mMType.getType());
+          t = static_cast<int>(mk.getIdTypePair().second);
           types += to_string(t);
+          types += " ";
         }
         // send udp with on or off
         udpConnection.Send(types.c_str(), types.length());
+        ofFile mTypeFile;
+        mTypeFile.open("types.txt", ofFile::WriteOnly);
+        mTypeFile << mUDPHeader << types;
       }
     }
 
     // done activation and disactivation
 
     mControids.clear();
+    /// mMinFoundId = 100;
+    // mMaxFoundId = 0;
+
+    std::cout << "min " << mMinFoundId << " max " << mMaxFoundId << std::endl;
   }
   mWindowCounter++;
 }
@@ -221,6 +252,13 @@ void ofApp::update() {
           int id = idsDetected.getMat().ptr<int>(0)[i];
           tagsIds.push_back(id);
           cva.mId = id;
+
+          if (mMinFoundId > id) {
+            mMinFoundId = id;
+          }
+          if (mMaxFoundId < id) {
+            mMaxFoundId = id;
+          }
         }
 
         mControid.push_back(cva);
@@ -243,22 +281,6 @@ void ofApp::update() {
 }
 //--------------------------------------------------------------
 void ofApp::drawArucoMarkers() {}
-
-//--------------------------------------------------------------
-void ofApp::updateGUI() {
-  mBDebugVideo->button->update();
-  mBShowGrid->button->update();
-  mBCalibrateVideo->button->update();
-
-  mGridSpaceX->slider->update();
-  mGridSpaceY->slider->update();
-
-  mGridStartX->slider->update();
-  mGridStartY->slider->update();
-
-  mGridGapX->slider->update();
-  mGridGapY->slider->update();
-}
 
 void ofApp::recordGrid() {
   if (mRecordOnce) {
@@ -291,9 +313,15 @@ void ofApp::recordGrid() {
       {
         int i = 0;
         for (auto &block : mBlocks) {
-          block.mId = mMarkers.at(i).getId();
-          std::cout << block.mId << " " << mMarkers.at(i).getId() << std::endl;
-          i++;
+          for (auto &marker : mMarkers) {
+            if (block.mIdType.first == marker.getIdTypePair().first) {
+              block.mIdType.first = marker.getIdTypePair().first;
+              std::cout << block.mIdType.first << " "
+                        << marker.getIdTypePair().first << std::endl;
+              break;
+            }
+            i++;
+          }
         }
       }
 
@@ -328,13 +356,45 @@ void ofApp::draw() {
     }
 
     // update block
+
+    {
+      int type = 0;
+      for (auto &block : mBlocks) {
+        int id = block.mIdType.first;
+        // get marker Id from knob and update the block
+        if (id == mKnobAmenitie->getDynamicId()) {
+          block.mIdType.second = mKnobAmenitie->getType().getType();
+          type = block.mIdType.second;
+          std::cout << "changed id: " << block.mIdType.first << " "
+                    << mKnobAmenitie->getType().getType() << " "
+                    << mKnobAmenitie->getDynamicGridId() << std::endl;
+
+          // 149
+        }
+      }
+    }
+
+    // update block to the grid
     for (auto &block : mBlocks) {
-      int id = block.mId;
-      // get marker Id from knob and update the block
-      if (id == mKnobAmenitie->getDynamicId()) {
-        block.mMType = mKnobAmenitie->getType();
-        std::cout << block.mId << " " << mKnobAmenitie->getType().getType()
-                  << " " << mKnobAmenitie->getDynamicGridId() << std::endl;
+      int id = block.mIdType.first;
+
+      int roadsId[] = {207, 257, 39,  154, 135, 79,  149, 174, 120, 176, 43,
+                       250, 52,  119, 156, 29,  81,  168, 61,  152, 190, 189,
+                       150, 187, 167, 185, 247, 227, 181, 124, 85,  179, 140,
+                       206, 222, 232, 97,  219, 218, 217, 216, 215, 214, 212,
+                       40,  213, 255, 101, 36,  49,  26,  89,  164, 228, 246,
+                       183, 245, 201, 215, 261, 95};
+      for (int i = 0; i < sizeof(roadsId) / sizeof(roadsId[0]); i++) {
+        if (id == roadsId[i]) {
+          block.mIdType.second = mKnobAmenitie->getType().getType();
+        }
+      }
+
+      for (auto &mk : mMarkers) {
+        if (mk.getIdTypePair().first == id) {
+          mk.updateType(block.mIdType.second);
+          break;
+        }
       }
     }
 
@@ -379,50 +439,12 @@ void ofApp::draw() {
         }
       }
     }
-
-    mKnobAmenitie->drawArc();
   }
 
   if (mBShowGrid->mActive) {
-    ofSetColor(0, 200, 200);
-    for (int i = 0; i < centroid.size(); i++) {
-      ofDrawCircle(centroid.at(i).x, centroid.at(i).y, 5, 5);
-      ofDrawBitmapString(i, centroid.at(i).x, centroid.at(i).y);
-      ofDrawBitmapString(tagsIds.at(i), centroid.at(i).x - 7,
-                         centroid.at(i).y - 7);
-    }
-
-    int r = 0;
-    for (auto &mk : mMarkers) {
-      glm::vec2 pos = mk.getPos();
-
-      ofSetColor(50, 100, 220);
-      ofDrawCircle(pos.x, pos.y, 10, 10);
-
-      int k = 0;
-
-      for (auto &cen : mControid) {
-        glm::vec2 cenPos = cen.mPos;
-        float dis = ofDist(cenPos.x, cenPos.y, pos.x, pos.y);
-        if (dis >= 0.0 && dis < 10) {
-          ofSetColor(255, 0, 0);
-          ofDrawCircle(pos.x, pos.y, 7, 7);
-          mk.setId(tagsIds.at(k));
-          r++;
-          break;
-        }
-        k++;
-      }
-
-      ofSetColor(255);
-      ofDrawBitmapString(mk.getId(), pos.x - 20, pos.y - 7);
-
-      mk.drawRect();
-    }
-
-    // std::cout << "registered: " << r << std::endl;
   }
 
+  mKnobAmenitie->drawArc();
   mKnobAmenitie->draw();
 
   // record grid
@@ -437,6 +459,22 @@ void ofApp::draw() {
   ofSetColor(255);
   ofDrawBitmapString(foundMarkers, ofGetWidth() - 100, 20);
   ofDrawBitmapString(ofGetFrameRate(), ofGetWidth() - 100, 40);
+}
+
+//--------------------------------------------------------------
+void ofApp::updateGUI() {
+  mBDebugVideo->button->update();
+  mBShowGrid->button->update();
+  mBCalibrateVideo->button->update();
+
+  mGridSpaceX->slider->update();
+  mGridSpaceY->slider->update();
+
+  mGridStartX->slider->update();
+  mGridStartY->slider->update();
+
+  mGridGapX->slider->update();
+  mGridGapY->slider->update();
 }
 
 //--------------------------------------------------------------
@@ -504,6 +542,9 @@ void ofApp::keyPressed(int key) {
 
   if (key == 'd') {
     mDebug = !mDebug;
+  }
+  if (key == '9') {
+    udpConnection.Send(mUDPHeader.c_str(), mUDPHeader.length());
   }
 }
 
