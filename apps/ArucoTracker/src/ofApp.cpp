@@ -34,8 +34,8 @@ void ofApp::setup() {
 
   ofLog(OF_LOG_NOTICE) << "finished setup" << std::endl;
 
-  mUDPHeader += "header \n";
-  mUDPHeader += "ncols " + to_string(GRID_WIDTH) + " \n";
+  // mUDPHeader += "header \n";
+  mUDPHeader = "ncols " + to_string(GRID_WIDTH) + " \n";
   mUDPHeader += "nrows " + to_string(GRID_HEIGHT) + " \n";
   mUDPHeader += "xllcorner " + to_string(0) + " \n";
   mUDPHeader += "yllcorner " + to_string(0) + " \n";
@@ -128,8 +128,10 @@ void ofApp::cleanDetection() {
 
       // send upd data and activations;
       int i = 0;
+      int j = 0;
       std::string enables = "e";
       std::string ids = "i";
+      std::string fileIds = "";
       for (auto &mk : mMarkers) {
         float proba = mk.getProba(mWindowIterMax);
         enables += " ";
@@ -141,6 +143,11 @@ void ofApp::cleanDetection() {
 
           enables += "1";
           ids += to_string(mk.getIdTypePair().first);
+
+          if (i < GRID_HEIGHT * GRID_WIDTH) {
+            fileIds += to_string(mk.getIdTypePair().first);
+            fileIds += " ";
+          }
 
           // find id and update it;
           for (auto &blocks : mBlocks) {
@@ -166,9 +173,25 @@ void ofApp::cleanDetection() {
 
           enables += "-1";
           ids += "-1";
+
+          if (i < GRID_HEIGHT * GRID_WIDTH) {
+            fileIds += "-1";
+            fileIds += " ";
+          }
         }
+
+        j++;
+        if (j >= GRID_WIDTH) {
+          j = 0;
+          fileIds += "\n";
+        }
+
         i++;
       }
+
+      ofFile mTypeFile;
+      mTypeFile.open("ids.ecs", ofFile::WriteOnly);
+      mTypeFile << mUDPHeader << fileIds;
 
       // send udp with on or off
       udpConnection.Send(enables.c_str(), enables.length());
@@ -184,10 +207,7 @@ void ofApp::cleanDetection() {
           types += " ";
         }
         // send udp with on or off
-        udpConnection.Send(types.c_str(), types.length());
-        ofFile mTypeFile;
-        mTypeFile.open("types.txt", ofFile::WriteOnly);
-        mTypeFile << mUDPHeader << types;
+        udpConnection.Send(ids.c_str(), ids.length());
       }
     }
 
