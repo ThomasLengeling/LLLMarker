@@ -32,6 +32,7 @@ LLL
 #include "KnobAruco.h"
 #include "Common.h"
 #include "Block.h"
+#include "Detector.h"
 
 #define  GRID_WIDTH   19
 #define  GRID_HEIGHT  13
@@ -40,6 +41,8 @@ LLL
 #define CAM_HEIGHT 1080
 
 #define MAX_MARKERS 1000
+
+#define RAD_DETECTION 53
 
 
 class ofApp : public ofBaseApp{
@@ -129,7 +132,7 @@ class ofApp : public ofBaseApp{
 
 		//Video grabber
 		ofVideoGrabber 		vidGrabber;
-		ofFbo				mFlipFbo;
+		ofVideoPlayer 		gridMovie;
 
 		ofImage				vidImg;
 		cv::Mat				vidMat;
@@ -161,5 +164,7 @@ class ofApp : public ofBaseApp{
 		void setupConnection();
 		std::string mUDPHeader;
 		ofFile mTypeFile;
+
+		bool mVideoCapture;
 
 };

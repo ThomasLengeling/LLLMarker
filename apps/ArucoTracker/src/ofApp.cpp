@@ -116,7 +116,7 @@ void ofApp::cleanDetection() {
           for (auto &mk : mMarkers) {
             glm::vec2 boardPos = mk.getPos();
             float dis = ofDist(pos.x, pos.y, boardPos.x, boardPos.y);
-            if (dis >= 0 && dis <= 18) {
+            if (dis >= 0 && dis <= RAD_DETECTION) {
               idsCounter[k] = centros.mId;
               mk.incProba();
               // not sure i need it break;
@@ -136,7 +136,7 @@ void ofApp::cleanDetection() {
         float proba = mk.getProba(mWindowIterMax);
         enables += " ";
         ids += " ";
-        if (proba >= 0.2) {
+        if (proba >= 0.15) {
           mk.enableOn();
           mk.setId(idsCounter[i]);
           mk.updateId(idsCounter[i]);
@@ -225,11 +225,19 @@ void ofApp::cleanDetection() {
 //--------------------------------------------------------------
 void ofApp::update() {
 
-  vidGrabber.update();
+  bool newFrame = false;
+  ofPixels pixels;
+  if (mVideoCapture) {
+    vidGrabber.update();
+    newFrame = vidGrabber.isFrameNew();
+    pixels = vidGrabber.getPixels();
+  } else {
+    gridMovie.update();
+    newFrame = gridMovie.isFrameNew();
+    pixels = gridMovie.getPixels();
+  }
 
-  if (vidGrabber.isFrameNew()) {
-
-    ofPixels pixels = vidGrabber.getPixels();
+  if (newFrame) {
     pixels.rotate90(2);
     Mat imageCopy = ofxCv::toCv(pixels);
 
@@ -316,7 +324,7 @@ void ofApp::recordGrid() {
         for (auto &centroDet : mControid) {
           glm::vec2 cenPos = centroDet.mPos;
           float dis = ofDist(cenPos.x, cenPos.y, pos.x, pos.y);
-          if (dis >= 0.0 && dis <= 28) {
+          if (dis >= 0.0 && dis <= RAD_DETECTION) {
             mk.setId(tagsIds.at(k));
             mFullIds.push_back(tagsIds.at(k));
             // calculate grid positions
@@ -438,7 +446,7 @@ void ofApp::draw() {
         for (auto &cen : mControid) {
           glm::vec2 cenPos = cen.mPos;
           float dis = ofDist(cenPos.x, cenPos.y, pos.x, pos.y);
-          if (dis >= 0.0 && dis < 32) {
+          if (dis >= 0.0 && dis < RAD_DETECTION) {
             mKnobAmenitie->setDynamicPos(cenPos);
             mKnobAmenitie->setDynamicId(cen.mId);
             mk.setPos(cenPos);
@@ -560,6 +568,9 @@ void ofApp::keyPressed(int key) {
     ofSaveJson("gridpos.json", writer);
   }
 
+  if (key == 'v') {
+    mVideoCapture = !mVideoCapture;
+  }
   if (key == 'd') {
     mDebug = !mDebug;
   }

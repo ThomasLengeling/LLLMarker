@@ -19,7 +19,7 @@ void ofApp::setupBlocks(){
       mBlocks.push_back(block);
     }
 
-    mTypeFile.open("types.txt", ofFile::WriteOnly);
+
 }
 //-----------------------------------------------------------------------------
 void ofApp::setupGridPos(){
@@ -277,9 +277,16 @@ void ofApp::setupCalibration() {
   bool refindStrategy = false;
   int camId = 0;
 
-  vidGrabber.setDeviceID(0);
-  vidGrabber.setDesiredFrameRate(60);
-  vidGrabber.initGrabber(CAM_WIDTH, CAM_HEIGHT);
+mVideoCapture = 0;
+
+      vidGrabber.setDeviceID(0);
+      vidGrabber.setDesiredFrameRate(60);
+      vidGrabber.initGrabber(CAM_WIDTH, CAM_HEIGHT);
+
+      gridMovie.load("grid_02.mov");
+      gridMovie.setLoopState(OF_LOOP_NORMAL);
+      gridMovie.play();
+
 
   vidImg.allocate(CAM_WIDTH, CAM_HEIGHT, OF_IMAGE_COLOR);
 
