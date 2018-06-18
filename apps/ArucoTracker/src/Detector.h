@@ -36,17 +36,26 @@ public:
 
     void setupCalibration(int markersX, int markersY);
 
-    cv::Mat detectMarkers(cv::Mat inputVideo);
+    void detectMarkers(cv::Mat & inputVideo);
 
     void resetMinMax();
 
     std::vector<int> getTagIds(){return mTagsIds;}
     int getNumMarkers(){return mNumFoundMarkers;}
-    
-    std::vector< Block > getBoard(){return mCentroid;}
-    std::vector< std::vector< Block > >  getBoards(){return mCentroids;}
 
-    void clearBlocks(){mCentroids.clear();}
+    std::vector< BlockRef > getBoard(){return mBlock;}
+
+    cv::Mat getMatImg(){return mVidMat;}
+    ofImage getOfImg(){return mVidImg;}
+
+    int getMinId(){return mMinFoundId;}
+    int getMaxId(){return mMaxFoundId;}
+
+    bool readDetectorParameters(std::string filename, cv::Ptr< cv::aruco::DetectorParameters> & params);
+    bool saveCameraParams(const std::string &filename, cv::Size imageSize,
+                         float aspectRatio, int flags,
+                         const cv::Mat & cameraMatrix, const cv::Mat & distCoeffs,
+                         double totalAvgErr);
 
 private:
 
@@ -55,14 +64,17 @@ private:
     cv::Ptr<cv::aruco::Dictionary> dictionary;
     cv::Ptr<cv::aruco::DetectorParameters> detectorParams;
 
-    std::vector< std::vector< Block > > mCentroids;
-    std::vector< Block >                mCentroid;
+    std::vector< BlockRef >                mBlock;
 
-    std::vector< int > mTagsIds;
+    std::vector< int >                  mTagsIds;
 
     int mMinFoundId;
     int mMaxFoundId;
 
     int mNumFoundMarkers;
+
+    //video output in two formats
+    cv::Mat mVidMat;
+    ofImage mVidImg;
 
 };

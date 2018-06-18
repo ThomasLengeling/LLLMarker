@@ -91,16 +91,10 @@ class ofApp : public ofBaseApp{
 		//Calibrate
 		void setupCalibration();
 
-		bool readDetectorParameters(std::string filename, cv::Ptr< cv::aruco::DetectorParameters> & params);
-		bool saveCameraParams(const std::string &filename, cv::Size imageSize,
-                             float aspectRatio, int flags,
-                             const cv::Mat & cameraMatrix, const cv::Mat & distCoeffs,
-                             double totalAvgErr);
-
-
+		void setupDetection();
 
 		//check if found marker
-		std::vector< MarkerAruco > mMarkers;
+		std::vector< MarkerArucoRef > mMarkers;
 		bool		    mVideoMarkers;
 
 		void 			setupGridPos();
@@ -115,7 +109,7 @@ class ofApp : public ofBaseApp{
 		int 			mWindowIterMax;
 		int				mWindowCounter;
 
-		std::vector< std::vector< Block > > mControids;
+
 
 		void          	drawArucoMarkers();
 
@@ -133,38 +127,32 @@ class ofApp : public ofBaseApp{
 		//Video grabber
 		ofVideoGrabber 		vidGrabber;
 		ofVideoPlayer 		gridMovie;
+		bool 				mVideoCapture;
+		void 				setupVideo();
+
+
+		//aruco etector
+		DetectorRef 	    mArucoDetector;
 
 		ofImage				vidImg;
 		cv::Mat				vidMat;
 
-		std::vector<int> 	ids;
-		std::vector< std::vector<cv::Point2f> > corners;
-		std::vector< std::vector<cv::Point2f> > rejected;
 
-		std::vector< glm::vec2 > centroid;
-		std::vector< int > tagsIds;
+		std::vector< BlockRef >				 	mCurrBlock;
+		std::vector< std::vector< BlockRef > > 	mTmpBlocks;
 
-		std::vector< Block > mControid;
-
-		std::vector< Block>  mBlocks;
-
-		std::vector<int> mFullIds;
-
-		//aruco
-		cv::Ptr<cv::aruco::Board> board;
-		cv::VideoCapture inputVideo;
-		cv::Ptr<cv::aruco::Dictionary> dictionary;
-		cv::Ptr<cv::aruco::DetectorParameters> detectorParams;
-
-		int mMinFoundId;
-		int mMaxFoundId;
+		std::vector< BlockRef >  mBlocks;
+		std::vector< int > 	 	 tagsIds;
+		std::vector< int > 	 	 mFullIds;
 
 		//send commands
-		ofxUDPManager udpConnection;
+		ofxUDPManager 	udpConnection;
+		std::string 	mUDPHeader;
+		ofFile 			mTypeFile;
 		void setupConnection();
-		std::string mUDPHeader;
-		ofFile mTypeFile;
+		void setupERICS();
 
-		bool mVideoCapture;
+		//save JSON file
+		void saveJSONBlocks();
 
 };

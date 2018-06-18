@@ -48,16 +48,14 @@ void Detector::setupCalibration(int markersX, int markersY) {
 }
 
 //---------------------------------------------------------------------------
-cv::Mat Detector::detectMarkers(cv::Mat inputVideo) {
-
-  cv::Mat vidMat;
+void Detector::detectMarkers(cv::Mat &inputVideo) {
   // detect markers
   std::vector<int> arucoIds;
   std::vector<std::vector<cv::Point2f>> corners;
   std::vector<std::vector<cv::Point2f>> rejected;
 
   mTagsIds.clear();
-  mCentroid.clear();
+  mBlock.clear();
 
   aruco::detectMarkers(inputVideo, dictionary, corners, arucoIds,
                        detectorParams);
@@ -82,14 +80,14 @@ cv::Mat Detector::detectMarkers(cv::Mat inputVideo) {
       }
 
       cent = cent / 4.;
-      Block cva;
-      cva.mPos = glm::vec2(cent.x, cent.y);
+      BlockRef cva = Block::create();
+      cva->setPos(glm::vec2(cent.x, cent.y));
 
       // get ids
       if (idsDetected.total() != 0) {
         int id = idsDetected.getMat().ptr<int>(0)[i];
         mTagsIds.push_back(id);
-        cva.mId = id;
+        cva->setMarkerId(id);
 
         if (mMinFoundId > id) {
           mMinFoundId = id;
@@ -99,13 +97,85 @@ cv::Mat Detector::detectMarkers(cv::Mat inputVideo) {
         }
       }
 
-      mCentroid.push_back(cva);
+      mBlock.push_back(cva);
     }
-    mCentroids.push_back(mCentroid);
 
-    // cleanDetection();
-
-    inputVideo.copyTo(vidMat);
+    // create video output
+    inputVideo.copyTo(mVidMat);
+    ofxCv::toOf(mVidMat, mVidImg.getPixels());
+    mVidImg.update();
   }
-  return vidMat;
+}
+
+// Calibrate
+//--------------------------------------------------------------
+bool Detector::readDetectorParameters(
+    std::string filename, cv::Ptr<cv::aruco::DetectorParameters> &params) {
+  FileStorage fs(filename, FileStorage::READ);
+  if (!fs.isOpened())
+    return false;
+  fs["adaptiveThreshWinSizeMin"] >> params->adaptiveThreshWinSizeMin;
+  fs["adaptiveThreshWinSizeMax"] >> params->adaptiveThreshWinSizeMax;
+  fs["adaptiveThreshWinSizeStep"] >> params->adaptiveThreshWinSizeStep;
+  fs["adaptiveThreshConstant"] >> params->adaptiveThreshConstant;
+  fs["minMarkerPerimeterRate"] >> params->minMarkerPerimeterRate;
+  fs["maxMarkerPerimeterRate"] >> params->maxMarkerPerimeterRate;
+  fs["polygonalApproxAccuracyRate"] >> params->polygonalApproxAccuracyRate;
+  fs["minCornerDistanceRate"] >> params->minCornerDistanceRate;
+  fs["minDistanceToBorder"] >> params->minDistanceToBorder;
+  fs["minMarkerDistanceRate"] >> params->minMarkerDistanceRate;
+  fs["cornerRefinementMethod"] >> params->cornerRefinementMethod;
+  fs["cornerRefinementWinSize"] >> params->cornerRefinementWinSize;
+  fs["cornerRefinementMaxIterations"] >> params->cornerRefinementMaxIterations;
+  fs["cornerRefinementMinAccuracy"] >> params->cornerRefinementMinAccuracy;
+  fs["markerBorderBits"] >> params->markerBorderBits;
+  fs["perspectiveRemovePixelPerCell"] >> params->perspectiveRemovePixelPerCell;
+  fs["perspectiveRemoveIgnoredMarginPerCell"] >>
+      params->perspectiveRemoveIgnoredMarginPerCell;
+  fs["maxErroneousBitsInBorderRate"] >> params->maxErroneousBitsInBorderRate;
+  fs["minOtsuStdDev"] >> params->minOtsuStdDev;
+  fs["errorCorrectionRate"] >> params->errorCorrectionRate;
+  return true;
+}
+
+//--------------------------------------------------------------
+bool Detector::saveCameraParams(const std::string &filename, cv::Size imageSize,
+                                float aspectRatio, int flags,
+                                const cv::Mat &cameraMatrix,
+                                const cv::Mat &distCoeffs, double totalAvgErr) {
+
+  FileStorage fs(filename, FileStorage::WRITE);
+  if (!fs.isOpened())
+    return false;
+
+  time_t tt;
+  time(&tt);
+  struct tm *t2 = localtime(&tt);
+  char buf[1024];
+  strftime(buf, sizeof(buf) - 1, "%c", t2);
+
+  fs << "calibration_time" << buf;
+
+  fs << "image_width" << imageSize.width;
+  fs << "image_height" << imageSize.height;
+
+  if (flags & CALIB_FIX_ASPECT_RATIO)
+    fs << "aspectRatio" << aspectRatio;
+
+  if (flags != 0) {
+    sprintf(buf, "flags: %s%s%s%s",
+            flags & CALIB_USE_INTRINSIC_GUESS ? "+use_intrinsic_guess" : "",
+            flags & CALIB_FIX_ASPECT_RATIO ? "+fix_aspectRatio" : "",
+            flags & CALIB_FIX_PRINCIPAL_POINT ? "+fix_principal_point" : "",
+            flags & CALIB_ZERO_TANGENT_DIST ? "+zero_tangent_dist" : "");
+  }
+
+  fs << "flags" << flags;
+
+  fs << "camera_matrix" << cameraMatrix;
+  fs << "distortion_coefficients" << distCoeffs;
+
+  fs << "avg_reprojection_error" << totalAvgErr;
+
+  return true;
 }

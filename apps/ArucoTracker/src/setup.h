@@ -1,6 +1,6 @@
 
 void ofApp::setupConnection() {
-    ofLog(OF_LOG_NOTICE) << "setup UDP connection " << std::endl;
+
     ofxUDPSettings settings;
     settings.sendTo("172.20.10.2", 15800);
     settings.blocking = false;
@@ -10,29 +10,45 @@ void ofApp::setupConnection() {
         string message = "connected to Aruco Detector";
         udpConnection.Send(message.c_str(), message.length());
     }
+
+    ofLog(OF_LOG_NOTICE) << "setup UDP connection " << std::endl;
+}
+//-----------------------------------------------------------------------------
+void ofApp::setupERICS(){
+    // mUDPHeader += "header \n";
+    mUDPHeader  = "ncols         " + to_string(GRID_WIDTH) + "\n";
+    mUDPHeader += "nrows         " + to_string(GRID_HEIGHT) + "\n";
+    mUDPHeader += "xllcorner     " + std::string("20.0") + "\n";
+    mUDPHeader += "yllcorner     " + std::string("30.0") + "\n";
+    mUDPHeader += "cellsize      " + std::string("10.0") + "\n";
+    mUDPHeader += "NODATA_value  " + std::string("-1") + "\n";
+
+    udpConnection.Send(mUDPHeader.c_str(), mUDPHeader.length());
+
+    ofLog(OF_LOG_NOTICE) << "Header :" << mUDPHeader << std::endl;
 }
 //-----------------------------------------------------------------------------
 void ofApp::setupBlocks(){
     for(int i = 0; i < MAX_MARKERS; i++){
-      Block block;
-      block.mIdType.first = i;
+      BlockRef block = Block::create();
+      block->setMarkerId(i);
       mBlocks.push_back(block);
     }
 
-
+    ofLog(OF_LOG_NOTICE) << "setup blocks " << std::endl;
 }
 //-----------------------------------------------------------------------------
 void ofApp::setupGridPos(){
 
-      std::cout << "loading gridpos json" << std::endl;
+      ofLog(OF_LOG_NOTICE) << "loading gridpos json";
       ofFile file("gridpos.json");
       if (file.exists()) {
         ofJson js;
         file >> js;
         int i = 0;
         for (auto &gridPos : js) {
-          MarkerAruco m;
-          m.setId(-1);
+          MarkerArucoRef m = MarkerAruco::create();
+          m->setMarkerId(-1);
 
           int type = gridPos[to_string(i)]["type"];
 
@@ -41,10 +57,10 @@ void ofApp::setupGridPos(){
             float posx = gridPos[to_string(i)]["posx"];
             float posy = gridPos[to_string(i)]["posy"];
 
-            m.setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
+            m->setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
 
-            m.setPos(glm::vec2(posx, posy));
-            m.setGridId(i);
+            m->setPos(glm::vec2(posx, posy));
+            m->setGridId(i);
             mMarkers.push_back(m);
           }
           i++;
@@ -67,19 +83,19 @@ void ofApp::setupGridPos(){
         int maxMarkers = numW * numH;
         int indeY = 0;
         for (int i = 0; i < maxMarkers; i++) {
-          MarkerAruco m;
-          m.setId(i);
+          MarkerArucoRef m = MarkerAruco::create();
+          m->setMarkerId(i);
 
           int indeX = (i % numW);
 
           float x = indeX * stepX + indeX * gapX + startGridX;
           float y = indeY * stepY + indeY * gapY + startGridY;
 
-          m.setRectPos(glm::vec2(x - stepX / 2.0, y - stepY / 2.0),
+          m->setRectPos(glm::vec2(x - stepX / 2.0, y - stepY / 2.0),
                        glm::vec2(stepX, stepY));
 
-          m.setPos(glm::vec2(x, y));
-          m.setGridId(i);
+          m->setPos(glm::vec2(x, y));
+          m->setGridId(i);
           mMarkers.push_back(m);
           if (indeX >= numW - 1) {
             indeY++;
@@ -90,7 +106,7 @@ void ofApp::setupGridPos(){
 }
 //-----------------------------------------------------------------------------
 void ofApp::setupKnob(){
-    ofLog(OF_LOG_NOTICE)<< "setup knob" << std::endl;
+
     mKnobAmenitie = KnobAruco::create();
 
     ofFile file("gridpos.json");
@@ -108,12 +124,12 @@ void ofApp::setupKnob(){
           float posy = gridPos[to_string(i)]["posy"];
           mKnobAmenitie->setStaticPos(glm::vec2(posx, posy));
           mKnobAmenitie->setStaticGridId(i);
-          MarkerAruco m;
-          m.setId(-1);
-          m.setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
-          m.setPos(glm::vec2(posx, posy));
-          m.setGridId(i);
-          m.setBlockType(BlockType::knobStatic);
+          MarkerArucoRef m = MarkerAruco::create();
+          m->setMarkerId(-1);
+          m->setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
+          m->setPos(glm::vec2(posx, posy));
+          m->setGridId(i);
+          m->setBlockType(BlockType::knobStatic);
           mMarkers.push_back(m);
           std::cout << "knob statics Id:" << i << std::endl;
         }
@@ -122,20 +138,21 @@ void ofApp::setupKnob(){
           float posy = gridPos[to_string(i)]["posy"];
           mKnobAmenitie->setDynamicPos(glm::vec2(posx, posy));
           mKnobAmenitie->setDynamicGridId(i);
-          MarkerAruco m;
-          m.setId(-1);
-          m.setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
-          m.setPos(glm::vec2(posx, posy));
-          m.setGridId(i);
-          m.setBlockType(BlockType::knobDynamic);
+          MarkerArucoRef m = MarkerAruco::create();
+          m->setMarkerId(-1);
+          m->setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
+          m->setPos(glm::vec2(posx, posy));
+          m->setGridId(i);
+          m->setBlockType(BlockType::knobDynamic);
           mMarkers.push_back(m);
           std::cout << "knob dynamic Id:" << i << std::endl;
         }
 
         i++;
       }
+     ofLog(OF_LOG_NOTICE)<< "setup knob" << std::endl;
     } else {
-      std::cout << "setup failed Knob" << std::endl;
+        ofLog(OF_LOG_NOTICE)<< "setup fail knob" << std::endl;
     }
 }
 
@@ -234,93 +251,46 @@ void ofApp::setupGUI() {
     updateGrid();
   });
 }
+//-----------------------------------------------------------------------------
+void ofApp::setupDetection(){
+    mArucoDetector = Detector::create();
+    ofLog(OF_LOG_NOTICE)<< "setup detector" << std::endl;
+}
 
 //-----------------------------------------------------------------------------
 void ofApp::setupCalibration() {
+    mArucoDetector->setupCalibration(GRID_WIDTH, GRID_HEIGHT);
+    ofLog(OF_LOG_NOTICE)<< "setup calibration" << std::endl;
+}
+//-----------------------------------------------------------------------------
+void ofApp::setupVideo(){
+    //load video first
+    mVideoCapture = 0;
 
-  int markersX = GRID_WIDTH;
-  int markersY = GRID_HEIGHT;
-  float markerLength = 0.0162;     // 0.0165
-  float markerSeparation = 0.0042; // 0045
-  int dictionaryId = 11;
-  std::string outputFile = "./cal.txt";
+    vidGrabber.setDeviceID(0);
+    vidGrabber.setDesiredFrameRate(60);
+    vidGrabber.initGrabber(CAM_WIDTH, CAM_HEIGHT);
 
-  int calibrationFlags = 0;
-  float aspectRatio = 1;
+    gridMovie.load("grid_02.mov");
+    gridMovie.setLoopState(OF_LOOP_NORMAL);
+    gridMovie.play();
 
-  /*
-  if (parser.has("a")) {
-    calibrationFlags |= CALIB_FIX_ASPECT_RATIO;
-    aspectRatio = parser.get<float>("a");
+    vidImg.allocate(CAM_WIDTH, CAM_HEIGHT, OF_IMAGE_COLOR);
 
-
-  if (parser.get<bool>("zt"))
-    calibrationFlags |= CALIB_ZERO_TANGENT_DIST;
-  if (parser.get<bool>("pc"))
-    calibrationFlags |= CALIB_FIX_PRINCIPAL_POINT;
-    */
-
-  detectorParams = cv::aruco::DetectorParameters::create();
-
-  // detectorParams->adaptiveThreshWinSizeMin = 5;
-  // detectorParams->adaptiveThreshWinSizeMax = 50;
-  // detectorParams->adaptiveThreshWinSizeStep = 10;
-
-  detectorParams->perspectiveRemovePixelPerCell = 10;
-  detectorParams->perspectiveRemoveIgnoredMarginPerCell = 0.3;
-
-  detectorParams->errorCorrectionRate = 0.55;
-  detectorParams->maxErroneousBitsInBorderRate = 0.3;
-
-  detectorParams->minOtsuStdDev = 2;
-
-  bool refindStrategy = false;
-  int camId = 0;
-
-mVideoCapture = 0;
-
-      vidGrabber.setDeviceID(0);
-      vidGrabber.setDesiredFrameRate(60);
-      vidGrabber.initGrabber(CAM_WIDTH, CAM_HEIGHT);
-
-      gridMovie.load("grid_02.mov");
-      gridMovie.setLoopState(OF_LOOP_NORMAL);
-      gridMovie.play();
-
-
-  vidImg.allocate(CAM_WIDTH, CAM_HEIGHT, OF_IMAGE_COLOR);
-
-  // inputVideo.open(camId);
-  // if (!inputVideo.isOpened()) { // check if we succeeded
-  //    std::cout << "error input cam" << std::endl;
-  // }
-
-  std::cout << "loading input video" << std::endl;
-
-  dictionary = cv::aruco::getPredefinedDictionary(
-      cv::aruco::PREDEFINED_DICTIONARY_NAME(dictionaryId));
-
-  // create board object
-  cv::Ptr<cv::aruco::GridBoard> gridboard = cv::aruco::GridBoard::create(
-      markersX, markersY, markerLength, markerSeparation, dictionary);
-  board = gridboard.staticCast<cv::aruco::Board>();
-
-  // collected frames for calibration
-  std::vector<std::vector<std::vector<cv::Point2f>>> allCorners;
-  std::vector<std::vector<int>> allIds;
-
-
+    ofLog(OF_LOG_NOTICE)<< "setup video" << std::endl;
 }
 
 //-----------------------------------------------------------------------------
 void ofApp::setupCleaner(){
-    ofLog(OF_LOG_NOTICE)<< "setup clean" << std::endl;
+
     // cleaner
     mWindowCounter = 0;
-    mWindowIterMax = 20;
+    mWindowIterMax = 10;
 
     // record grid
     mRecordOnce = true;
+
+    ofLog(OF_LOG_NOTICE)<< "setup clean" << std::endl;
 }
 
 

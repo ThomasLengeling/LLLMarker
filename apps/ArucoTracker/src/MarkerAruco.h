@@ -45,7 +45,7 @@ class MarkerAruco : public RectAruco, public ProbabiltyAruco{
 public:
     MarkerAruco() : RectAruco(), ProbabiltyAruco() {
         mGridId = -1;
-        mId = -1;
+        mMakerId = -1;
         mBType = BlockType::grid;
         mIdType = std::make_pair(-1, 0);
     }
@@ -54,8 +54,8 @@ public:
         return std::make_shared<MarkerAruco>();
     }
 
-    void setId(int i){mId = i;}
-    int getId(){return mId;}
+    void setMarkerId(int i){mMakerId = i;}
+    int getMarkerId(){return mMakerId;}
 
     void setGridId(int i){mGridId = i;}
     int getGridId(){return mGridId;}
@@ -81,7 +81,7 @@ public:
 
 
 private:
-    int        mId;
+    int        mMakerId;
     int        mGridId;
 
     int        mOrientation;
