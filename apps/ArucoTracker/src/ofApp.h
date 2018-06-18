@@ -70,6 +70,7 @@ public:
   // GUI
   ofxDatButtonRef mBDebugVideo;
   ofxDatButtonRef mBShowGrid;
+  ofxDatButtonRef mBFullVideo;
   ofxDatButtonRef mBCalibrateVideo;
 
   ofxDatSliderRef mGammaValue;
@@ -111,14 +112,23 @@ public:
   // blocks
   void setupBlocks();
 
+  bool mDrawGrids;
+
   // Video grabber
-  ofVideoGrabber vidGrabber;
+  std::vector<ofVideoGrabber> vidGrabber;
+  int mNumCam;
   ofVideoPlayer gridMovie;
+
+  // 4 camera render
+  ofFbo mFullRender;
+  bool mRenderFullCams;
+
   bool mVideoCapture;
+  bool mStichImg;
   void setupVideo();
 
   // stich images
-  void stichImage(cv::Mat &input);
+  bool stichImage(cv::Mat &imgStitch, std::vector<cv::Mat> imgs);
 
   // clean Image
   void adjustGamma(cv::Mat &img, float gamma);
@@ -127,6 +137,8 @@ public:
   DetectorRef mArucoDetector;
 
   ofImage vidImg;
+  ofImage vidImgFull;
+   ofImage vidImgFullTmp;
   cv::Mat vidMat;
 
   std::vector<BlockRef> mCurrBlock;

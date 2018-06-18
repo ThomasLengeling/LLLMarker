@@ -182,26 +182,43 @@ void ofApp::cleanDetection() {
   mWindowCounter++;
 }
 
-void ofApp::stichImage(cv::Mat &input) {
+bool ofApp::stichImage(cv::Mat &imgStitch, std::vector<cv::Mat> imgs) {
   bool try_use_gpu = true;
-  Stitcher::Mode mode = Stitcher::SCANS;
+  bool success = true;
+  Stitcher::Mode mode = Stitcher::PANORAMA;
+
   Ptr<Stitcher> stitcher = Stitcher::create(mode, try_use_gpu);
-  Stitcher::Status status = stitcher->stitch(imgs, pano);
+  Stitcher::Status status = stitcher->stitch(imgs, imgStitch);
+
   if (status != Stitcher::OK) {
-    cout << "Can't stitch images, error code = " << int(status) << endl;
-    return -1;
+    ofLog(OF_LOG_NOTICE) << "Can't stitch images, error code = " << int(status);
+    success = false;
   }
-  // Stitcher::Mode mode = Stitcher::PANORAMA;
+  return success;
 }
 //--------------------------------------------------------------
 void ofApp::update() {
 
   bool newFrame = false;
+  bool succesStich = false;
   ofPixels pixels;
+  std::vector<cv::Mat> vidMatImgs;
+  std::vector<ofPixels> pixelsImg;
   if (mVideoCapture) {
-    vidGrabber.update();
-    newFrame = vidGrabber.isFrameNew();
-    pixels = vidGrabber.getPixels();
+    for (auto &cam : vidGrabber) {
+      cam.update();
+      if (cam.isFrameNew()) {
+        pixelsImg.push_back(cam.getPixels());
+      }
+    }
+
+    for (auto &cam : vidGrabber) {
+      if (cam.isFrameNew()) {
+        newFrame = true;
+        pixels = cam.getPixels();
+        break;
+      }
+    }
   } else {
     gridMovie.update();
     newFrame = gridMovie.isFrameNew();
@@ -209,20 +226,62 @@ void ofApp::update() {
   }
 
   if (newFrame) {
-    pixels.rotate90(2);
-    Mat imageCopy = ofxCv::toCv(pixels);
+    cv::Mat imageCopy;
+    if (mStichImg) {
 
-    adjustGamma(imageCopy, mGammaValue->ofParam);
-    mArucoDetector->detectMarkers(imageCopy);
+      for (auto &pixs : pixelsImg) {
+        pixs.rotate90(2);
+        Mat matImg = ofxCv::toCv(pixs);
+        vidMatImgs.push_back(matImg);
+      }
+      if (vidMatImgs.size() >= 2) {
+        ofLog(OF_LOG_NOTICE) << vidMatImgs.size();
+        succesStich = stichImage(imageCopy, vidMatImgs);
+        if (!succesStich) {
+          pixels.rotate90(2);
+          imageCopy = ofxCv::toCv(pixels);
+        }
+      } else {
+        pixels.rotate90(2);
+        imageCopy = ofxCv::toCv(pixels);
+      }
 
-    vidImg = mArucoDetector->getOfImg();
-    vidMat = mArucoDetector->getMatImg();
+    } else {
+      pixels.rotate90(2);
+      imageCopy = ofxCv::toCv(pixels);
+    }
 
-    tagsIds = mArucoDetector->getTagIds();
+    if (mBFullVideo->mActive) {
+      /*mFullRender.begin();
+      for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+          gridMovie.draw(i * CAM_WIDTH, j * CAM_HEIGHT, CAM_WIDTH, CAM_HEIGHT);
+        }
+      }
+      mFullRender.end();
+      */
 
-    mCurrBlock = mArucoDetector->getBoard(); // current ids
-    mTmpBlocks.push_back(mCurrBlock);        // array of blocks
+      pixels.rotate90(2);
+      cv::Mat hv = ofxCv::toCv(pixels);
+      cv::hconcat(hv, hv, imageCopy);
+    }
 
+    if (!imageCopy.empty()) {
+      adjustGamma(imageCopy, mGammaValue->ofParam);
+      mArucoDetector->detectMarkers(imageCopy);
+
+      if (mBFullVideo->mActive) {
+        vidImgFull = mArucoDetector->getOfImg();
+      } else {
+        vidImg = mArucoDetector->getOfImg();
+      }
+      vidMat = mArucoDetector->getMatImg();
+
+      tagsIds = mArucoDetector->getTagIds();
+
+      mCurrBlock = mArucoDetector->getBoard(); // current ids
+      mTmpBlocks.push_back(mCurrBlock);        // array of blocks
+    }
     cleanDetection();
   }
 
@@ -253,8 +312,13 @@ void ofApp::draw() {
     if (vidImg.isAllocated()) {
 
       ofSetColor(255);
-      vidGrabber.draw(0, 0, 240, 240);
       vidImg.draw(0, 0, ofGetWidth(), ofGetHeight());
+
+      int i = 0;
+      for (auto &video : vidGrabber) {
+        vidGrabber.at(i).draw(i * 360, 0, 360, 240);
+        i++;
+      }
     }
 
     // update block
@@ -304,17 +368,19 @@ void ofApp::draw() {
     for (auto &mk : mMarkers) {
       glm::vec2 pos = mk->getPos();
 
-      if (mk->isEnable()) {
-        ofSetColor(255);
-        ofDrawCircle(pos.x, pos.y, 7, 7);
-      } else {
-        ofSetColor(255, 255, 0);
-        ofDrawCircle(pos.x, pos.y, 4, 4);
-      }
+      if (mDrawGrids) {
+        if (mk->isEnable()) {
+          ofSetColor(255);
+          ofDrawCircle(pos.x, pos.y, 7, 7);
+        } else {
+          ofSetColor(255, 255, 0);
+          ofDrawCircle(pos.x, pos.y, 4, 4);
+        }
 
-      ofSetColor(255);
-      ofDrawBitmapString(mk->getMarkerId(), pos.x - 20, pos.y - 7);
-      ofDrawBitmapString(mk->getGridId(), pos.x - 25, pos.y - 17);
+        ofSetColor(255);
+        ofDrawBitmapString(mk->getMarkerId(), pos.x - 20, pos.y - 7);
+        ofDrawBitmapString(mk->getGridId(), pos.x - 25, pos.y - 17);
+      }
 
       if (mEnableKnob) {
         if (mk->getGridId() == mKnobAmenitie->getDynamicGridId()) {
@@ -347,6 +413,13 @@ void ofApp::draw() {
     }
   }
 
+  if (mBFullVideo->mActive) {
+    ofSetColor(255);
+    mFullRender.draw(0, 0, ofGetWidth(), ofGetHeight());
+
+    vidImgFullTmp.draw(0, 0, 320, 240);
+  }
+
   if (mBShowGrid->mActive) {
   }
 
@@ -366,6 +439,10 @@ void ofApp::draw() {
   ofSetColor(255);
   ofDrawBitmapString(mArucoDetector->getNumMarkers(), ofGetWidth() - 100, 20);
   ofDrawBitmapString(ofGetFrameRate(), ofGetWidth() - 100, 40);
+
+  ofSetColor(0);
+  ofDrawBitmapString(mArucoDetector->getNumMarkers(), ofGetWidth() - 100, 60);
+  ofDrawBitmapString(ofGetFrameRate(), ofGetWidth() - 100, 80);
 }
 
 //--------------------------------------------------------------
@@ -424,11 +501,12 @@ void ofApp::recordGrid() {
 //--------------------------------------------------------------
 void ofApp::updateGUI() {
   mGammaValue->update();
-  /*
-mBDebugVideo->button->update();
-mBShowGrid->button->update();
-mBCalibrateVideo->button->update();
 
+  mBDebugVideo->update();
+  mBShowGrid->update();
+  mBCalibrateVideo->update();
+  mBFullVideo->update();
+  /*
 mGridSpaceX->slider->update();
 mGridSpaceY->slider->update();
 
@@ -443,11 +521,12 @@ mGridGapY->slider->update();
 //--------------------------------------------------------------
 void ofApp::drawGUI() {
   mGammaValue->draw();
-  /*
-mBDebugVideo->button->draw();
-mBShowGrid->button->draw();
-mBCalibrateVideo->button->draw();
 
+  mBDebugVideo->draw();
+  mBShowGrid->draw();
+  mBCalibrateVideo->draw();
+  mBFullVideo->draw();
+  /*
 mGridSpaceX->slider->draw();
 mGridSpaceY->slider->draw();
 
@@ -561,8 +640,18 @@ void ofApp::keyPressed(int key) {
   if (key == 'v') {
     mVideoCapture = !mVideoCapture;
   }
+  if (key == 's') {
+    mStichImg = !mStichImg;
+  }
   if (key == 'd') {
     mDebug = !mDebug;
+  }
+  if (key == 'f') {
+    mRenderFullCams = !mRenderFullCams;
+  }
+
+  if (key == 'n') {
+    mDrawGrids = !mDrawGrids;
   }
   if (key == '9') {
     udpConnection.Send(mUDPHeader.c_str(), mUDPHeader.length());

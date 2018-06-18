@@ -25,6 +25,10 @@ public:
         return std::make_shared<ofxDatButton>();
     }
 
+    void update(){button->update();}
+    void draw(){button->draw();}
+
+
     ofxDatGuiButton     * button;
     ofParameter<bool>     ofParamBoolean;
     ofEventListener       buttonListener;

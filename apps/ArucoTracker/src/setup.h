@@ -35,6 +35,7 @@ void ofApp::setupBlocks() {
     mBlocks.push_back(block);
   }
 
+  mDrawGrids = false;
   ofLog(OF_LOG_NOTICE) << "setup blocks " << std::endl;
 }
 //-----------------------------------------------------------------------------
@@ -185,6 +186,15 @@ void ofApp::setupGUI() {
     mBShowGrid->mActive = !mBShowGrid->mActive;
   });
 
+  mBFullVideo = ofxDatButton::create();
+  mBFullVideo->button = new ofxDatGuiButton("Show 4 Videos");
+  mBFullVideo->button->setPosition(10, 140);
+  mBFullVideo->button->setWidth(100, .4);
+  mBFullVideo->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
+    mBFullVideo->mActive = !mBFullVideo->mActive;
+  });
+
+
   int sliderStartX = 150;
 
   mGammaValue = ofxDatSlider::create();
@@ -205,16 +215,24 @@ void ofApp::setupDetection() {
 //-----------------------------------------------------------------------------
 void ofApp::setupCalibration() {
   mArucoDetector->setupCalibration(GRID_WIDTH, GRID_HEIGHT);
-  ofLog(OF_LOG_NOTICE) << "setup calibration" << std::endl;
+  ofLog(OF_LOG_NOTICE) << "setup calibration";
 }
 //-----------------------------------------------------------------------------
 void ofApp::setupVideo() {
   // load video first
-  mVideoCapture = 0;
+  mVideoCapture = false;
+  mStichImg     = false;
+  mRenderFullCams = false;
+  mNumCam = 2;
 
-  vidGrabber.setDeviceID(0);
-  vidGrabber.setDesiredFrameRate(60);
-  vidGrabber.initGrabber(CAM_WIDTH, CAM_HEIGHT);
+  for (int i = 0; i < mNumCam; i++) {
+    ofVideoGrabber vidInput;
+
+    vidInput.setDeviceID(i);
+    vidInput.setDesiredFrameRate(60);
+    vidInput.initGrabber(CAM_WIDTH, CAM_HEIGHT);
+    vidGrabber.push_back(vidInput);
+  }
 
   gridMovie.load("grid_05.mov");
   gridMovie.setLoopState(OF_LOOP_NORMAL);
@@ -222,7 +240,14 @@ void ofApp::setupVideo() {
 
   vidImg.allocate(CAM_WIDTH, CAM_HEIGHT, OF_IMAGE_COLOR);
 
-  ofLog(OF_LOG_NOTICE) << "setup video" << std::endl;
+  vidImgFull.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, OF_IMAGE_COLOR);
+  vidImgFullTmp.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, OF_IMAGE_COLOR);
+  mFullRender.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, GL_RGB);
+  mFullRender.begin();
+  ofClear(0,0,0, 255);
+  mFullRender.end();
+
+  ofLog(OF_LOG_NOTICE) << "setup video";
 }
 
 //-----------------------------------------------------------------------------
