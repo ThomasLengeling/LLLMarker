@@ -1,113 +1,113 @@
 
 void ofApp::setupConnection() {
 
-    ofxUDPSettings settings;
-    settings.sendTo("172.20.10.2", 15800);
-    settings.blocking = false;
-    udpConnection.Setup(settings);
+  ofxUDPSettings settings;
+  settings.sendTo("172.20.10.2", 15800);
+  settings.blocking = false;
+  udpConnection.Setup(settings);
 
-    if(mDebug){
-        string message = "connected to Aruco Detector";
-        udpConnection.Send(message.c_str(), message.length());
-    }
+  if (mDebug) {
+    string message = "connected to Aruco Detector";
+    udpConnection.Send(message.c_str(), message.length());
+  }
 
-    ofLog(OF_LOG_NOTICE) << "setup UDP connection " << std::endl;
+  ofLog(OF_LOG_NOTICE) << "setup UDP connection " << std::endl;
 }
 //-----------------------------------------------------------------------------
-void ofApp::setupERICS(){
-    // mUDPHeader += "header \n";
-    mUDPHeader  = "ncols         " + to_string(GRID_WIDTH) + "\n";
-    mUDPHeader += "nrows         " + to_string(GRID_HEIGHT) + "\n";
-    mUDPHeader += "xllcorner     " + std::string("20.0") + "\n";
-    mUDPHeader += "yllcorner     " + std::string("30.0") + "\n";
-    mUDPHeader += "cellsize      " + std::string("10.0") + "\n";
-    mUDPHeader += "NODATA_value  " + std::string("-1") + "\n";
+void ofApp::setupERICS() {
+  // mUDPHeader += "header \n";
+  mUDPHeader = "ncols         " + to_string(GRID_WIDTH) + "\n";
+  mUDPHeader += "nrows         " + to_string(GRID_HEIGHT) + "\n";
+  mUDPHeader += "xllcorner     " + std::string("20.0") + "\n";
+  mUDPHeader += "yllcorner     " + std::string("30.0") + "\n";
+  mUDPHeader += "cellsize      " + std::string("10.0") + "\n";
+  mUDPHeader += "NODATA_value  " + std::string("-1") + "\n";
 
-    udpConnection.Send(mUDPHeader.c_str(), mUDPHeader.length());
+  udpConnection.Send(mUDPHeader.c_str(), mUDPHeader.length());
 
-    ofLog(OF_LOG_NOTICE) << "Header :" << mUDPHeader << std::endl;
+  ofLog(OF_LOG_NOTICE) << "Header :" << mUDPHeader << std::endl;
 }
 //-----------------------------------------------------------------------------
-void ofApp::setupBlocks(){
-    for(int i = 0; i < MAX_MARKERS; i++){
-      BlockRef block = Block::create();
-      block->setMarkerId(i);
-      mBlocks.push_back(block);
-    }
+void ofApp::setupBlocks() {
+  for (int i = 0; i < MAX_MARKERS; i++) {
+    BlockRef block = Block::create();
+    block->setMarkerId(i);
+    mBlocks.push_back(block);
+  }
 
-    ofLog(OF_LOG_NOTICE) << "setup blocks " << std::endl;
+  ofLog(OF_LOG_NOTICE) << "setup blocks " << std::endl;
 }
 //-----------------------------------------------------------------------------
-void ofApp::setupGridPos(){
+void ofApp::setupGridPos() {
+  ofLog(OF_LOG_NOTICE) << "loading gridpos json";
+  ofFile file("gridpos.json");
+  if (file.exists()) {
+    ofJson js;
+    file >> js;
+    int i = 0;
+    for (auto &gridPos : js) {
+      MarkerArucoRef m = MarkerAruco::create();
+      m->setMarkerId(-1);
 
-      ofLog(OF_LOG_NOTICE) << "loading gridpos json";
-      ofFile file("gridpos.json");
-      if (file.exists()) {
-        ofJson js;
-        file >> js;
-        int i = 0;
-        for (auto &gridPos : js) {
-          MarkerArucoRef m = MarkerAruco::create();
-          m->setMarkerId(-1);
+      int type = gridPos[to_string(i)]["type"];
 
-          int type = gridPos[to_string(i)]["type"];
+      if (type == BlockType::grid) {
 
-          if (type == BlockType::grid) {
+        float posx = gridPos[to_string(i)]["posx"];
+        float posy = gridPos[to_string(i)]["posy"];
 
-            float posx = gridPos[to_string(i)]["posx"];
-            float posy = gridPos[to_string(i)]["posy"];
+        m->setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
 
-            m->setRectPos(glm::vec2(posx - 20, posy - 20), glm::vec2(20, 20));
-
-            m->setPos(glm::vec2(posx, posy));
-            m->setGridId(i);
-            mMarkers.push_back(m);
-          }
-          i++;
-        }
-      } else {
-        // fill markers
-        // set the max region
-        float startGridX = 1280 * 0.05;
-        float startGridY = 720 * 0.05;
-
-        float stepX = 50.0;
-        float stepY = 50.0;
-
-        float gapX = 3;
-        float gapY = 3;
-
-        int numW = GRID_WIDTH;
-        int numH = GRID_HEIGHT;
-
-        int maxMarkers = numW * numH;
-        int indeY = 0;
-        for (int i = 0; i < maxMarkers; i++) {
-          MarkerArucoRef m = MarkerAruco::create();
-          m->setMarkerId(i);
-
-          int indeX = (i % numW);
-
-          float x = indeX * stepX + indeX * gapX + startGridX;
-          float y = indeY * stepY + indeY * gapY + startGridY;
-
-          m->setRectPos(glm::vec2(x - stepX / 2.0, y - stepY / 2.0),
-                       glm::vec2(stepX, stepY));
-
-          m->setPos(glm::vec2(x, y));
-          m->setGridId(i);
-          mMarkers.push_back(m);
-          if (indeX >= numW - 1) {
-            indeY++;
-        }
-
+        m->setPos(glm::vec2(posx, posy));
+        m->setGridId(i);
+        mMarkers.push_back(m);
       }
+      i++;
+    }
+  } else {
+    // fill markers
+    // set the max region
+    float startGridX = 1280 * 0.05;
+    float startGridY = 720 * 0.05;
+
+    float stepX = 50.0;
+    float stepY = 50.0;
+
+    float gapX = 3;
+    float gapY = 3;
+
+    int numW = GRID_WIDTH;
+    int numH = GRID_HEIGHT;
+
+    int maxMarkers = numW * numH;
+    int indeY = 0;
+    for (int i = 0; i < maxMarkers; i++) {
+      MarkerArucoRef m = MarkerAruco::create();
+      m->setMarkerId(i);
+
+      int indeX = (i % numW);
+
+      float x = indeX * stepX + indeX * gapX + startGridX;
+      float y = indeY * stepY + indeY * gapY + startGridY;
+
+      m->setRectPos(glm::vec2(x - stepX / 2.0, y - stepY / 2.0),
+                    glm::vec2(stepX, stepY));
+
+      m->setPos(glm::vec2(x, y));
+      m->setGridId(i);
+      mMarkers.push_back(m);
+      if (indeX >= numW - 1) {
+        indeY++;
+      }
+    }
   }
 }
 //-----------------------------------------------------------------------------
-void ofApp::setupKnob(){
+void ofApp::setupKnob() {
 
-    mKnobAmenitie = KnobAruco::create();
+  mKnobAmenitie = KnobAruco::create();
+  mEnableKnob = false;
+  if (mEnableKnob) {
 
     ofFile file("gridpos.json");
     if (file.exists()) {
@@ -150,10 +150,11 @@ void ofApp::setupKnob(){
 
         i++;
       }
-     ofLog(OF_LOG_NOTICE)<< "setup knob" << std::endl;
+      ofLog(OF_LOG_NOTICE) << "setup knob" << std::endl;
     } else {
-        ofLog(OF_LOG_NOTICE)<< "setup fail knob" << std::endl;
+      ofLog(OF_LOG_NOTICE) << "setup fail knob" << std::endl;
     }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -186,112 +187,55 @@ void ofApp::setupGUI() {
 
   int sliderStartX = 150;
 
-  mGridSpaceX = ofxDatSlider::create();
-  mGridSpaceX->slider = new ofxDatGuiSlider(
-      mGridSpaceX->ofParamInt.set("grid space X", 50, 0, 200));
-  mGridSpaceX->slider->setWidth(390, .4);
-  mGridSpaceX->slider->setPosition(sliderStartX, 60);
+  mGammaValue = ofxDatSlider::create();
+  mGammaValue->slider =
+      new ofxDatGuiSlider(mGammaValue->ofParam.set("gamma", 0.87, 0, 2));
+  mGammaValue->slider->setWidth(390, .4);
+  mGammaValue->slider->setPosition(sliderStartX, 60);
 
-  mGridSpaceX->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
-    mGridSpaceX->ofParamInt = v.value;
-    updateGrid();
-  });
-
-  mGridSpaceY = ofxDatSlider::create();
-  mGridSpaceY->slider = new ofxDatGuiSlider(
-      mGridSpaceY->ofParamInt.set("grid space Y", 50, 0, 200));
-  mGridSpaceY->slider->setWidth(390, .4);
-  mGridSpaceY->slider->setPosition(sliderStartX, 90);
-  mGridSpaceY->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
-    mGridSpaceY->ofParamInt = v.value;
-    ;
-    updateGrid();
-  });
-
-  mGridStartX = ofxDatSlider::create();
-  mGridStartX->slider =
-      new ofxDatGuiSlider(mGridStartX->ofParamInt.set("start  X", 50, 0, 500));
-  mGridStartX->slider->setWidth(390, .4);
-  mGridStartX->slider->setPosition(sliderStartX, 120);
-  mGridStartX->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
-    mGridStartX->ofParamInt = v.value;
-    ;
-    updateGrid();
-  });
-
-  mGridStartY = ofxDatSlider::create();
-  mGridStartY->slider =
-      new ofxDatGuiSlider(mGridStartY->ofParamInt.set("start  Y", 50, 0, 500));
-  mGridStartY->slider->setWidth(390, .4);
-  mGridStartY->slider->setPosition(sliderStartX, 150);
-  mGridStartY->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
-    mGridStartY->ofParamInt = v.value;
-    ;
-    updateGrid();
-  });
-
-  mGridGapX = ofxDatSlider::create();
-  mGridGapX->slider =
-      new ofxDatGuiSlider(mGridGapX->ofParamInt.set("grid gap X", 50, 0, 200));
-  mGridGapX->slider->setWidth(390, .4);
-  mGridGapX->slider->setPosition(sliderStartX, 180);
-  mGridGapX->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
-    mGridGapX->ofParamInt = v.value;
-    ;
-    updateGrid();
-  });
-
-  mGridGapY = ofxDatSlider::create();
-  mGridGapY->slider =
-      new ofxDatGuiSlider(mGridGapY->ofParamInt.set("grid gap Y", 50, 0, 200));
-  mGridGapY->slider->setWidth(390, .4);
-  mGridGapY->slider->setPosition(sliderStartX, 210);
-  mGridGapY->slider->onSliderEvent([&](ofxDatGuiSliderEvent v) {
-    mGridGapY->ofParamInt = v.value;
-    updateGrid();
-  });
+  mGammaValue->slider->onSliderEvent(
+      [&](ofxDatGuiSliderEvent v) { mGammaValue->ofParam = v.value; });
 }
 //-----------------------------------------------------------------------------
-void ofApp::setupDetection(){
-    mArucoDetector = Detector::create();
-    ofLog(OF_LOG_NOTICE)<< "setup detector" << std::endl;
+void ofApp::setupDetection() {
+  mArucoDetector = Detector::create();
+  ofLog(OF_LOG_NOTICE) << "setup detector" << std::endl;
 }
 
 //-----------------------------------------------------------------------------
 void ofApp::setupCalibration() {
-    mArucoDetector->setupCalibration(GRID_WIDTH, GRID_HEIGHT);
-    ofLog(OF_LOG_NOTICE)<< "setup calibration" << std::endl;
+  mArucoDetector->setupCalibration(GRID_WIDTH, GRID_HEIGHT);
+  ofLog(OF_LOG_NOTICE) << "setup calibration" << std::endl;
 }
 //-----------------------------------------------------------------------------
-void ofApp::setupVideo(){
-    //load video first
-    mVideoCapture = 0;
+void ofApp::setupVideo() {
+  // load video first
+  mVideoCapture = 0;
 
-    vidGrabber.setDeviceID(0);
-    vidGrabber.setDesiredFrameRate(60);
-    vidGrabber.initGrabber(CAM_WIDTH, CAM_HEIGHT);
+  vidGrabber.setDeviceID(0);
+  vidGrabber.setDesiredFrameRate(60);
+  vidGrabber.initGrabber(CAM_WIDTH, CAM_HEIGHT);
 
-    gridMovie.load("grid_02.mov");
-    gridMovie.setLoopState(OF_LOOP_NORMAL);
-    gridMovie.play();
+  gridMovie.load("grid_05.mov");
+  gridMovie.setLoopState(OF_LOOP_NORMAL);
+  gridMovie.play();
 
-    vidImg.allocate(CAM_WIDTH, CAM_HEIGHT, OF_IMAGE_COLOR);
+  vidImg.allocate(CAM_WIDTH, CAM_HEIGHT, OF_IMAGE_COLOR);
 
-    ofLog(OF_LOG_NOTICE)<< "setup video" << std::endl;
+  ofLog(OF_LOG_NOTICE) << "setup video" << std::endl;
 }
 
 //-----------------------------------------------------------------------------
-void ofApp::setupCleaner(){
+void ofApp::setupCleaner() {
 
-    // cleaner
-    mWindowCounter = 0;
-    mWindowIterMax = 10;
+  // cleaner
+  mWindowCounter = 0;
+  mWindowIterMax = 10;
 
-    // record grid
-    mRecordOnce = true;
+  // record grid
+  mRecordOnce = true;
 
-    ofLog(OF_LOG_NOTICE)<< "setup clean" << std::endl;
+  ofLog(OF_LOG_NOTICE) << "setup clean" << std::endl;
 }
-
 
 //-----------------------------------------------------------------------------

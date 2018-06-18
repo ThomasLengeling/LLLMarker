@@ -38,40 +38,6 @@ void ofApp::setup() {
   ofLog(OF_LOG_NOTICE) << "finished setup" << std::endl;
 }
 
-void ofApp::updateGrid() {
-  float startGridX = mGridStartX->ofParamInt;
-  float startGridY = mGridStartY->ofParamInt;
-
-  float stepX = mGridSpaceX->ofParamInt;
-  float stepY = mGridSpaceY->ofParamInt;
-
-  float gapX = mGridGapX->ofParamInt;
-  float gapY = mGridGapY->ofParamInt;
-
-  int maxMarkers = GRID_WIDTH * GRID_HEIGHT;
-
-  int i = 0;
-  int indeY = 0;
-  for (auto &m : mMarkers) {
-
-    int indeX = (i % (int)GRID_WIDTH);
-
-    float x = indeX * stepX + indeX * gapX + startGridX;
-    float y = indeY * stepY + indeY * gapY + startGridY;
-
-    m->setRectPos(glm::vec2(x - stepX / 2.0, y - stepY / 2.0),
-                  glm::vec2(stepX, stepY));
-
-    m->setPos(glm::vec2(x, y));
-
-    i++;
-
-    if (indeX >= GRID_WIDTH - 1) {
-      indeY++;
-    }
-  }
-}
-
 void ofApp::cleanDetection() {
   if (mWindowCounter >= mWindowIterMax) {
     mWindowCounter = 0;
@@ -148,15 +114,17 @@ void ofApp::cleanDetection() {
             }
           }
 
-          if (mk->getBlockType() == BlockType::knobStatic) {
-            std::string msg = "skn " + to_string(mk->getIdTypePair().first) +
-                              " " + to_string(static_cast<int>(
-                                        mKnobAmenitie->getType().getType())) +
-                              " " + to_string(mk->getPos().x) + " " +
-                              to_string(mk->getPos().y);
+          if (mEnableKnob) {
+            if (mk->getBlockType() == BlockType::knobStatic) {
+              std::string msg = "skn " + to_string(mk->getIdTypePair().first) +
+                                " " + to_string(static_cast<int>(
+                                          mKnobAmenitie->getType().getType())) +
+                                " " + to_string(mk->getPos().x) + " " +
+                                to_string(mk->getPos().y);
 
-            // cout << "sent: " << msg << std::endl;
-            udpConnection.Send(msg.c_str(), msg.length());
+              // cout << "sent: " << msg << std::endl;
+              udpConnection.Send(msg.c_str(), msg.length());
+            }
           }
 
         } else {
@@ -184,6 +152,7 @@ void ofApp::cleanDetection() {
       ofFile mTypeFile;
       mTypeFile.open("ids.asc", ofFile::WriteOnly);
       mTypeFile << mUDPHeader << fileIds;
+      udpConnection.Send(mUDPHeader.c_str(), mUDPHeader.length());
 
       // send udp with on or off
       udpConnection.Send(enables.c_str(), enables.length());
@@ -213,6 +182,17 @@ void ofApp::cleanDetection() {
   mWindowCounter++;
 }
 
+void ofApp::stichImage(cv::Mat &input) {
+  bool try_use_gpu = true;
+  Stitcher::Mode mode = Stitcher::SCANS;
+  Ptr<Stitcher> stitcher = Stitcher::create(mode, try_use_gpu);
+  Stitcher::Status status = stitcher->stitch(imgs, pano);
+  if (status != Stitcher::OK) {
+    cout << "Can't stitch images, error code = " << int(status) << endl;
+    return -1;
+  }
+  // Stitcher::Mode mode = Stitcher::PANORAMA;
+}
 //--------------------------------------------------------------
 void ofApp::update() {
 
@@ -232,6 +212,7 @@ void ofApp::update() {
     pixels.rotate90(2);
     Mat imageCopy = ofxCv::toCv(pixels);
 
+    adjustGamma(imageCopy, mGammaValue->ofParam);
     mArucoDetector->detectMarkers(imageCopy);
 
     vidImg = mArucoDetector->getOfImg();
@@ -279,38 +260,39 @@ void ofApp::draw() {
     // update block
 
     {
-      int type = 0;
-      for (auto &block : mBlocks) {
-        int id = block->getMarkerId();
-        // get marker Id from knob and update the block
-        if (id == mKnobAmenitie->getDynamicId()) {
-          block->setType(mKnobAmenitie->getType().getType());
-          type = block->getType();
-          // std::cout << "changed id: " << block.mIdType.first << " "
-          //            << mKnobAmenitie->getType().getType() << " "
-          //            << mKnobAmenitie->getDynamicGridId() << std::endl;
+      if (mEnableKnob) {
+        int type = 0;
+        for (auto &block : mBlocks) {
+          int id = block->getMarkerId();
+          // get marker Id from knob and update the block
+          if (id == mKnobAmenitie->getDynamicId()) {
+            block->setType(mKnobAmenitie->getType().getType());
+            type = block->getType();
+          }
+        }
 
-          // 149
+        // update block to the grid
+        for (auto &block : mBlocks) {
+          int id = block->getMarkerId();
+
+          int roadsId[] = {
+              207, 257, 39,  154, 135, 79,  149, 174, 120, 176, 43,  250, 52,
+              119, 156, 29,  81,  168, 61,  152, 190, 189, 150, 187, 167, 185,
+              247, 227, 181, 124, 85,  179, 140, 206, 222, 232, 97,  219, 218,
+              217, 216, 215, 214, 212, 40,  213, 255, 101, 36,  49,  26,  89,
+              164, 228, 246, 183, 245, 201, 215, 261, 95};
+          for (int i = 0; i < sizeof(roadsId) / sizeof(roadsId[0]); i++) {
+            if (id == roadsId[i]) {
+              block->setType(mKnobAmenitie->getType().getType());
+            }
+          }
         }
       }
     }
 
-    // update block to the grid
+    // update blocks and types
     for (auto &block : mBlocks) {
       int id = block->getMarkerId();
-
-      int roadsId[] = {207, 257, 39,  154, 135, 79,  149, 174, 120, 176, 43,
-                       250, 52,  119, 156, 29,  81,  168, 61,  152, 190, 189,
-                       150, 187, 167, 185, 247, 227, 181, 124, 85,  179, 140,
-                       206, 222, 232, 97,  219, 218, 217, 216, 215, 214, 212,
-                       40,  213, 255, 101, 36,  49,  26,  89,  164, 228, 246,
-                       183, 245, 201, 215, 261, 95};
-      for (int i = 0; i < sizeof(roadsId) / sizeof(roadsId[0]); i++) {
-        if (id == roadsId[i]) {
-          block->setType(mKnobAmenitie->getType().getType());
-        }
-      }
-
       for (auto &mk : mMarkers) {
         if (mk->getIdTypePair().first == id) {
           mk->updateType(block->getType());
@@ -334,29 +316,31 @@ void ofApp::draw() {
       ofDrawBitmapString(mk->getMarkerId(), pos.x - 20, pos.y - 7);
       ofDrawBitmapString(mk->getGridId(), pos.x - 25, pos.y - 17);
 
-      if (mk->getGridId() == mKnobAmenitie->getDynamicGridId()) {
+      if (mEnableKnob) {
+        if (mk->getGridId() == mKnobAmenitie->getDynamicGridId()) {
 
-        for (auto &cblock : mCurrBlock) {
-          glm::vec2 blockPos = cblock->getPos();
-          int id = cblock->getMarkerId();
-          float dis = ofDist(blockPos.x, blockPos.y, pos.x, pos.y);
-          if (dis >= 0.0 && dis < RAD_DETECTION) {
-            mKnobAmenitie->setDynamicPos(blockPos);
-            mKnobAmenitie->setDynamicId(id);
-            mk->setPos(blockPos);
+          for (auto &cblock : mCurrBlock) {
+            glm::vec2 blockPos = cblock->getPos();
+            int id = cblock->getMarkerId();
+            float dis = ofDist(blockPos.x, blockPos.y, pos.x, pos.y);
+            if (dis >= 0.0 && dis < RAD_DETECTION) {
+              mKnobAmenitie->setDynamicPos(blockPos);
+              mKnobAmenitie->setDynamicId(id);
+              mk->setPos(blockPos);
 
-            ofDrawBitmapString(mk->getGridId(), pos.x - 25, pos.y - 17);
+              ofDrawBitmapString(mk->getGridId(), pos.x - 25, pos.y - 17);
 
-            {
-              std::string msg = "dkn " + to_string(blockPos.x) + " " +
-                                to_string(blockPos.y) + " " +
-                                to_string(mKnobAmenitie->getDynamicId());
+              {
+                std::string msg = "dkn " + to_string(blockPos.x) + " " +
+                                  to_string(blockPos.y) + " " +
+                                  to_string(mKnobAmenitie->getDynamicId());
 
-              // std::cout << msg << std::endl;
+                // std::cout << msg << std::endl;
 
-              udpConnection.Send(msg.c_str(), msg.length());
+                udpConnection.Send(msg.c_str(), msg.length());
+              }
+              break;
             }
-            break;
           }
         }
       }
@@ -366,9 +350,10 @@ void ofApp::draw() {
   if (mBShowGrid->mActive) {
   }
 
-  mKnobAmenitie->drawArc();
-  mKnobAmenitie->draw();
-
+  if (mEnableKnob) {
+    mKnobAmenitie->drawArc();
+    mKnobAmenitie->draw();
+  }
   // record grid
   recordGrid();
 
@@ -379,7 +364,7 @@ void ofApp::draw() {
 
   // draw results
   ofSetColor(255);
-  ofDrawBitmapString(foundMarkers, ofGetWidth() - 100, 20);
+  ofDrawBitmapString(mArucoDetector->getNumMarkers(), ofGetWidth() - 100, 20);
   ofDrawBitmapString(ofGetFrameRate(), ofGetWidth() - 100, 40);
 }
 
@@ -438,34 +423,86 @@ void ofApp::recordGrid() {
 
 //--------------------------------------------------------------
 void ofApp::updateGUI() {
-  mBDebugVideo->button->update();
-  mBShowGrid->button->update();
-  mBCalibrateVideo->button->update();
+  mGammaValue->update();
+  /*
+mBDebugVideo->button->update();
+mBShowGrid->button->update();
+mBCalibrateVideo->button->update();
 
-  mGridSpaceX->slider->update();
-  mGridSpaceY->slider->update();
+mGridSpaceX->slider->update();
+mGridSpaceY->slider->update();
 
-  mGridStartX->slider->update();
-  mGridStartY->slider->update();
+mGridStartX->slider->update();
+mGridStartY->slider->update();
 
-  mGridGapX->slider->update();
-  mGridGapY->slider->update();
+mGridGapX->slider->update();
+mGridGapY->slider->update();
+*/
 }
 
 //--------------------------------------------------------------
 void ofApp::drawGUI() {
-  mBDebugVideo->button->draw();
-  mBShowGrid->button->draw();
-  mBCalibrateVideo->button->draw();
+  mGammaValue->draw();
+  /*
+mBDebugVideo->button->draw();
+mBShowGrid->button->draw();
+mBCalibrateVideo->button->draw();
 
-  mGridSpaceX->slider->draw();
-  mGridSpaceY->slider->draw();
+mGridSpaceX->slider->draw();
+mGridSpaceY->slider->draw();
 
-  mGridStartX->slider->draw();
-  mGridStartY->slider->draw();
+mGridStartX->slider->draw();
+mGridStartY->slider->draw();
 
-  mGridGapX->slider->draw();
-  mGridGapY->slider->draw();
+mGridGapX->slider->draw();
+mGridGapY->slider->draw();
+*/
+}
+
+void ofApp::updateGrid() {
+  /*
+float startGridX = mGridStartX->ofParamInt;
+float startGridY = mGridStartY->ofParamInt;
+
+float stepX = mGridSpaceX->ofParamInt;
+float stepY = mGridSpaceY->ofParamInt;
+
+float gapX = mGridGapX->ofParamInt;
+float gapY = mGridGapY->ofParamInt;
+
+int maxMarkers = GRID_WIDTH * GRID_HEIGHT;
+
+int i = 0;
+int indeY = 0;
+for (auto &m : mMarkers) {
+
+  int indeX = (i % (int)GRID_WIDTH);
+
+  float x = indeX * stepX + indeX * gapX + startGridX;
+  float y = indeY * stepY + indeY * gapY + startGridY;
+
+  m->setRectPos(glm::vec2(x - stepX / 2.0, y - stepY / 2.0),
+                glm::vec2(stepX, stepY));
+
+  m->setPos(glm::vec2(x, y));
+
+  i++;
+
+  if (indeX >= GRID_WIDTH - 1) {
+    indeY++;
+  }
+}
+*/
+}
+
+//--------------------------------------------------------------
+void ofApp::adjustGamma(cv::Mat &img, float gamma = 0.5) {
+  cv::Mat lookUpTable(1, 256, CV_8U);
+  unsigned char *p = lookUpTable.ptr();
+  for (int i = 0; i < 256; i++) {
+    p[i] = saturate_cast<unsigned char>(pow(i / 255.0, gamma) * 255.0);
+  }
+  cv::LUT(img, lookUpTable, img);
 }
 
 //--------------------------------------------------------------
@@ -484,21 +521,23 @@ void ofApp::saveJSONBlocks() {
     }
   }
 
-  {
-    ofJson pt;
-    pt[to_string(i)]["posx"] = mKnobAmenitie->getStaticPos().x;
-    pt[to_string(i)]["posy"] = mKnobAmenitie->getStaticPos().y;
-    pt[to_string(i)]["type"] = BlockType::knobStatic;
-    writer.push_back(pt);
-    i++;
-  }
+  if (mEnableKnob) {
+    {
+      ofJson pt;
+      pt[to_string(i)]["posx"] = mKnobAmenitie->getStaticPos().x;
+      pt[to_string(i)]["posy"] = mKnobAmenitie->getStaticPos().y;
+      pt[to_string(i)]["type"] = BlockType::knobStatic;
+      writer.push_back(pt);
+      i++;
+    }
 
-  {
-    ofJson pt;
-    pt[to_string(i)]["posx"] = mKnobAmenitie->getDynamicPos().x;
-    pt[to_string(i)]["posy"] = mKnobAmenitie->getDynamicPos().y;
-    pt[to_string(i)]["type"] = BlockType::knobDynamic;
-    writer.push_back(pt);
+    {
+      ofJson pt;
+      pt[to_string(i)]["posx"] = mKnobAmenitie->getDynamicPos().x;
+      pt[to_string(i)]["posy"] = mKnobAmenitie->getDynamicPos().y;
+      pt[to_string(i)]["type"] = BlockType::knobDynamic;
+      writer.push_back(pt);
+    }
   }
   ofLog(OF_LOG_NOTICE) << "json write";
   ofSaveJson("gridpos.json", writer);
@@ -549,20 +588,18 @@ void ofApp::mouseDragged(int x, int y, int button) {
 
     // Physical GUI
     {
-      glm::vec2 pos = mKnobAmenitie->getStaticPos();
+      if (mEnableKnob) {
+        glm::vec2 posStatic = mKnobAmenitie->getStaticPos();
+        float distStatic = ofDist(posStatic.x, posStatic.y, x, y);
+        if (distStatic >= 0.0 && distStatic <= 15) {
+          mKnobAmenitie->setStaticPos(glm::vec2(x, y));
+        }
 
-      float dist = ofDist(pos.x, pos.y, x, y);
-      if (dist >= 0.0 && dist <= 15) {
-        mKnobAmenitie->setStaticPos(glm::vec2(x, y));
-      }
-    }
-
-    {
-      glm::vec2 pos = mKnobAmenitie->getDynamicPos();
-
-      float dist = ofDist(pos.x, pos.y, x, y);
-      if (dist >= 0.0 && dist <= 15) {
-        mKnobAmenitie->setDynamicPos(glm::vec2(x, y));
+        glm::vec2 posDynamic = mKnobAmenitie->getDynamicPos();
+        float distDynamic = ofDist(posDynamic.x, posDynamic.y, x, y);
+        if (distDynamic >= 0.0 && distDynamic <= 15) {
+          mKnobAmenitie->setDynamicPos(glm::vec2(x, y));
+        }
       }
     }
     //

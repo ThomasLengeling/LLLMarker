@@ -51,6 +51,8 @@ public:
     int getMinId(){return mMinFoundId;}
     int getMaxId(){return mMaxFoundId;}
 
+
+    //calibration
     bool readDetectorParameters(std::string filename, cv::Ptr< cv::aruco::DetectorParameters> & params);
     bool saveCameraParams(const std::string &filename, cv::Size imageSize,
                          float aspectRatio, int flags,

@@ -39,9 +39,11 @@ public:
 	static ofxDatSliderRef create() {
 		return std::make_shared<ofxDatSlider>();
 	}
+    void update(){slider->update();}
+    void draw(){slider->draw();}
 
-	ofxDatGuiSlider *  slider;
-	ofParameter<int>   ofParamInt;
-	ofEventListener    sliderListener;
+	ofxDatGuiSlider *    slider;
+	ofParameter<float>   ofParam;
+	ofEventListener      sliderListener;
 
 };
