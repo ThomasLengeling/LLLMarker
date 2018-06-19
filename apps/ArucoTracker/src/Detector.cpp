@@ -28,10 +28,10 @@ void Detector::setupCalibration(int markersX, int markersY) {
   // detectorParams->adaptiveThreshWinSizeMax = 50;
   // detectorParams->adaptiveThreshWinSizeStep = 10;
 
-  detectorParams->perspectiveRemovePixelPerCell = 10;
+  detectorParams->perspectiveRemovePixelPerCell = 4; // 10
   detectorParams->perspectiveRemoveIgnoredMarginPerCell = 0.3;
 
-  detectorParams->errorCorrectionRate = 0.55;
+  detectorParams->errorCorrectionRate = 0.51;
   detectorParams->maxErroneousBitsInBorderRate = 0.3;
 
   detectorParams->minOtsuStdDev = 2;

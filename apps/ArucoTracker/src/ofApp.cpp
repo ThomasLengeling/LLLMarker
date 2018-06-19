@@ -12,7 +12,6 @@ void ofApp::setup() {
   ofLog(OF_LOG_NOTICE) << "Debuging: " << mDebug << std::endl;
 
   ofSetBackgroundAuto(false);
-  ofSetFrameRate(120);
   ofBackground(0);
 
   setupDetection();
@@ -223,6 +222,17 @@ void ofApp::update() {
     gridMovie.update();
     newFrame = gridMovie.isFrameNew();
     pixels = gridMovie.getPixels();
+
+    if (mBFullVideo->mActive) {
+      mFullRender.begin();
+      ofSetColor(255);
+      for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+          gridMovie.draw(i * CAM_WIDTH, j * CAM_HEIGHT, CAM_WIDTH, CAM_HEIGHT);
+        }
+      }
+      mFullRender.end();
+    }
   }
 
   if (newFrame) {
@@ -245,36 +255,21 @@ void ofApp::update() {
         pixels.rotate90(2);
         imageCopy = ofxCv::toCv(pixels);
       }
-
-    } else {
-      pixels.rotate90(2);
-      imageCopy = ofxCv::toCv(pixels);
     }
 
-    if (mBFullVideo->mActive) {
-      /*mFullRender.begin();
-      for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 2; j++) {
-          gridMovie.draw(i * CAM_WIDTH, j * CAM_HEIGHT, CAM_WIDTH, CAM_HEIGHT);
-        }
-      }
-      mFullRender.end();
-      */
-
-      pixels.rotate90(2);
-      cv::Mat hv = ofxCv::toCv(pixels);
-      cv::hconcat(hv, hv, imageCopy);
-    }
+    mFullRender.readToPixels(pixels);
+    pixels.rotate90(2);
+    imageCopy = ofxCv::toCv(pixels);
 
     if (!imageCopy.empty()) {
       adjustGamma(imageCopy, mGammaValue->ofParam);
       mArucoDetector->detectMarkers(imageCopy);
 
-      if (mBFullVideo->mActive) {
-        vidImgFull = mArucoDetector->getOfImg();
-      } else {
-        vidImg = mArucoDetector->getOfImg();
-      }
+      // if (mBFullVideo->mActive) {
+      // vidImgFull = mArucoDetector->getOfImg();
+      //} else {
+      vidImg = mArucoDetector->getOfImg();
+      //}
       vidMat = mArucoDetector->getMatImg();
 
       tagsIds = mArucoDetector->getTagIds();
@@ -334,26 +329,33 @@ void ofApp::draw() {
             type = block->getType();
           }
         }
-
-        // update block to the grid
-        for (auto &block : mBlocks) {
-          int id = block->getMarkerId();
-
-          int roadsId[] = {
-              207, 257, 39,  154, 135, 79,  149, 174, 120, 176, 43,  250, 52,
-              119, 156, 29,  81,  168, 61,  152, 190, 189, 150, 187, 167, 185,
-              247, 227, 181, 124, 85,  179, 140, 206, 222, 232, 97,  219, 218,
-              217, 216, 215, 214, 212, 40,  213, 255, 101, 36,  49,  26,  89,
-              164, 228, 246, 183, 245, 201, 215, 261, 95};
-          for (int i = 0; i < sizeof(roadsId) / sizeof(roadsId[0]); i++) {
-            if (id == roadsId[i]) {
-              block->setType(mKnobAmenitie->getType().getType());
-            }
-          }
-        }
       }
     }
 
+    /*
+            // update block to the grid
+            for (auto &block : mBlocks) {
+              int id = block->getMarkerId();
+
+              int roadsId[] = {
+                  207, 257, 39,  154, 135, 79,  149, 174, 120, 176, 43,  250,
+    52,
+                  119, 156, 29,  81,  168, 61,  152, 190, 189, 150, 187, 167,
+    185,
+                  247, 227, 181, 124, 85,  179, 140, 206, 222, 232, 97,  219,
+    218,
+                  217, 216, 215, 214, 212, 40,  213, 255, 101, 36,  49,  26,
+    89,
+                  164, 228, 246, 183, 245, 201, 215, 261, 95};
+              for (int i = 0; i < sizeof(roadsId) / sizeof(roadsId[0]); i++) {
+                if (id == roadsId[i]) {
+                  block->setType(mKnobAmenitie->getType().getType());
+                }
+              }
+            }
+          }
+        }
+*/
     // update blocks and types
     for (auto &block : mBlocks) {
       int id = block->getMarkerId();
@@ -415,9 +417,10 @@ void ofApp::draw() {
 
   if (mBFullVideo->mActive) {
     ofSetColor(255);
-    mFullRender.draw(0, 0, ofGetWidth(), ofGetHeight());
+    vidImg.draw(0, 0, ofGetWidth(), ofGetHeight());
 
-    vidImgFullTmp.draw(0, 0, 320, 240);
+    mFullRender.draw(0, 0, 320, 240);
+    gridMovie.draw(320, 0, 320, 240);
   }
 
   if (mBShowGrid->mActive) {

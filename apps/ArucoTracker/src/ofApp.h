@@ -35,11 +35,11 @@ LLL
 #include "MarkerAruco.h"
 #include "gui.h"
 
-#define GRID_WIDTH 19
-#define GRID_HEIGHT 13
+#define GRID_WIDTH 19 * 4
+#define GRID_HEIGHT 13 * 4
 
-#define CAM_WIDTH 1920
-#define CAM_HEIGHT 1080
+#define CAM_WIDTH 1280  //1920
+#define CAM_HEIGHT 720 //1080
 
 #define MAX_MARKERS 1000
 

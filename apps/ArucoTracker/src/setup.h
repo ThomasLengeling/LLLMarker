@@ -194,7 +194,6 @@ void ofApp::setupGUI() {
     mBFullVideo->mActive = !mBFullVideo->mActive;
   });
 
-
   int sliderStartX = 150;
 
   mGammaValue = ofxDatSlider::create();
@@ -221,9 +220,9 @@ void ofApp::setupCalibration() {
 void ofApp::setupVideo() {
   // load video first
   mVideoCapture = false;
-  mStichImg     = false;
+  mStichImg = false;
   mRenderFullCams = false;
-  mNumCam = 2;
+  mNumCam = 0;
 
   for (int i = 0; i < mNumCam; i++) {
     ofVideoGrabber vidInput;
@@ -244,7 +243,7 @@ void ofApp::setupVideo() {
   vidImgFullTmp.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, OF_IMAGE_COLOR);
   mFullRender.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, GL_RGB);
   mFullRender.begin();
-  ofClear(0,0,0, 255);
+  ofClear(0, 0, 0, 255);
   mFullRender.end();
 
   ofLog(OF_LOG_NOTICE) << "setup video";
