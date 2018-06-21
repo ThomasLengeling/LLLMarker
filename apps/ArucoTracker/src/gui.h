@@ -25,8 +25,11 @@ public:
         return std::make_shared<ofxDatButton>();
     }
 
+    void setActivation(bool active){mActive = active;}
+
     void update(){button->update();}
     void draw(){button->draw();}
+    bool isActive(){return mActive;}
 
 
     ofxDatGuiButton     * button;

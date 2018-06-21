@@ -28,13 +28,13 @@ void Detector::setupCalibration(int markersX, int markersY) {
   // detectorParams->adaptiveThreshWinSizeMax = 50;
   // detectorParams->adaptiveThreshWinSizeStep = 10;
 
-  detectorParams->perspectiveRemovePixelPerCell = 4; // 10
-  detectorParams->perspectiveRemoveIgnoredMarginPerCell = 0.3;
+  // detectorParams->perspectiveRemovePixelPerCell = 3; // 10
+  // detectorParams->perspectiveRemoveIgnoredMarginPerCell = 0.3;
 
-  detectorParams->errorCorrectionRate = 0.51;
-  detectorParams->maxErroneousBitsInBorderRate = 0.3;
+  // detectorParams->errorCorrectionRate = 0.51;
+  // detectorParams->maxErroneousBitsInBorderRate = 0.3;
 
-  detectorParams->minOtsuStdDev = 2;
+  // detectorParams->minOtsuStdDev = 2;
 
   bool refindStrategy = false;
 
@@ -59,11 +59,72 @@ void Detector::detectMarkers(cv::Mat &inputVideo) {
 
   aruco::detectMarkers(inputVideo, dictionary, corners, arucoIds,
                        detectorParams);
-  aruco::refineDetectedMarkers(inputVideo, board, corners, arucoIds, rejected);
+  // aruco::refineDetectedMarkers(inputVideo, board, corners, arucoIds,
+  // rejected);
 
   if (arucoIds.size() > 0) {
 
-    aruco::drawDetectedMarkers(inputVideo, corners, arucoIds);
+    // aruco::drawDetectedMarkers(inputVideo, corners, arucoIds);
+
+    InputArrayOfArrays cornersDetected = corners;
+    InputArray idsDetected = arucoIds;
+
+    mNumFoundMarkers = cornersDetected.total();
+
+    // analize which markers are activated in the grid.
+    for (int i = 0; i < cornersDetected.total(); i++) {
+      cv::Mat currentMarker = cornersDetected.getMat(i);
+      cv::Point2f cent(0, 0);
+
+      for (int p = 0; p < 4; p++) {
+        cent += currentMarker.ptr<cv::Point2f>(0)[p];
+      }
+
+      cent = cent / 4.;
+      BlockRef cva = Block::create();
+      cva->setPos(glm::vec2(cent.x, cent.y));
+
+      // get ids
+      if (idsDetected.total() != 0) {
+        int id = idsDetected.getMat().ptr<int>(0)[i];
+        mTagsIds.push_back(id);
+        cva->setMarkerId(id);
+
+        if (mMinFoundId > id) {
+          mMinFoundId = id;
+        }
+        if (mMaxFoundId < id) {
+          mMaxFoundId = id;
+        }
+      }
+
+      mBlock.push_back(cva);
+    }
+
+    // create video output
+    inputVideo.copyTo(mVidMat);
+    ofxCv::toOf(mVidMat, mVidImg.getPixels());
+    mVidImg.update();
+  }
+}
+
+void Detector::detectMarkersGPU(cv::cuda::GpuMat &inputVideo) {
+  // detect markers
+  std::vector<int> arucoIds;
+  std::vector<std::vector<cv::Point2f>> corners;
+  std::vector<std::vector<cv::Point2f>> rejected;
+
+  mTagsIds.clear();
+  mBlock.clear();
+
+  aruco::detectMarkers(inputVideo, dictionary, corners, arucoIds,
+                       detectorParams);
+  // aruco::refineDetectedMarkers(inputVideo, board, corners, arucoIds,
+  // rejected);
+
+  if (arucoIds.size() > 0) {
+
+    // aruco::drawDetectedMarkers(inputVideo, corners, arucoIds);
 
     InputArrayOfArrays cornersDetected = corners;
     InputArray idsDetected = arucoIds;

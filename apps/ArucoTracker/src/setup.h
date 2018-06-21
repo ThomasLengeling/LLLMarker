@@ -35,7 +35,6 @@ void ofApp::setupBlocks() {
     mBlocks.push_back(block);
   }
 
-  mDrawGrids = false;
   ofLog(OF_LOG_NOTICE) << "setup blocks " << std::endl;
 }
 //-----------------------------------------------------------------------------
@@ -160,6 +159,7 @@ void ofApp::setupKnob() {
 
 //-----------------------------------------------------------------------------
 void ofApp::setupGUI() {
+
   mBDebugVideo = ofxDatButton::create();
   mBDebugVideo->button = new ofxDatGuiToggle("Debug View", true);
   mBDebugVideo->button->setPosition(10, 10);
@@ -167,40 +167,105 @@ void ofApp::setupGUI() {
   mBDebugVideo->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
     mBDebugVideo->mActive = !mBDebugVideo->mActive;
   });
-  mBDebugVideo->mActive = true;
 
-  mBCalibrateVideo = ofxDatButton::create();
-  mBCalibrateVideo->button = new ofxDatGuiButton("Calibrate Camera");
-  mBCalibrateVideo->button->setPosition(10, 60);
-  mBCalibrateVideo->button->setWidth(100, .4);
-  mBCalibrateVideo->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
-    mBCalibrateVideo->mActive = !mBCalibrateVideo->mActive;
-  });
-  mBCalibrateVideo->mActive = true;
-
-  mBShowGrid = ofxDatButton::create();
-  mBShowGrid->button = new ofxDatGuiButton("Show Grid");
-  mBShowGrid->button->setPosition(10, 100);
-  mBShowGrid->button->setWidth(100, .4);
-  mBShowGrid->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
-    mBShowGrid->mActive = !mBShowGrid->mActive;
+  mBDebugGrid = ofxDatButton::create();
+  mBDebugGrid->button = new ofxDatGuiToggle("Grid View", false);
+  mBDebugGrid->button->setPosition(10, 60);
+  mBDebugGrid->button->setWidth(100, .4);
+  mBDebugGrid->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
+    mBDebugGrid->mActive = !mBDebugGrid->mActive;
   });
 
-  mBFullVideo = ofxDatButton::create();
-  mBFullVideo->button = new ofxDatGuiButton("Show 4 Videos");
-  mBFullVideo->button->setPosition(10, 140);
-  mBFullVideo->button->setWidth(100, .4);
-  mBFullVideo->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
-    mBFullVideo->mActive = !mBFullVideo->mActive;
+  mBSingleGrid = ofxDatButton::create();
+  mBSingleGrid->button = new ofxDatGuiToggle("Single Input", false);
+  mBSingleGrid->button->setPosition(10, 110);
+  mBSingleGrid->button->setWidth(100, .4);
+  mBSingleGrid->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
+    mBSingleGrid->mActive = !mBSingleGrid->mActive;
+  });
+
+  mBFullGrid = ofxDatButton::create();
+  mBFullGrid->setActivation(false);
+  mBFullGrid->button = new ofxDatGuiToggle("Full Input");
+  mBFullGrid->button->setPosition(10, 160);
+  mBFullGrid->button->setWidth(100, .4);
+  mBFullGrid->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
+    mBFullGrid->mActive = !mBFullGrid->mActive;
+
+    if(mBFullGrid->isActive()){
+        mFboGridSend.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, GL_RGBA);
+        mFboGridInfo.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, GL_RGBA);
+        mFboGridColor.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, GL_RGBA);
+
+        mFboFullCam.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, GL_RGB);
+
+        // Mat settings for Aruco detector
+        vidImg.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, OF_IMAGE_COLOR);
+
+        mFboGridSend.begin();
+        ofClear(0, 0, 0, 0);
+        mFboGridSend.end();
+
+        mFboGridInfo.begin();
+        ofClear(0, 0, 0, 5);
+        mFboGridInfo.end();
+
+        mFboGridColor.begin();
+        ofClear(0, 0, 0, 0);
+        mFboGridColor.end();
+
+        mFboFullCam.begin();
+        ofClear(0, 0, 0);
+        mFboFullCam.end();
+
+        std::cout<<"allocated full img"<<std::endl;
+    }else{
+        mFboGridSend.allocate(CAM_WIDTH, CAM_HEIGHT, GL_RGBA);
+        mFboGridInfo.allocate(CAM_WIDTH, CAM_HEIGHT, GL_RGBA);
+        mFboGridColor.allocate(CAM_WIDTH, CAM_HEIGHT, GL_RGBA);
+
+        mFboFullCam.allocate(CAM_WIDTH, CAM_HEIGHT, GL_RGB);
+
+        // Mat settings for Aruco detector
+        vidImg.allocate(CAM_WIDTH, CAM_HEIGHT, OF_IMAGE_COLOR);
+
+        mFboGridSend.begin();
+        ofClear(0, 0, 0, 0);
+        mFboGridSend.end();
+
+        mFboGridInfo.begin();
+        ofClear(0, 0, 0, 0);
+        mFboGridInfo.end();
+
+        mFboGridColor.begin();
+        ofClear(0, 0, 0, 0);
+        mFboGridColor.end();
+
+        mFboFullCam.begin();
+        ofClear(0, 0, 0);
+        mFboFullCam.end();
+
+        std::cout<<"allocated single img"<<std::endl;
+      }
   });
 
   int sliderStartX = 150;
+
+  mBEnableCrop = ofxDatButton::create();
+  mBEnableCrop->setActivation(false);
+  mBEnableCrop->button = new ofxDatGuiToggle("Toogle Crop");
+  mBEnableCrop->button->setPosition(sliderStartX, 60);
+  mBEnableCrop->button->setWidth(390, .4);
+  mBEnableCrop->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
+    mBEnableCrop->mActive = !mBEnableCrop->mActive;
+    mGridImage->toogleCrop();
+});
 
   mGammaValue = ofxDatSlider::create();
   mGammaValue->slider =
       new ofxDatGuiSlider(mGammaValue->ofParam.set("gamma", 0.87, 0, 2));
   mGammaValue->slider->setWidth(390, .4);
-  mGammaValue->slider->setPosition(sliderStartX, 60);
+  mGammaValue->slider->setPosition(sliderStartX, 110);
 
   mGammaValue->slider->onSliderEvent(
       [&](ofxDatGuiSliderEvent v) { mGammaValue->ofParam = v.value; });
@@ -219,11 +284,33 @@ void ofApp::setupCalibration() {
 //-----------------------------------------------------------------------------
 void ofApp::setupVideo() {
   // load video first
-  mVideoCapture = false;
-  mStichImg = false;
-  mRenderFullCams = false;
-  mNumCam = 0;
+  mGridImage = GridImage::create(glm::vec2(CAM_WIDTH, CAM_HEIGHT));
+  ofFile file("img.json");
+  if (file.exists()) {
+      ofJson js;
+      file >> js;
+      for (auto & cam : js) {
+          std::string inputImg("cam0");
+          mGridImage->setCropUp(glm::vec2(cam[inputImg]["x1"], cam[inputImg]["y1"]));
+          mGridImage->setCropDown(glm::vec2(cam[inputImg]["x2"], cam[inputImg]["y2"]));
+          mGridImage->setCropDisp(glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
+      }
+      ofLog(OF_LOG_NOTICE) << "end cam values JSON";
+  }else{
+      ofLog(OF_LOG_NOTICE) << "file does not exist img.json";
+  }
 
+
+  mStichImg = false;
+  mDebugGrid = false;
+
+  mVideoCapture = false;
+  mNumCam = 0;
+  mSingleCam = 0;
+
+  mVideoInput = "grid_05.mov";
+
+  // create the camera settings
   for (int i = 0; i < mNumCam; i++) {
     ofVideoGrabber vidInput;
 
@@ -233,18 +320,42 @@ void ofApp::setupVideo() {
     vidGrabber.push_back(vidInput);
   }
 
-  gridMovie.load("grid_05.mov");
-  gridMovie.setLoopState(OF_LOOP_NORMAL);
-  gridMovie.play();
+  // video settigns
+  int numMovies = 4;
+  mCurrentMovieIdx = 0;
+  std::string movies [] = {"grid_05.mov", "grid_05.mov", "grid_05.mov","grid_05.mov"};
+  for(int i = 0; i < numMovies; i++){
+      ofVideoPlayer mm;
+      mm.load(movies[i]);
+      mm.play();
+      mGridMovies.push_back(mm);
+  }
 
-  vidImg.allocate(CAM_WIDTH, CAM_HEIGHT, OF_IMAGE_COLOR);
+  // fill the fbos with the appropiate dimentions
+  mFboGridSend.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, GL_RGBA);
+  mFboGridInfo.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, GL_RGBA);
+  mFboGridColor.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, GL_RGBA);
+  mFboFullCam.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, GL_RGB);
 
-  vidImgFull.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, OF_IMAGE_COLOR);
-  vidImgFullTmp.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, OF_IMAGE_COLOR);
-  mFullRender.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, GL_RGB);
-  mFullRender.begin();
-  ofClear(0, 0, 0, 255);
-  mFullRender.end();
+  // Mat settings for Aruco detector
+  vidImg.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, OF_IMAGE_COLOR);
+
+  // clean start with Fbos
+  mFboGridSend.begin();
+  ofClear(0, 0, 0, 0);
+  mFboGridSend.end();
+
+  mFboGridInfo.begin();
+  ofClear(0, 0, 0, 0);
+  mFboGridInfo.end();
+
+  mFboGridColor.begin();
+  ofClear(0, 0, 0, 0);
+  mFboGridColor.end();
+
+  mFboFullCam.begin();
+  ofClear(0, 0, 0);
+  mFboFullCam.end();
 
   ofLog(OF_LOG_NOTICE) << "setup video";
 }
@@ -258,6 +369,16 @@ void ofApp::setupCleaner() {
 
   // record grid
   mRecordOnce = true;
+
+  for (int i = 0; i < GRID_WIDTH * GRID_HEIGHT; i++) {
+      mIdsCounter.emplace(i, 0); // mFullIds.at(i), 0);
+      mProCounter.emplace(i, 0);
+  }
+
+  // ids from 0 -1000, max number of counters
+  for (int i = 0; i < MAX_MARKERS; i++) {
+      mCenterCounter.emplace(i, 0);
+  }
 
   ofLog(OF_LOG_NOTICE) << "setup clean" << std::endl;
 }

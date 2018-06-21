@@ -37,6 +37,7 @@ public:
     void setupCalibration(int markersX, int markersY);
 
     void detectMarkers(cv::Mat & inputVideo);
+    void detectMarkersGPU(cv::cuda::GpuMat & inputVideo);
 
     void resetMinMax();
 
@@ -77,6 +78,7 @@ private:
 
     //video output in two formats
     cv::Mat mVidMat;
+    cv::cuda::GpuMat mVidMatGPU;
     ofImage mVidImg;
 
 };
