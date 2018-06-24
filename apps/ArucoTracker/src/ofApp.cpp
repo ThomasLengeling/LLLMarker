@@ -194,10 +194,7 @@ void ofApp::update() {
   for (auto &gridImage : mGridImg) {
     newFrame = gridImage->updateImage();
     if (newFrame) {
-      std::cout << "got new frame ";
       pixelsImg.push_back(gridImage->getImgPixels());
-      std::cout << j << " " << pixelsImg.back().getWidth() << " "
-                << pixelsImg.back().getHeight() << std::endl;
     }
     j++;
   }
@@ -219,14 +216,10 @@ void ofApp::update() {
     mGridImg.at(mCurrentInputIdx)->cropImg(input);
     cv::Mat copMat = mGridImg.at(mCurrentInputIdx)->getCropMat();
     copMat.copyTo(copyCrop);
-    ofLog(OF_LOG_NOTICE) << "copMat" << std::endl;
   }
 
   // cv::Mat copyCrop = mGridImg.at(mCurrentInputIdx)->getCropMat();
   mGridImg.at(mCurrentInputIdx)->adjustGamma(copyCrop, mGammaValue->getValue());
-
-  ofLog(OF_LOG_NOTICE) << copyCrop.empty() << std::endl;
-
   cv::Mat imageCopy;
   copyCrop.copyTo(imageCopy);
 
@@ -264,17 +257,23 @@ void ofApp::draw() {
   if (mBDebugVideo->isActive()) {
 
     ofSetColor(255);
-    vidImg.draw(0, 0, ofGetWidth(), ofGetHeight());
+    vidImg.draw(0, 0, 1280, 720);
 
-    if (mBEnableCrop) {
+    if (mBEnableCrop->isActive()) {
       mGridImg.at(mCurrentInputIdx)
           ->drawImage(0, 0, ofGetWidth(), ofGetHeight());
-    }
+    } else {
 
-    int i = 0;
-    for (auto &gridImage : mGridImg) {
-      gridImage->drawImage(640 * 3, 240 * i, 426, 240);
-      i++;
+      int i = 0;
+      for (auto &gridImage : mGridImg) {
+        if (mCurrentInputIdx == i) {
+          ofSetColor(0, 200, 150, 200);
+        } else {
+          ofSetColor(255, 150);
+        }
+        gridImage->drawImage(ofGetWidth() - 426, 240 * i, 426, 240);
+        i++;
+      }
     }
   }
 
@@ -422,12 +421,12 @@ void ofApp::draw() {
 
   // draw results
   ofSetColor(255);
-  ofDrawBitmapString(mArucoDetector->getNumMarkers(), ofGetWidth() - 100, 20);
-  ofDrawBitmapString(ofGetFrameRate(), ofGetWidth() - 100, 40);
-
-  ofSetColor(0);
-  ofDrawBitmapString(mArucoDetector->getNumMarkers(), ofGetWidth() - 100, 60);
-  ofDrawBitmapString(ofGetFrameRate(), ofGetWidth() - 100, 80);
+  int posx = ofGetWidth() - 200;
+  ofDrawBitmapString("Markers: " + to_string(mArucoDetector->getNumMarkers()),
+                     posx, 20);
+  ofDrawBitmapString("Fps: " + to_string(ofGetFrameRate()), posx, 40);
+  ofDrawBitmapString("Inputs: " + to_string(mGridImg.size()), posx, 60);
+  ofDrawBitmapString("Current input: " + to_string(mCurrentInputIdx), posx, 80);
 }
 
 //--------------------------------------------------------------
@@ -515,6 +514,8 @@ void ofApp::updateGUI() {
   mBFullGrid->update();
   mBDebugMarkers->update();
 
+  mBGridSelect->update();
+
   /*
   mGridSpaceX->slider->update();
   mGridSpaceY->slider->update();
@@ -538,6 +539,8 @@ void ofApp::drawGUI() {
   mBSingleGrid->draw();
   mBFullGrid->draw();
   mBDebugMarkers->draw();
+
+  mBGridSelect->draw();
   /*
 mGridSpaceX->slider->draw();
 mGridSpaceY->slider->draw();
@@ -653,9 +656,9 @@ void ofApp::keyPressed(int key) {
 
   if (key == '3') {
     ofJson writer;
-    ofJson pt;
     int i = 0;
     for (auto &gridImage : mGridImg) {
+      ofJson pt;
       std::string inputImg("cam" + to_string(i));
       pt[inputImg]["x1"] = gridImage->getCropUp().x;
       pt[inputImg]["y1"] = gridImage->getCropUp().y;

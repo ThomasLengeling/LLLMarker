@@ -83,6 +83,7 @@ public:
   ofxDatButtonRef mBDebugMarkers;
 
   ofxDatSliderRef mGammaValue;
+  ofxDatMatrixRef mBGridSelect;
 
   bool mDrawGUI;
 

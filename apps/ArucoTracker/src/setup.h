@@ -279,7 +279,6 @@ void ofApp::setupGUI() {
       new ofxDatGuiSlider(mGammaValue->ofParam.set("gamma", 0.87, 0, 2));
   mGammaValue->slider->setWidth(390, .4);
   mGammaValue->slider->setPosition(sliderStartX, 160);
-
   mGammaValue->slider->onSliderEvent(
       [&](ofxDatGuiSliderEvent v) { mGammaValue->ofParam = v.value; });
 
@@ -292,6 +291,17 @@ void ofApp::setupGUI() {
           mArucoDetector->toggleMarkerInfo();
       });
 
+
+      mBGridSelect  = ofxDatMatrix::create();
+      mBGridSelect->matrix =
+          new ofxDatGuiMatrix("Grid Matrix", 2 * 2, true);
+      mBGridSelect->matrix->setRadioMode(true);
+      mBGridSelect->matrix->setOpacity(0.8);
+      mBGridSelect->matrix->setWidth(390, .4);
+      mBGridSelect->matrix->setPosition(sliderStartX, 260);
+      mBGridSelect->matrix->onMatrixEvent(
+          [&](ofxDatGuiMatrixEvent v) { mCurrentInputIdx = v.child;
+      ofLog(OF_LOG_NOTICE) << "Index: "<<mCurrentInputIdx<< std::endl; });
 }
 //-----------------------------------------------------------------------------
 void ofApp::setupDetection() {
@@ -314,9 +324,10 @@ void ofApp::setupVideo() {
   // load video first
   int numInputs = 4;
   mCurrentInputIdx = 0;
-  std::string movies [] = {"grid_05.mov", "grid_05.mov", "grid_05.mov","grid_05.mov"};
+  std::string movies [] = {"grid_01.mov", "grid_02.mov", "grid_03.mov","grid_04.mov"};
   for(int i = 0; i < numInputs; i++){
       GridImageRef gridImage = GridImage::create(glm::vec2(CAM_WIDTH, CAM_HEIGHT));
+      gridImage->setId(i);
       mGridImg.push_back(gridImage);
   }
 
@@ -331,6 +342,7 @@ void ofApp::setupVideo() {
           mGridImg.at(j)->setCropUp(glm::vec2(cam[inputImg]["x1"], cam[inputImg]["y1"]));
           mGridImg.at(j)->setCropDown(glm::vec2(cam[inputImg]["x2"], cam[inputImg]["y2"]));
           mGridImg.at(j)->setCropDisp(glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
+          ofLog(OF_LOG_NOTICE) << "Set Crop: "<<j;
           j++;
       }
       ofLog(OF_LOG_NOTICE) << "end cam values JSON";
@@ -340,10 +352,17 @@ void ofApp::setupVideo() {
   }
 
   {
+      //load video
       int i =0;
       for (auto &gridImage : mGridImg) {
-          gridImage->setupCam(i);
           gridImage->setupVideo(movies[i]);
+          i++;
+      }
+
+      //load cam
+      i =0;
+      for (auto &gridImage : mGridImg) {
+          gridImage->setupCam(i);
           i++;
       }
   }

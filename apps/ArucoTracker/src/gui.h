@@ -46,7 +46,17 @@ public:
 //Matrix Slider
 class ofxDatMatrix{
 public:
-private:
+    ofxDatMatrix() {}
+    static ofxDatMatrixRef create() {
+        return std::make_shared<ofxDatMatrix>();
+    }
+    void update(){matrix->update();}
+    void draw(){matrix->draw();}
+    float getValue(){return mCurretValue;}
+
+    ofxDatGuiMatrix     * matrix;
+    ofEventListener      matrixListener;
+    int                  mCurretValue;
 };
 
 class ofxDatSlider {

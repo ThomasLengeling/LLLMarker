@@ -8,6 +8,10 @@ GridImage::GridImage(glm::vec2 dims) {
   mLength = glm::vec2(0, 0);
   mGamma = 0.9;
   mActivateCrop = false;
+
+  mCornerUp = glm::vec2(100, 100);
+  mCornerDown = glm::vec2(300, 300);
+  mDisp = glm::vec2(23, 23);
 }
 
 void GridImage::setupCam(int id) {
@@ -15,6 +19,16 @@ void GridImage::setupCam(int id) {
   mCam.setDeviceID(mCamId);
   mCam.setDesiredFrameRate(60);
   mCam.initGrabber(mDim.x, mDim.y);
+
+  ofLog(OF_LOG_NOTICE) << "loaded Cam: " << mCamId << " " << mId;
+}
+
+void GridImage::setupVideo(std::string name) {
+  mVideoName = name;
+  mVideoInput.load(mVideoName);
+  mVideoInput.play();
+
+  ofLog(OF_LOG_NOTICE) << "loaded Video: " << mVideoName << " " << mId;
 }
 
 bool GridImage::updateImage() {
@@ -39,12 +53,6 @@ void GridImage::drawImage(float x, float y, float w, float h) {
   } else {
     mVideoInput.draw(x, y, w, h);
   }
-}
-
-void GridImage::setupVideo(std::string name) {
-  mVideoName = name;
-  mVideoInput.load(mVideoName);
-  mVideoInput.play();
 }
 
 void GridImage::adjustGamma(cv::Mat &img, float gamma = 0.5) {

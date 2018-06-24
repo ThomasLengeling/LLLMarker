@@ -68,6 +68,8 @@ public:
     glm::vec2 getCropDown(){return mCornerDown;}
     glm::vec2 getCropDisp(){return mDisp;}
 
+    void setId(int id){mId = id;}
+
 private:
     //input stream
     ofVideoGrabber      mCam;
