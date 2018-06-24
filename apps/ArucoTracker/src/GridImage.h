@@ -33,13 +33,27 @@ public:
         return std::make_shared<GridImage>(dims);
     }
 
+    void setupCam(int id);
+    void setupVideo(std::string name);
+
+    //cam
+    ofVideoGrabber    & getCam(){return mCam;}
+    ofVideoPlayer     & getVideo(){return mVideoInput;}
+
+
+    bool updateImage();
+    void drawImage(float x, float y, float w, float h);
+
+    ofPixels & getImgPixels();
+
 
     // clean Image
     void adjustGamma(cv::Mat &img, float gamma);
 
-    void toogleCrop(){mActivateCrop=!mActivateCrop;}
+    void toogleCrop(){mActivateCrop =! mActivateCrop;}
+    void toogleCam(){mActivateCam =! mActivateCam;}
 
-    void cropImg(cv::Mat inputVideo);
+    void cropImg(cv::Mat & inputVideo);
 
     void drawCropImg();
     void drawCropRoi();
@@ -55,8 +69,17 @@ public:
     glm::vec2 getCropDisp(){return mDisp;}
 
 private:
-    ofImage vidImg;
-    cv::Mat vidMat;
+    //input stream
+    ofVideoGrabber      mCam;
+    int                 mCamId;
+
+    ofVideoPlayer       mVideoInput;
+    std::string         mVideoName;
+
+    ofImage             vidImg;
+    cv::Mat             vidMat;
+
+    bool mActivateCam;
 
     //crop
     bool mActivateCrop;
@@ -72,6 +95,7 @@ private:
     glm::vec2 mLength;
 
     int mId;
+
 
     //img correction
     float mGamma;

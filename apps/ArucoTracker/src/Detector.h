@@ -39,6 +39,9 @@ public:
     void detectMarkers(cv::Mat & inputVideo);
     void detectMarkersGPU(cv::cuda::GpuMat & inputVideo);
 
+
+    void toggleMarkerInfo(){mMarkerInfo = !mMarkerInfo;}
+
     void resetMinMax();
 
     std::vector<int> getTagIds(){return mTagsIds;}
@@ -80,5 +83,7 @@ private:
     cv::Mat mVidMat;
     cv::cuda::GpuMat mVidMatGPU;
     ofImage mVidImg;
+
+    bool mMarkerInfo;
 
 };

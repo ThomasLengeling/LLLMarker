@@ -17,6 +17,7 @@ public:
 
     int getBlockType(){return mBType;}
 
+
     void setStaticGridId(int & id){mStaticGridId =id;}
     void setDynamicGridId(int & id){mDynamicGridId =id;}
 

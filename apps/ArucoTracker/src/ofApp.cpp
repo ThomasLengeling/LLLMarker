@@ -186,103 +186,64 @@ bool ofApp::stichImage(cv::Mat &imgStitch, std::vector<cv::Mat> imgs) {
 void ofApp::update() {
 
   bool newFrame = false;
-  bool succesStich = false;
-
   ofPixels pixels;
   std::vector<cv::Mat> vidMatImgs;
   std::vector<ofPixels> pixelsImg;
 
-  if (mVideoCapture) {
-    for (auto &cam : vidGrabber) {
-      cam.update();
-      if (cam.isFrameNew()) {
-        pixelsImg.push_back(cam.getPixels());
-      }
+  int j = 0;
+  for (auto &gridImage : mGridImg) {
+    newFrame = gridImage->updateImage();
+    if (newFrame) {
+      std::cout << "got new frame ";
+      pixelsImg.push_back(gridImage->getImgPixels());
+      std::cout << j << " " << pixelsImg.back().getWidth() << " "
+                << pixelsImg.back().getHeight() << std::endl;
     }
+    j++;
+  }
 
-    for (auto &cam : vidGrabber) {
-      if (cam.isFrameNew()) {
-        newFrame = true;
-        pixels = cam.getPixels();
-        break;
-      }
+  int i = 0;
+  cv::Mat copyCrop;
+  for (auto &pixs : pixelsImg) {
+
+    // v::Mat imgpixs;
+    if (mCurrentInputIdx == i) {
     }
+    //
+    i++;
+  }
+
+  if (pixelsImg.size() > 0 && mCurrentInputIdx <= pixelsImg.size() &&
+      mGridImg.size() > 0 && mCurrentInputIdx <= mGridImg.size()) {
+    cv::Mat input = ofxCv::toCv(pixelsImg.at(mCurrentInputIdx));
+    mGridImg.at(mCurrentInputIdx)->cropImg(input);
+    cv::Mat copMat = mGridImg.at(mCurrentInputIdx)->getCropMat();
+    copMat.copyTo(copyCrop);
+    ofLog(OF_LOG_NOTICE) << "copMat" << std::endl;
+  }
+
+  // cv::Mat copyCrop = mGridImg.at(mCurrentInputIdx)->getCropMat();
+  mGridImg.at(mCurrentInputIdx)->adjustGamma(copyCrop, mGammaValue->getValue());
+
+  ofLog(OF_LOG_NOTICE) << copyCrop.empty() << std::endl;
+
+  cv::Mat imageCopy;
+  copyCrop.copyTo(imageCopy);
+
+  if (!imageCopy.empty()) {
+
+    mArucoDetector->detectMarkers(imageCopy);
+
+    vidImg = mArucoDetector->getOfImg();
+    vidMat = mArucoDetector->getMatImg();
+
+    tagsIds = mArucoDetector->getTagIds();
+    mCurrBlock = mArucoDetector->getBoard(); // current ids
+    mTmpBlocks.push_back(mCurrBlock);        // array of blocks
   } else {
-    int i = 0;
-    for (auto &movie : mGridMovies) {
-      movie.update();
-      if (mCurrentMovieIdx == 0) {
-        mCurrentVideo = gridMovie.getTexture();
-      }
-      if (gridMovie.isFrameNew()) {
-        newFrame = true;
-      }
-    }
+    ofLog(OF_LOG_NOTICE) << "empty mat img copy " << std::endl;
   }
-
-  if (newFrame) {
-    cv::Mat imageCopy;
-    cv::cuda::GpuMat imageCopyGPU;
-    if (mStichImg) {
-
-      for (auto &pixs : pixelsImg) {
-        // pixs.rotate90(2);
-        Mat matImg = ofxCv::toCv(pixs);
-        vidMatImgs.push_back(matImg);
-      }
-      if (vidMatImgs.size() >= 2) {
-        ofLog(OF_LOG_NOTICE) << vidMatImgs.size();
-        succesStich = stichImage(imageCopy, vidMatImgs);
-        if (!succesStich) {
-          // pixels.rotate90(2);
-          imageCopy = ofxCv::toCv(pixels);
-        }
-      } else {
-
-        imageCopy = ofxCv::toCv(pixels);
-      }
-    } else {
-
-      if (mBFullGrid->isActive()) {
-        mFboFullCam.begin();
-        ofSetColor(255);
-        for (int i = 0; i < 2; i++) {
-          for (int j = 0; j < 2; j++) {
-            gridMovie.draw(i * CAM_WIDTH, j * CAM_HEIGHT, CAM_WIDTH,
-                           CAM_HEIGHT);
-          }
-        }
-        mFboFullCam.end();
-      }
-    }
-
-    if (mBFullGrid->isActive()) {
-      mFboFullCam.readToPixels(pixels);
-    } else {
-      pixels = gridMovie.getPixels();
-    }
-
-    // pixels.rotate90(2);
-    videoInputMat = ofxCv::toCv(pixels);
-    mGridImage->cropImg(videoInputMat);
-    cv::Mat copyCrop = mGridImage->getCropMat();
-    copyCrop.copyTo(imageCopy);
-    // videoInputMat.copyTo(imageCopy);
-
-    if (!imageCopy.empty()) {
-      mGridImage->adjustGamma(imageCopy, mGammaValue->ofParam);
-
-      mArucoDetector->detectMarkers(imageCopy);
-
-      vidImg = mArucoDetector->getOfImg();
-      vidMat = mArucoDetector->getMatImg();
-
-      tagsIds = mArucoDetector->getTagIds();
-      mCurrBlock = mArucoDetector->getBoard(); // current ids
-      mTmpBlocks.push_back(mCurrBlock);        // array of blocks
-    }
-    cleanDetection();
-  }
+  cleanDetection();
 
   offScreenInfoGrid();
 
@@ -305,20 +266,15 @@ void ofApp::draw() {
     ofSetColor(255);
     vidImg.draw(0, 0, ofGetWidth(), ofGetHeight());
 
-    for (auto &mk : mMarkers) {
-      glm::vec2 pos = mk->getPos();
+    if (mBEnableCrop) {
+      mGridImg.at(mCurrentInputIdx)
+          ->drawImage(0, 0, ofGetWidth(), ofGetHeight());
+    }
 
-      if (mk->isEnable()) {
-        ofSetColor(255);
-        ofDrawCircle(pos.x, pos.y, 7, 7);
-      } else {
-        ofSetColor(255, 255, 0);
-        ofDrawCircle(pos.x, pos.y, 4, 4);
-      }
-
-      ofSetColor(255);
-      ofDrawBitmapString(mk->getMarkerId(), pos.x - 20, pos.y - 7);
-      ofDrawBitmapString(mk->getGridId(), pos.x - 25, pos.y - 17);
+    int i = 0;
+    for (auto &gridImage : mGridImg) {
+      gridImage->drawImage(640 * 3, 240 * i, 426, 240);
+      i++;
     }
   }
 
@@ -327,13 +283,33 @@ void ofApp::draw() {
     ofSetColor(255);
     vidImg.draw(0, 0, 640, 360);
 
-    int i = 0;
-    for (auto &video : vidGrabber) {
-      vidGrabber.at(i).draw(640, 360 * i, 640, 360);
-      i++;
-    }
-    vidImg.draw(640 * 2, 0, 640, 360);
     mFboGridInfo.draw(640 * 2, 0, 640, 360);
+    vidImg.draw(0, 0);
+
+    for (auto &mk : mMarkers) {
+      glm::vec2 pos = mk->getPos();
+
+      if (mk->isEnable()) {
+        ofSetColor(255);
+        ofDrawCircle(pos.x, pos.y, 7, 7);
+        ofSetColor(200, 80);
+        ofDrawCircle(pos.x, pos.y, RAD_DETECTION / 2.0, RAD_DETECTION / 2.0);
+      } else {
+        ofSetColor(255, 255, 0);
+        ofDrawCircle(pos.x, pos.y, 4, 4);
+        ofSetColor(255, 355, 100);
+        ofDrawCircle(pos.x, pos.y, RAD_DETECTION / 2.0, RAD_DETECTION / 2.0);
+      }
+
+      if (mDebugGrid) {
+        ofSetColor(0, 100, 200, 100);
+        ofDrawCircle(pos.x, pos.y, RAD_DETECTION, RAD_DETECTION);
+      }
+
+      ofSetColor(255);
+      ofDrawBitmapString(mk->getMarkerId(), pos.x - 20, pos.y - 7);
+      ofDrawBitmapString(mk->getGridId(), pos.x - 25, pos.y - 17);
+    }
   }
 
   // update block
@@ -423,9 +399,7 @@ void ofApp::draw() {
     ofSetColor(255);
 
     vidImg.draw(0, 0, ofGetWidth(), ofGetHeight());
-
     mFboFullCam.draw(0, 0, 320, 240);
-    gridMovie.draw(320, 0, 320, 240);
   }
 
   if (mEnableKnob) {
@@ -442,8 +416,8 @@ void ofApp::draw() {
   }
 
   if (mBEnableCrop->isActive()) {
-    mGridImage->drawCropImg();
-    mGridImage->drawCropRoi();
+    mGridImg.at(mCurrentInputIdx)->drawCropImg();
+    mGridImg.at(mCurrentInputIdx)->drawCropRoi();
   }
 
   // draw results
@@ -533,11 +507,13 @@ void ofApp::offScreenInfoGrid() {
 void ofApp::updateGUI() {
   mGammaValue->update();
   mBEnableCrop->update();
+  mBEnableVideo->update();
 
   mBDebugVideo->update();
   mBDebugGrid->update();
   mBSingleGrid->update();
   mBFullGrid->update();
+  mBDebugMarkers->update();
 
   /*
   mGridSpaceX->slider->update();
@@ -555,11 +531,13 @@ void ofApp::updateGUI() {
 void ofApp::drawGUI() {
   mGammaValue->draw();
   mBEnableCrop->draw();
+  mBEnableVideo->draw();
 
   mBDebugVideo->draw();
   mBDebugGrid->draw();
   mBSingleGrid->draw();
   mBFullGrid->draw();
+  mBDebugMarkers->draw();
   /*
 mGridSpaceX->slider->draw();
 mGridSpaceY->slider->draw();
@@ -658,11 +636,15 @@ void ofApp::keyPressed(int key) {
   }
 
   if (key == '5') {
-    mGridImage->setCropDisp(mGridImage->getCropDisp() + glm::vec2(1, 1));
+    mGridImg.at(mCurrentInputIdx)
+        ->setCropDisp(mGridImg.at(mCurrentInputIdx)->getCropDisp() +
+                      glm::vec2(1, 1));
   }
 
   if (key == '6') {
-    mGridImage->setCropDisp(mGridImage->getCropDisp() - glm::vec2(1, 1));
+    mGridImg.at(mCurrentInputIdx)
+        ->setCropDisp(mGridImg.at(mCurrentInputIdx)->getCropDisp() -
+                      glm::vec2(1, 1));
   }
 
   if (key == '2') {
@@ -672,14 +654,18 @@ void ofApp::keyPressed(int key) {
   if (key == '3') {
     ofJson writer;
     ofJson pt;
-    std::string inputImg("cam0");
-    pt[inputImg]["x1"] = mGridImage->getCropUp().x;
-    pt[inputImg]["y1"] = mGridImage->getCropUp().y;
-    pt[inputImg]["x2"] = mGridImage->getCropDown().x;
-    pt[inputImg]["y2"] = mGridImage->getCropDown().y;
-    pt[inputImg]["disX"] = mGridImage->getCropDisp().x;
-    pt[inputImg]["disY"] = mGridImage->getCropDisp().y;
-    writer.push_back(pt);
+    int i = 0;
+    for (auto &gridImage : mGridImg) {
+      std::string inputImg("cam" + to_string(i));
+      pt[inputImg]["x1"] = gridImage->getCropUp().x;
+      pt[inputImg]["y1"] = gridImage->getCropUp().y;
+      pt[inputImg]["x2"] = gridImage->getCropDown().x;
+      pt[inputImg]["y2"] = gridImage->getCropDown().y;
+      pt[inputImg]["disX"] = gridImage->getCropDisp().x;
+      pt[inputImg]["disY"] = gridImage->getCropDisp().y;
+      writer.push_back(pt);
+      i++;
+    }
 
     ofLog(OF_LOG_NOTICE) << "Image json write";
     ofSaveJson("img.json", writer);
@@ -746,15 +732,17 @@ void ofApp::mouseDragged(int x, int y, int button) {
     if (mBEnableCrop->isActive()) {
       {
         float distUp =
-            ofDist(mGridImage->getCropUp().x, mGridImage->getCropUp().y, x, y);
+            ofDist(mGridImg.at(mCurrentInputIdx)->getCropUp().x,
+                   mGridImg.at(mCurrentInputIdx)->getCropUp().y, x, y);
         if (distUp >= 0.0 && distUp <= 20) {
-          mGridImage->setCropUp(glm::vec2(x, y));
+          mGridImg.at(mCurrentInputIdx)->setCropUp(glm::vec2(x, y));
         }
 
-        float distDown = ofDist(mGridImage->getCropDown().x,
-                                mGridImage->getCropDown().y, x, y);
+        float distDown =
+            ofDist(mGridImg.at(mCurrentInputIdx)->getCropDown().x,
+                   mGridImg.at(mCurrentInputIdx)->getCropDown().y, x, y);
         if (distDown >= 0.0 && distDown <= 20) {
-          mGridImage->setCropDown(glm::vec2(x, y));
+          mGridImg.at(mCurrentInputIdx)->setCropDown(glm::vec2(x, y));
         }
       }
     }

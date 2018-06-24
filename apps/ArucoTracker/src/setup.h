@@ -258,17 +258,40 @@ void ofApp::setupGUI() {
   mBEnableCrop->button->setWidth(390, .4);
   mBEnableCrop->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
     mBEnableCrop->mActive = !mBEnableCrop->mActive;
-    mGridImage->toogleCrop();
+    mGridImg.at(mCurrentInputIdx)->toogleCrop();
 });
+
+    mBEnableVideo = ofxDatButton::create();
+    mBEnableVideo->setActivation(false);
+    mBEnableVideo->button = new ofxDatGuiToggle("Toogle Video");
+    mBEnableVideo->button->setPosition(sliderStartX, 110);
+    mBEnableVideo->button->setWidth(390, .4);
+    mBEnableVideo->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
+        for (auto &gridImage : mGridImg) {
+            gridImage->toogleCam();
+        }
+    });
+
+
 
   mGammaValue = ofxDatSlider::create();
   mGammaValue->slider =
       new ofxDatGuiSlider(mGammaValue->ofParam.set("gamma", 0.87, 0, 2));
   mGammaValue->slider->setWidth(390, .4);
-  mGammaValue->slider->setPosition(sliderStartX, 110);
+  mGammaValue->slider->setPosition(sliderStartX, 160);
 
   mGammaValue->slider->onSliderEvent(
       [&](ofxDatGuiSliderEvent v) { mGammaValue->ofParam = v.value; });
+
+      mBDebugMarkers = ofxDatButton::create();
+      mBDebugMarkers->setActivation(false);
+      mBDebugMarkers->button = new ofxDatGuiToggle("Toogle Markers Draw");
+      mBDebugMarkers->button->setPosition(sliderStartX, 210);
+      mBDebugMarkers->button->setWidth(390, .4);
+      mBDebugMarkers->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
+          mArucoDetector->toggleMarkerInfo();
+      });
+
 }
 //-----------------------------------------------------------------------------
 void ofApp::setupDetection() {
@@ -283,53 +306,50 @@ void ofApp::setupCalibration() {
 }
 //-----------------------------------------------------------------------------
 void ofApp::setupVideo() {
+    mStichImg = false;
+    mDebugGrid = false;
+
+    mVideoCapture = true;
+
   // load video first
-  mGridImage = GridImage::create(glm::vec2(CAM_WIDTH, CAM_HEIGHT));
+  int numInputs = 4;
+  mCurrentInputIdx = 0;
+  std::string movies [] = {"grid_05.mov", "grid_05.mov", "grid_05.mov","grid_05.mov"};
+  for(int i = 0; i < numInputs; i++){
+      GridImageRef gridImage = GridImage::create(glm::vec2(CAM_WIDTH, CAM_HEIGHT));
+      mGridImg.push_back(gridImage);
+  }
+
   ofFile file("img.json");
+  bool foundFile = false;
   if (file.exists()) {
       ofJson js;
       file >> js;
+      int j = 0;
       for (auto & cam : js) {
-          std::string inputImg("cam0");
-          mGridImage->setCropUp(glm::vec2(cam[inputImg]["x1"], cam[inputImg]["y1"]));
-          mGridImage->setCropDown(glm::vec2(cam[inputImg]["x2"], cam[inputImg]["y2"]));
-          mGridImage->setCropDisp(glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
+          std::string inputImg("cam" + to_string(j));
+          mGridImg.at(j)->setCropUp(glm::vec2(cam[inputImg]["x1"], cam[inputImg]["y1"]));
+          mGridImg.at(j)->setCropDown(glm::vec2(cam[inputImg]["x2"], cam[inputImg]["y2"]));
+          mGridImg.at(j)->setCropDisp(glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
+          j++;
       }
       ofLog(OF_LOG_NOTICE) << "end cam values JSON";
+      foundFile = true;
   }else{
       ofLog(OF_LOG_NOTICE) << "file does not exist img.json";
   }
 
-
-  mStichImg = false;
-  mDebugGrid = false;
-
-  mVideoCapture = false;
-  mNumCam = 0;
-  mSingleCam = 0;
-
-  mVideoInput = "grid_05.mov";
-
-  // create the camera settings
-  for (int i = 0; i < mNumCam; i++) {
-    ofVideoGrabber vidInput;
-
-    vidInput.setDeviceID(i);
-    vidInput.setDesiredFrameRate(60);
-    vidInput.initGrabber(CAM_WIDTH, CAM_HEIGHT);
-    vidGrabber.push_back(vidInput);
+  {
+      int i =0;
+      for (auto &gridImage : mGridImg) {
+          gridImage->setupCam(i);
+          gridImage->setupVideo(movies[i]);
+          i++;
+      }
   }
 
-  // video settigns
-  int numMovies = 4;
-  mCurrentMovieIdx = 0;
-  std::string movies [] = {"grid_05.mov", "grid_05.mov", "grid_05.mov","grid_05.mov"};
-  for(int i = 0; i < numMovies; i++){
-      ofVideoPlayer mm;
-      mm.load(movies[i]);
-      mm.play();
-      mGridMovies.push_back(mm);
-  }
+
+
 
   // fill the fbos with the appropiate dimentions
   mFboGridSend.allocate(CAM_WIDTH * 2, CAM_HEIGHT * 2, GL_RGBA);
@@ -365,7 +385,7 @@ void ofApp::setupCleaner() {
 
   // cleaner
   mWindowCounter = 0;
-  mWindowIterMax = 10;
+  mWindowIterMax = 6;
 
   // record grid
   mRecordOnce = true;

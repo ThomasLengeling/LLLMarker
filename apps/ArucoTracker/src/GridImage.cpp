@@ -10,17 +10,56 @@ GridImage::GridImage(glm::vec2 dims) {
   mActivateCrop = false;
 }
 
-void GridImage::adjustGamma(cv::Mat &img, float gamma = 0.5) {
-  mGamma = gamma;
-  cv::Mat lookUpTable(1, 256, CV_8U);
-  unsigned char *p = lookUpTable.ptr();
-  for (int i = 0; i < 256; i++) {
-    p[i] = saturate_cast<unsigned char>(pow(i / 255.0, mGamma) * 255.0);
-  }
-  cv::LUT(img, lookUpTable, img);
+void GridImage::setupCam(int id) {
+  mCamId = id;
+  mCam.setDeviceID(mCamId);
+  mCam.setDesiredFrameRate(60);
+  mCam.initGrabber(mDim.x, mDim.y);
 }
 
-void GridImage::cropImg(cv::Mat inputVideo) {
+bool GridImage::updateImage() {
+  bool newFrame = false;
+  if (mActivateCam) {
+    mCam.update();
+    newFrame = mCam.isFrameNew();
+  } else {
+    mVideoInput.update();
+    newFrame = mVideoInput.isFrameNew();
+  }
+  return newFrame;
+}
+
+ofPixels &GridImage::getImgPixels() {
+  return (mActivateCam) ? mCam.getPixels() : mVideoInput.getPixels();
+}
+
+void GridImage::drawImage(float x, float y, float w, float h) {
+  if (mActivateCam) {
+    mCam.draw(x, y, w, h);
+  } else {
+    mVideoInput.draw(x, y, w, h);
+  }
+}
+
+void GridImage::setupVideo(std::string name) {
+  mVideoName = name;
+  mVideoInput.load(mVideoName);
+  mVideoInput.play();
+}
+
+void GridImage::adjustGamma(cv::Mat &img, float gamma = 0.5) {
+  mGamma = gamma;
+  if (!img.empty()) {
+    cv::Mat lookUpTable(1, 256, CV_8U);
+    unsigned char *p = lookUpTable.ptr();
+    for (int i = 0; i < 256; i++) {
+      p[i] = saturate_cast<unsigned char>(pow(i / 255.0, mGamma) * 255.0);
+    }
+    cv::LUT(img, lookUpTable, img);
+  }
+}
+
+void GridImage::cropImg(cv::Mat &inputVideo) {
   mLength.x = mCornerDown.x - mCornerUp.x;
   mLength.y = mCornerDown.y - mCornerUp.y;
   mRoi.x = mCornerUp.x;

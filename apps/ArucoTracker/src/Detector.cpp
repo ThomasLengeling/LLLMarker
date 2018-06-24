@@ -6,6 +6,7 @@ using namespace cv;
 Detector::Detector() {
   mMinFoundId = 1000;
   mMaxFoundId = 0;
+  mMarkerInfo = false;
 }
 
 void Detector::resetMinMax() {
@@ -28,13 +29,11 @@ void Detector::setupCalibration(int markersX, int markersY) {
   // detectorParams->adaptiveThreshWinSizeMax = 50;
   // detectorParams->adaptiveThreshWinSizeStep = 10;
 
-  // detectorParams->perspectiveRemovePixelPerCell = 3; // 10
-  // detectorParams->perspectiveRemoveIgnoredMarginPerCell = 0.3;
-
-  // detectorParams->errorCorrectionRate = 0.51;
-  // detectorParams->maxErroneousBitsInBorderRate = 0.3;
-
-  // detectorParams->minOtsuStdDev = 2;
+  detectorParams->perspectiveRemovePixelPerCell = 6; // 10
+  detectorParams->perspectiveRemoveIgnoredMarginPerCell = 0.3;
+  detectorParams->errorCorrectionRate = 0.51;
+  detectorParams->maxErroneousBitsInBorderRate = 0.3;
+  detectorParams->minOtsuStdDev = 2;
 
   bool refindStrategy = false;
 
@@ -59,13 +58,14 @@ void Detector::detectMarkers(cv::Mat &inputVideo) {
 
   aruco::detectMarkers(inputVideo, dictionary, corners, arucoIds,
                        detectorParams);
-  // aruco::refineDetectedMarkers(inputVideo, board, corners, arucoIds,
-  // rejected);
+
+  aruco::refineDetectedMarkers(inputVideo, board, corners, arucoIds, rejected);
 
   if (arucoIds.size() > 0) {
 
-    // aruco::drawDetectedMarkers(inputVideo, corners, arucoIds);
-
+    if (mMarkerInfo) {
+      aruco::drawDetectedMarkers(inputVideo, corners, arucoIds);
+    }
     InputArrayOfArrays cornersDetected = corners;
     InputArray idsDetected = arucoIds;
 

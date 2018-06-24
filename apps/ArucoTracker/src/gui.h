@@ -18,6 +18,9 @@ typedef std::shared_ptr<ofxDatSlider> ofxDatSliderRef;
 class ofxDatButton;
 typedef std::shared_ptr<ofxDatButton> ofxDatButtonRef;
 
+class ofxDatMatrix;
+typedef std::shared_ptr<ofxDatMatrix> ofxDatMatrixRef;
+
 class ofxDatButton {
 public:
     ofxDatButton() {mActive = false;}
@@ -32,6 +35,7 @@ public:
     bool isActive(){return mActive;}
 
 
+
     ofxDatGuiButton     * button;
     ofParameter<bool>     ofParamBoolean;
     ofEventListener       buttonListener;
@@ -39,6 +43,11 @@ public:
 
 };
 
+//Matrix Slider
+class ofxDatMatrix{
+public:
+private:
+};
 
 class ofxDatSlider {
 public:
@@ -48,6 +57,7 @@ public:
 	}
     void update(){slider->update();}
     void draw(){slider->draw();}
+    float getValue(){return ofParam;}
 
 	ofxDatGuiSlider *    slider;
 	ofParameter<float>   ofParam;

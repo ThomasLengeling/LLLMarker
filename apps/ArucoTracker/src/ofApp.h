@@ -43,12 +43,12 @@ LLL
 #define GRID_MAX_WIDTH 32
 #define GRID_MAX_HEIGHT 26
 
-#define CAM_WIDTH 1280  //1920
-#define CAM_HEIGHT 720 //1080
+#define CAM_WIDTH 1920  //1920
+#define CAM_HEIGHT 1080 //1080
 
 #define MAX_MARKERS 1000
 
-#define RAD_DETECTION 53
+#define RAD_DETECTION 35
 
 class ofApp : public ofBaseApp {
 
@@ -79,6 +79,8 @@ public:
   ofxDatButtonRef mBFullGrid;
 
   ofxDatButtonRef mBEnableCrop;
+  ofxDatButtonRef mBEnableVideo;
+  ofxDatButtonRef mBDebugMarkers;
 
   ofxDatSliderRef mGammaValue;
 
@@ -127,15 +129,6 @@ public:
   // blocks
   void setupBlocks();
 
-  // Video grabber
-  std::vector<ofVideoGrabber> vidGrabber;
-  int mNumCam;
-
-  std::vector<ofVideoPlayer> mGridMovies;
-  int mCurrentMovieIdx;
-
-  std::string mVideoInput;
-
   // 4 camera render
   ofFbo mFboFullCam;
   ofFbo mFboGridSend;
@@ -145,8 +138,9 @@ public:
   bool mSingleCam;
 
   //grid image
-  GridImageRef mGridImage;
   std::vector<GridImageRef> mGridImg;
+  int mNumCam;
+  int mCurrentInputIdx;
 
   cv::Mat videoInputMat;
 
