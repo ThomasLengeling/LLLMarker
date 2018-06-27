@@ -8,12 +8,13 @@ GridImage::GridImage(glm::vec2 dims) {
   mLength = glm::vec2(0, 0);
   mGamma = 0.9;
   mActivateCrop = false;
+  mActivateCam = false;
 
   mCornerUp = glm::vec2(100, 100);
   mCornerDown = glm::vec2(300, 300);
   mDisp = glm::vec2(23, 23);
 }
-
+//-----------------------------------------------------------------------------
 void GridImage::setupCam(int id) {
   mCamId = id;
   mCam.setDeviceID(mCamId);
@@ -22,7 +23,7 @@ void GridImage::setupCam(int id) {
 
   ofLog(OF_LOG_NOTICE) << "loaded Cam: " << mCamId << " " << mId;
 }
-
+//-----------------------------------------------------------------------------
 void GridImage::setupVideo(std::string name) {
   mVideoName = name;
   mVideoInput.load(mVideoName);
@@ -30,7 +31,7 @@ void GridImage::setupVideo(std::string name) {
 
   ofLog(OF_LOG_NOTICE) << "loaded Video: " << mVideoName << " " << mId;
 }
-
+//-----------------------------------------------------------------------------
 bool GridImage::updateImage() {
   bool newFrame = false;
   if (mActivateCam) {
@@ -42,11 +43,11 @@ bool GridImage::updateImage() {
   }
   return newFrame;
 }
-
+//-----------------------------------------------------------------------------
 ofPixels &GridImage::getImgPixels() {
   return (mActivateCam) ? mCam.getPixels() : mVideoInput.getPixels();
 }
-
+//-----------------------------------------------------------------------------
 void GridImage::drawImage(float x, float y, float w, float h) {
   if (mActivateCam) {
     mCam.draw(x, y, w, h);
@@ -54,7 +55,7 @@ void GridImage::drawImage(float x, float y, float w, float h) {
     mVideoInput.draw(x, y, w, h);
   }
 }
-
+//-----------------------------------------------------------------------------
 void GridImage::adjustGamma(cv::Mat &img, float gamma = 0.5) {
   mGamma = gamma;
   if (!img.empty()) {
@@ -66,7 +67,22 @@ void GridImage::adjustGamma(cv::Mat &img, float gamma = 0.5) {
     cv::LUT(img, lookUpTable, img);
   }
 }
+//-----------------------------------------------------------------------------
+bool GridImage::stichImage(cv::Mat &imgStitch, std::vector<cv::Mat> imgs) {
+  bool try_use_gpu = true;
+  bool success = true;
+  Stitcher::Mode mode = Stitcher::PANORAMA;
 
+  Ptr<Stitcher> stitcher = Stitcher::create(mode, try_use_gpu);
+  Stitcher::Status status = stitcher->stitch(imgs, imgStitch);
+
+  if (status != Stitcher::OK) {
+    ofLog(OF_LOG_NOTICE) << "Can't stitch images, error code = " << int(status);
+    success = false;
+  }
+  return success;
+}
+//-----------------------------------------------------------------------------
 void GridImage::cropImg(cv::Mat &inputVideo) {
   mLength.x = mCornerDown.x - mCornerUp.x;
   mLength.y = mCornerDown.y - mCornerUp.y;
@@ -81,7 +97,7 @@ void GridImage::cropImg(cv::Mat &inputVideo) {
     cutMat.copyTo(mCropMat);
   }
 }
-
+//-----------------------------------------------------------------------------
 void GridImage::drawCropRoi() {
   if (mActivateCrop) {
     ofSetColor(0, 200, 125, 50);
@@ -99,7 +115,7 @@ void GridImage::drawCropRoi() {
   ofDrawCircle(mCornerDown.x, mCornerDown.y, 5, 5);
   ofDrawCircle(mCornerUp.x, mCornerUp.y, 5, 5);
 }
-
+//-----------------------------------------------------------------------------
 void GridImage::drawCropImg() {
   ofImage imgCut;
   ofxCv::toOf(mCropMat, imgCut.getPixels());

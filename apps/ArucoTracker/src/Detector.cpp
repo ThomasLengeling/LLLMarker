@@ -107,7 +107,7 @@ void Detector::detectMarkers(cv::Mat &inputVideo) {
     mVidImg.update();
   }
 }
-
+//-----------------------------------------------------------------------------
 void Detector::detectMarkersGPU(cv::cuda::GpuMat &inputVideo) {
   // detect markers
   std::vector<int> arucoIds;

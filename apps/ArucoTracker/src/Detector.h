@@ -44,10 +44,10 @@ public:
 
     void resetMinMax();
 
-    std::vector<int> getTagIds(){return mTagsIds;}
+    std::vector<int> & getTagIds(){return mTagsIds;}
     int getNumMarkers(){return mNumFoundMarkers;}
 
-    std::vector< BlockRef > getBoard(){return mBlock;}
+    std::vector< BlockRef > & getBoard(){return mBlock;}
 
     cv::Mat getMatImg(){return mVidMat;}
     ofImage getOfImg(){return mVidImg;}

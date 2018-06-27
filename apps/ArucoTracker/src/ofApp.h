@@ -36,19 +36,41 @@ LLL
 #include "MarkerAruco.h"
 #include "gui.h"
 #include "GridImage.h"
+#include "GridDetector.h"
 
-#define GRID_WIDTH 19
-#define GRID_HEIGHT 13
+#define DEFAULT_GRID_WIDTH  19
+#define DEFAULT_GRID_HEIGHT 13
 
-#define GRID_MAX_WIDTH 32
-#define GRID_MAX_HEIGHT 26
+/*
+grid 1
+     10
+     00  -> full 8 x 19 = 104 + 18 + 17 + 16+ 10 + 5 = 170
+
+grid 2
+     01
+     00  -> full 12 x 19 = 228 +5 = 233
+
+grid 3
+     00
+     10  -> full 247
+
+grid 4
+     00
+     01  -> full 169
+
+     TOTAL = 819 markers
+*/
+
+#define MAX_MARKER_01 170
+#define MAX_MARKER_02 233
+#define MAX_MARKER_03 247
+#define MAX_MARKER_04 169
+
+#define MAX_MARKER_DETECT 819
 
 #define CAM_WIDTH 1920  //1920
 #define CAM_HEIGHT 1080 //1080
 
-#define MAX_MARKERS 1000
-
-#define RAD_DETECTION 35
 
 class ofApp : public ofBaseApp {
 
@@ -75,10 +97,12 @@ public:
   // GUI
   ofxDatButtonRef mBDebugVideo;
   ofxDatButtonRef mBDebugGrid;
+
   ofxDatButtonRef mBSingleGrid;
   ofxDatButtonRef mBFullGrid;
 
   ofxDatButtonRef mBEnableCrop;
+  ofxDatButtonRef mBCalibrateGrid;
   ofxDatButtonRef mBEnableVideo;
   ofxDatButtonRef mBDebugMarkers;
 
@@ -91,30 +115,18 @@ public:
   void updateGUI();
   void drawGUI();
 
+  void setupValues();
+
   // Calibrate
   void setupCalibration();
-
   void setupDetection();
-
-  // check if found marker
-  std::vector<MarkerArucoRef> mMarkers;
-  bool mVideoMarkers;
-
-  void setupGridPos();
 
   void updateGrid();
   void recordGrid();
   bool mRecordOnce;
 
   // clean Detection
-  void setupCleaner();
   void cleanDetection();
-  int mWindowIterMax;
-  int mWindowCounter;
-
-  std::map<int, int> mIdsCounter;
-  std::map<int, int> mProCounter;
-  std::map<int, int> mCenterCounter;
 
   void drawArucoMarkers();
 
@@ -127,14 +139,10 @@ public:
   bool mEnableKnob;
   void setupKnob();
 
-  // blocks
-  void setupBlocks();
 
   // 4 camera render
-  ofFbo mFboFullCam;
-  ofFbo mFboGridSend;
-  ofFbo mFboGridInfo;
-  ofFbo mFboGridColor;
+  ofFbo mFboSingle;
+  std::vector<ofFbo> mFboGrid;
 
   bool mSingleCam;
 
@@ -152,24 +160,26 @@ public:
   bool mStichImg;
   void setupVideo();
 
-  // stich images
-  bool stichImage(cv::Mat &imgStitch, std::vector<cv::Mat> imgs);
+
 
 
   // aruco etector
   DetectorRef mArucoDetector;
-  bool mDebugGrid;
+  int mTotalMarkers;
 
   ofImage vidImg;
   cv::Mat vidMat;
 
+  //inputs
+  int mNumInputs;
 
-  std::vector<BlockRef> mCurrBlock;
-  std::vector<std::vector<BlockRef>> mTmpBlocks;
+  glm::vec2 mFullGridDim;
+  std::vector<glm::vec2> mGridSizes;
+  std::vector<int> mMaxMarkers;
 
-  std::vector<BlockRef> mBlocks;
-  std::vector<int> tagsIds;
-  std::vector<int> mFullIds;
+  //
+  std::vector<GridDetectorRef> mGridDetector;
+  void setupGridDetector();
 
   // send commands
   ofxUDPManager udpConnection;

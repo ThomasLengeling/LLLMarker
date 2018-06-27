@@ -24,7 +24,7 @@ KnobAruco::KnobAruco() {
 
   mCurrentArc = 0;
 }
-
+//-----------------------------------------------------------------------------
 void KnobAruco::fillArcs() {
   float dim = 116;
   mArcPos.clear();
@@ -36,7 +36,7 @@ void KnobAruco::fillArcs() {
     mArcPos.push_back(glm::vec2(cosx, siny));
   }
 }
-
+//-----------------------------------------------------------------------------
 void KnobAruco::drawArc() {
 
   fillArcs();
@@ -75,7 +75,7 @@ void KnobAruco::drawArc() {
     }
   }
 }
-
+//-----------------------------------------------------------------------------
 void KnobAruco::draw() {
   if (mStaticActive) {
     ofSetColor(255, 255, 255);

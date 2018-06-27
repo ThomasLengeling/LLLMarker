@@ -49,6 +49,8 @@ public:
 
     // clean Image
     void adjustGamma(cv::Mat &img, float gamma);
+    // stich images
+    bool stichImage(cv::Mat &imgStitch, std::vector<cv::Mat> imgs);
 
     void toogleCrop(){mActivateCrop =! mActivateCrop;}
     void toogleCam(){mActivateCam =! mActivateCam;}
@@ -97,8 +99,6 @@ private:
     glm::vec2 mLength;
 
     int mId;
-
-
     //img correction
     float mGamma;
 };

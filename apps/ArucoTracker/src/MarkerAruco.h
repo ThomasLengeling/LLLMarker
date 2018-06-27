@@ -8,26 +8,14 @@ LLL
 #pragma once
 #include "ofMain.h"
 #include "Common.h"
+#include "RectDetector.h"
 
 
 class MarkerAruco;
-class RectAruco;
 class ProbabiltyAruco;
 
 typedef std::shared_ptr<MarkerAruco> MarkerArucoRef;
 
-class RectAruco{
-public:
-    RectAruco();
-
-    void setRectPos(glm::vec2 corner, glm::vec2 length);
-    void setRectPos(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, glm::vec2 p3);
-    void setRectPos(std::vector<glm::vec2> & vec);
-    void drawRect();
-
-private:
-    std::vector<glm::vec2> mVertex;
-};
 
 class ProbabiltyAruco{
 public:
@@ -41,9 +29,9 @@ private:
     int   mInc;
 };
 
-class MarkerAruco : public RectAruco, public ProbabiltyAruco{
+class MarkerAruco : public RectDetector, public ProbabiltyAruco{
 public:
-    MarkerAruco() : RectAruco(), ProbabiltyAruco() {
+    MarkerAruco() : RectDetector(), ProbabiltyAruco() {
         mGridId = -1;
         mMakerId = -1;
         mBType = BlockType::grid;
