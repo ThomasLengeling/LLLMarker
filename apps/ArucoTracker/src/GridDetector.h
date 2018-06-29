@@ -67,6 +67,9 @@ public:
     //save json files
     void saveGridJson();
 
+    //draw detected grid
+    void drawDetectedGrid();
+
 private:
 
     glm::vec2  mGridDim;

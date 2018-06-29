@@ -30,9 +30,13 @@ public:
   int getType() { return mIdType.second; }
   void setType(int type) { mIdType.second = type; }
 
+  void setRot(glm::vec2 rot){mRot = rot;}
+  glm::vec2 getRot(){return mRot;}
+
 private:
   glm::vec2 mPos;
   glm::vec2 mRot;
+
   bool mEnable;
   MarkerType mMType;
 

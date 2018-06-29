@@ -48,11 +48,19 @@ ofPixels &GridImage::getImgPixels() {
   return (mActivateCam) ? mCam.getPixels() : mVideoInput.getPixels();
 }
 //-----------------------------------------------------------------------------
-void GridImage::drawImage(float x, float y, float w, float h) {
+void GridImage::drawImage(int x, int y, int w, int h) {
   if (mActivateCam) {
     mCam.draw(x, y, w, h);
   } else {
     mVideoInput.draw(x, y, w, h);
+  }
+}
+
+void GridImage::drawImage(int x, int y) {
+  if (mActivateCam) {
+    mCam.draw(x, y, mDim.x, mDim.y);
+  } else {
+    mVideoInput.draw(x, y, mDim.x, mDim.y);
   }
 }
 //-----------------------------------------------------------------------------

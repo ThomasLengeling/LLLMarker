@@ -131,7 +131,7 @@ public:
   void drawArucoMarkers();
 
   //draw grid info
-  void offScreenInfoGrid();
+  void offScreenRenderGrid();
 
 
   // knob

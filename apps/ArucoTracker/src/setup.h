@@ -211,6 +211,9 @@ void ofApp::setupGUI() {
   mBGridSelect->matrix->onMatrixEvent([&](ofxDatGuiMatrixEvent v) {
     mCurrentInputIdx = v.child;
     ofLog(OF_LOG_NOTICE) << "Index: " << mCurrentInputIdx << std::endl;
+    mFboSingle.begin();
+    ofClear(0, 0, 0, 255);
+    mFboSingle.end();
   });
 
   ofLog(OF_LOG_NOTICE) << "done setup gui";

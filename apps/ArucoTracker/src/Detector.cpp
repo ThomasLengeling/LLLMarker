@@ -143,6 +143,8 @@ void Detector::detectMarkersGPU(cv::cuda::GpuMat &inputVideo) {
       cent = cent / 4.;
       BlockRef cva = Block::create();
       cva->setPos(glm::vec2(cent.x, cent.y));
+      cva->setRot(glm::vec2(currentMarker.ptr<cv::Point2f>(0)[0].x,
+                            currentMarker.ptr<cv::Point2f>(0)[0].y));
 
       // get ids
       if (idsDetected.total() != 0) {

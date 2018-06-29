@@ -42,7 +42,8 @@ public:
 
 
     bool updateImage();
-    void drawImage(float x, float y, float w, float h);
+    void drawImage(int x, int y, int w, int h);
+    void drawImage(int x, int y);
 
     ofPixels & getImgPixels();
 
@@ -72,6 +73,9 @@ public:
 
     void setId(int id){mId = id;}
 
+    void updateDetectImg(ofImage & img){mVidImg = img;}
+    ofImage & getImg(){return mVidImg;}
+
 private:
     //input stream
     ofVideoGrabber      mCam;
@@ -80,8 +84,8 @@ private:
     ofVideoPlayer       mVideoInput;
     std::string         mVideoName;
 
-    ofImage             vidImg;
-    cv::Mat             vidMat;
+    ofImage             mVidImg;
+    cv::Mat             mVidMat;
 
     bool mActivateCam;
 

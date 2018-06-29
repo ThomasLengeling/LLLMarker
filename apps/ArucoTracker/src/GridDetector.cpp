@@ -30,7 +30,7 @@ void GridDetector::setupCleaner() {
 
   // cleaner
   mWindowCounter = 0;
-  mWindowIterMax = 6;
+  mWindowIterMax = 3;
 
   for (int i = 0; i < mMaxMarkers; i++) {
     mIdsCounter.emplace(i, 0); // mFullIds.at(i), 0);
@@ -88,6 +88,8 @@ void GridDetector::generateMarkers(std::vector<int> &ids,
   mNumMarkers = mCurrBlock.size();
   mTmpBlocks.push_back(mCurrBlock);
 }
+
+void GridDetector::drawDetectedGrid() {}
 //-----------------------------------------------------------------------------
 void GridDetector::updateBlockTypes() {
   // update blocks and types
@@ -107,7 +109,7 @@ void GridDetector::setGridPos(glm::vec2 mousePos) {
   if (mDebugGrid) {
     for (auto &mk : mMarkers) {
       glm::vec2 pos = mk->getPos();
-      float dist = ofDist(pos.x, pos.y, mousePos.x, mousePos.y);
+      float dist = glm::fastDistance(pos, mousePos);
       if (dist >= 0.0 && dist <= 15) {
         mk->setPos(mousePos);
       }
@@ -177,7 +179,7 @@ void GridDetector::recordGrid() {
         int k = 0;
         for (auto &cblock : mCurrBlock) {
           glm::vec2 cenPos = cblock->getPos();
-          float dis = ofDist(cenPos.x, cenPos.y, pos.x, pos.y);
+          float dis = glm::fastDistance(cenPos, pos);
           if (dis >= 0.0 && dis <= mRadDetection) {
             mk->setMarkerId(mTagsIds.at(k));
             mFullIds.push_back(mTagsIds.at(k));
@@ -230,7 +232,7 @@ void GridDetector::cleanGrid() {
         int k = 0;
         for (auto &mk : mMarkers) {
           glm::vec2 boardPos = mk->getPos();
-          float dis = ofDist(blockPos.x, blockPos.y, boardPos.x, boardPos.y);
+          float dis = glm::fastDistance(blockPos, boardPos);
           if (dis >= 0 && dis <= mRadDetection) {
             mIdsCounter[k] = block->getMarkerId(); // block.mId
             mk->incProba();
@@ -242,7 +244,7 @@ void GridDetector::cleanGrid() {
       }
     }
 
-    ofLog(OF_LOG_NOTICE) << "Update";
+    // ofLog(OF_LOG_NOTICE) << "Update";
 
     // send upd data and activations;
     int i = 0;
@@ -271,7 +273,7 @@ void GridDetector::cleanGrid() {
 
     // done activation and disactivation
     mTmpBlocks.clear();
-    ofLog(OF_LOG_NOTICE) << "Clear";
+    // ofLog(OF_LOG_NOTICE) << "Clear";
   }
   mWindowCounter++;
 }

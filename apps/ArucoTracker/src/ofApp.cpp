@@ -139,6 +139,8 @@ void ofApp::update() {
         vidImg = mArucoDetector->getOfImg();
         vidMat = mArucoDetector->getMatImg();
 
+        mGridImg.at(i)->updateDetectImg(vidImg);
+
         // save the positions and id from the detected markers.
         mGridDetector.at(i)->generateMarkers(mArucoDetector->getTagIds(),
                                              mArucoDetector->getBoard());
@@ -151,7 +153,7 @@ void ofApp::update() {
   }
   cleanDetection();
 
-  offScreenInfoGrid();
+  offScreenRenderGrid();
 
   // udate
   if (mDrawGUI) {
@@ -168,7 +170,6 @@ void ofApp::draw() {
   ofRect(0, 0, ofGetWidth(), ofGetHeight());
 
   if (mBDebugVideo->isActive()) {
-
     ofSetColor(255);
     vidImg.draw(0, 0, 1280, 720);
 
@@ -193,14 +194,37 @@ void ofApp::draw() {
   if (mBDebugGrid->isActive()) {
 
     ofSetColor(255);
-    vidImg.draw(0, 0, 640, 360);
-    vidImg.draw(0, 0);
-
     if (mBSingleGrid->isActive()) {
-      mGridDetector.at(mCurrentInputIdx)->drawMarkers();
+      mFboSingle.draw(0, 0);
     } else if (mBFullGrid->isActive()) {
-      for (auto gridDetector : mGridDetector) {
-        gridDetector->drawMarkers();
+      int i = 0;
+      int j = 0;
+      float w = ofGetWidth() / 2.0;
+      float h = ofGetHeight() / 2.0;
+      for (auto &fbo : mFboGrid) {
+        fbo.draw(i * w, j * h, w, h);
+        i++;
+        if (i >= 2) {
+          j++;
+          i = 0;
+        }
+      }
+    }
+
+    if (mBEnableCrop->isActive()) {
+      mGridImg.at(mCurrentInputIdx)
+          ->drawImage(0, 0, ofGetWidth(), ofGetHeight());
+    } else {
+
+      int i = 0;
+      for (auto &gridImage : mGridImg) {
+        if (mCurrentInputIdx == i) {
+          ofSetColor(0, 200, 150, 200);
+        } else {
+          ofSetColor(255, 150);
+        }
+        gridImage->drawImage(ofGetWidth() - 426, 240 * i, 426, 240);
+        i++;
       }
     }
   }
@@ -212,13 +236,6 @@ void ofApp::draw() {
     for (auto gridDetector : mGridDetector) {
       gridDetector->updateBlockTypes();
     }
-  }
-
-  if (mBFullGrid->isActive()) {
-    ofSetColor(255);
-
-    vidImg.draw(0, 0, ofGetWidth() - 640, ofGetHeight() - 360);
-    mFboFullCam.draw(0, 0, 320, 240);
   }
 
   if (mEnableKnob) {
@@ -277,18 +294,22 @@ void ofApp::recordGrid() {
   }
 }
 
-void ofApp::offScreenInfoGrid() {
+void ofApp::offScreenRenderGrid() {
   if (mBSingleGrid->isActive()) {
-    mFboGridInfo.begin();
+    mFboSingle.begin();
+    vidImg.draw(0, 0);
     mGridDetector.at(mCurrentInputIdx)->drawMarkers();
-    mFboGridInfo.end();
+    mFboSingle.end();
   }
 
-  if (mBSingleGrid->isActive()) {
-    mGridDetector.at(mCurrentInputIdx)->drawMarkers();
-  } else if (mBFullGrid->isActive()) {
-    for (auto gridDetector : mGridDetector) {
-      gridDetector->drawMarkers();
+  else if (mBFullGrid->isActive()) {
+    int i = 0;
+    for (auto &fbo : mFboGrid) {
+      fbo.begin();
+      mGridImg.at(i)->getImg().draw(0, 0);
+      mGridDetector.at(i)->drawMarkers();
+      fbo.end();
+      i++;
     }
   }
 }
