@@ -8,11 +8,27 @@ https://gist.github.com/leonmak/67a70ccc83e149058c29b51b1ca0d161
 
 ## Mac Installation
 
+brew
+````
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew install cmake
+
+```
+
+openframeworks
+````
+https://github.com/openframeworks/openFrameworks
+c274c7fb51b4ae0552cd4cdb00475458aeeb610a
+````
+
+
+
 Download
 
 ````
 git clone https://github.com/opencv/opencv
 git clone https://github.com/opencv/opencv_contrib
+cd opencv
 mkdir build
 cd build
 cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules  ..
