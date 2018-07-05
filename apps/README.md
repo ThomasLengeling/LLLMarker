@@ -12,14 +12,13 @@ brew
 ````
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 brew install cmake
-
-```
+````
 
 openframeworks
-````
+
 https://github.com/openframeworks/openFrameworks
-c274c7fb51b4ae0552cd4cdb00475458aeeb610a
-````
+
+https://github.com/openframeworks/openFrameworks/tree/c274c7fb51b4ae0552cd4cdb00475458aeeb610a
 
 
 
