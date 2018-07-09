@@ -5,16 +5,22 @@ GridDetector::GridDetector(glm::vec2 dim) {
   mDebugGrid = false;
   mRecordOnce = true;
   mCalibrateGrid = false;
+  mCleanDone = false;
 
   mRadDetection = RAD_DETECTION;
   mMaxMarkers = mGridDim.x * mGridDim.y;
 }
-
+//-----------------------------------------------------------------------------
+void GridDetector::setMaxMarkers(int max) {
+  mMaxMarkers = max;
+  ofLog(OF_LOG_NOTICE) << "Max Markers: " << mMaxMarkers;
+}
+//-----------------------------------------------------------------------------
 void GridDetector::setId(int id) { mId = id; }
 
 //-----------------------------------------------------------------------------
 void GridDetector::setupBlocks() {
-  for (int i = 0; i < MAX_MARKERS; i++) {
+  for (int i = 0; i < mMaxMarkers; i++) {
     BlockRef block = Block::create();
     block->setMarkerId(i);
     mBlocks.push_back(block);
@@ -23,7 +29,37 @@ void GridDetector::setupBlocks() {
   ofLog(OF_LOG_NOTICE) << "setup blocks ";
 }
 
-void GridDetector::generateGridPos(glm::vec2 cornerUp, glm::vec2 cornerDown) {}
+void GridDetector::generateGridPos() {
+  mMarkers.clear();
+  float startGridX = 1920 * 0.1;
+  float startGridY = 1080 * 0.1;
+
+  float stepX = 50.0;
+  float stepY = 50.0;
+
+  float gapX = 13;
+  float gapY = 13;
+
+  int indeY = 0;
+  int indeX = 0;
+  ofLog(OF_LOG_NOTICE) << "Max Markers: " << mMaxMarkers;
+  for (int i = 0; i < mMaxMarkers; i++) {
+    MarkerArucoRef m = MarkerAruco::create();
+
+    float x = indeX * stepX + indeX * gapX + startGridX;
+    float y = indeY * stepY + indeY * gapY + startGridY;
+
+    m->setPos(glm::vec2(x, y));
+    m->setGridId(i);
+    m->setMarkerId(-1);
+    mMarkers.push_back(m);
+    indeX++;
+    if (indeX >= mGridDim.x) {
+      indeY++;
+      indeX = 0;
+    }
+  }
+}
 
 //-----------------------------------------------------------------------------
 void GridDetector::setupCleaner() {
@@ -82,14 +118,105 @@ void GridDetector::setupGridJsonPos(std::string filePos) {
 
 //-----------------------------------------------------------------------------
 void GridDetector::generateMarkers(std::vector<int> &ids,
-                                   std::vector<BlockRef> &blocks) {
+                                   std::vector<BlockRef> &blocks, bool sort) {
   mTagsIds = ids;
   mCurrBlock = blocks;
+
+  // clasification of ids and blocks
+  if (sort) {
+    std::sort(mCurrBlock.begin(), mCurrBlock.end(),
+              [](const BlockRef &lhs, const BlockRef &rhs) -> bool {
+                return lhs->getPos().x < rhs->getPos().x;
+              });
+    ofLog(OF_LOG_NOTICE) << "sorted";
+  }
   mNumMarkers = mCurrBlock.size();
   mTmpBlocks.push_back(mCurrBlock);
 }
+//-----------------------------------------------------------------------------
+void GridDetector::drawBlock(float posx, float posy, float size, float space) {
+  int i = 0;
+  int j = 0;
+  float squareSize = size;
+  float squareSpace = space;
+  for (auto &block : mBlocks) {
 
-void GridDetector::drawDetectedGrid() {}
+    ofSetColor(0, 255, 255);
+
+    float x = i * squareSize + i * squareSpace + posx;
+    float y = j * squareSize + j * squareSpace + posy;
+    ofDrawRectangle(glm::vec2(x, y), squareSize, squareSize);
+
+    ofSetColor(255);
+    ofDrawBitmapString(block->getMarkerId(), x + squareSize / 3.0,
+                       y + squareSize * (1.0 / 3.0));
+    ofDrawBitmapString(block->getType(), x + squareSize / 3.0,
+                       y + squareSize * (2.0 / 3.0));
+    i++;
+    if (i >= mGridDim.x) {
+      i = 0;
+      j++;
+    }
+  }
+}
+void GridDetector::drawDetectedGridIn(float posx, float posy, float size,
+                                      float space) {
+  int i = 0;
+  int j = mGridDim.y - 1;
+  float squareSize = size;
+  float squareSpace = space;
+  for (auto &mk : mMarkers) {
+    if (mk->isEnable()) {
+      ofSetColor(0, 200, 255);
+    } else {
+      ofSetColor(255, 255, 0);
+    }
+    float x = i * squareSize + i * squareSpace + posx;
+    float y = j * squareSize + j * squareSpace + posy;
+    ofDrawRectangle(glm::vec2(x, y), squareSize, squareSize);
+
+    ofSetColor(255);
+    ofDrawBitmapString(mk->getGridId(), x + squareSize / 3.0,
+                       y + squareSize * (1.0 / 3.0));
+    ofDrawBitmapString(mk->getMarkerId(), x + squareSize / 3.0,
+                       y + squareSize * (2.0 / 3.0));
+    i++;
+    if (i >= mGridDim.x) {
+      i = 0;
+      j--;
+    }
+  }
+}
+//-----------------------------------------------------------------------------
+void GridDetector::drawDetectedGrid(float posx, float posy, float size,
+                                    float space) {
+  int i = 0;
+  int j = 0;
+  float squareSize = size;
+  float squareSpace = space;
+  for (auto &block : mCurrBlock) {
+    if (block->getType() == -1) {
+      ofSetColor(255, 255, 0);
+    } else {
+      ofSetColor(0, 200, 255);
+    }
+    float x = i * squareSize + i * squareSpace + posx;
+    float y = j * squareSize + j * squareSpace + posy;
+    ofDrawRectangle(glm::vec2(x, y), squareSize, squareSize);
+
+    ofSetColor(255);
+    float strx = x + squareSize / 3.0;
+    float stry1 = y + squareSize * (1.0 / 3.0);
+    float stry2 = y + squareSize * (2.0 / 3.0);
+    ofDrawBitmapString(block->getType(), strx, stry1);
+    ofDrawBitmapString(block->getMarkerId(), strx, stry2);
+    i++;
+    if (i >= mGridDim.x) {
+      i = 0;
+      j++;
+    }
+  }
+}
 //-----------------------------------------------------------------------------
 void GridDetector::updateBlockTypes() {
   // update blocks and types
@@ -97,7 +224,7 @@ void GridDetector::updateBlockTypes() {
     int id = block->getMarkerId();
     for (auto &mk : mMarkers) {
       if (mk->getIdTypePair().first == id) {
-        mk->updateType(block->getType());
+        mk->updateTypePair(block->getType());
         break;
       }
     }
@@ -168,10 +295,11 @@ void GridDetector::calibrateGrid() {
 //-----------------------------------------------------------------------------
 void GridDetector::recordGrid() {
   if (mRecordOnce) {
-    ofLog(OF_LOG_NOTICE) << mCurrBlock.size() << " " << mMarkers.size();
+    // ofLog(OF_LOG_NOTICE) << mCurrBlock.size() << " " << mMarkers.size();
     if (mCurrBlock.size() == mMaxMarkers) {
       ofLog(OF_LOG_NOTICE) << mCurrBlock.size() << " markes = " << mMaxMarkers;
 
+      ofLog(OF_LOG_NOTICE) << "Detect";
       // set ids
       mFullIds.clear();
       for (auto &mk : mMarkers) {
@@ -182,6 +310,8 @@ void GridDetector::recordGrid() {
           float dis = glm::fastDistance(cenPos, pos);
           if (dis >= 0.0 && dis <= mRadDetection) {
             mk->setMarkerId(mTagsIds.at(k));
+
+            // got ids/
             mFullIds.push_back(mTagsIds.at(k));
             break;
           }
@@ -189,20 +319,24 @@ void GridDetector::recordGrid() {
         }
       }
 
+      ofLog(OF_LOG_NOTICE) << "Done update fullids";
+
       {
-        int i = 0;
-        for (auto &block : mBlocks) {
-          for (auto &marker : mMarkers) {
-            if (block->getMarkerId() == marker->getIdTypePair().first) {
-              int mkId = marker->getIdTypePair().first;
-              block->setMarkerId(mkId);
-              // std::cout << block->getMarkerId() << " " << mkId <<
-              // std::endl;
-              break;
-            }
-            i++;
+        /*
+      int i = 0;
+      for (auto &block : mBlocks) {
+        for (auto &marker : mMarkers) {
+          if (block->getMarkerId() == marker->getIdTypePair().first) {
+            int mkId = marker->getIdTypePair().first;
+            block->setMarkerId(mkId);
+            // std::cout << block->getMarkerId() << " " << mkId <<
+            // std::endl;
+            break;
           }
+          i++;
         }
+      }
+      */
       }
 
       ofLog(OF_LOG_NOTICE) << "Num Uniques: " << mFullIds.size();
@@ -216,13 +350,17 @@ void GridDetector::recordGrid() {
 //-----------------------------------------------------------------------------
 void GridDetector::cleanGrid() {
   if (mWindowCounter >= mWindowIterMax) {
+
     mWindowCounter = 0;
 
     // clasical probabilty of ocurance
+
+    // ofLog(OF_LOG_NOTICE) << "reset proba";
     for (auto &mk : mMarkers) {
       mk->resetProba();
     }
 
+    // ofLog(OF_LOG_NOTICE) << "calculate freq";
     // calculate the frequency of ocurance
     for (auto &blocks : mTmpBlocks) {
       for (auto &block : blocks) {
@@ -253,9 +391,10 @@ void GridDetector::cleanGrid() {
       if (proba >= 1.0 / (float)mWindowIterMax) {
         mk->enableOn();
         mk->setMarkerId(mIdsCounter[i]);
-        mk->updateId(mIdsCounter[i]);
+        mk->updateIdPair(mIdsCounter[i]);
 
         // find id and update it;
+        /*
         for (auto &blocks : mBlocks) {
           int makerId = mk->getIdTypePair().first;
           if (blocks->getMarkerId() == makerId) {
@@ -264,6 +403,7 @@ void GridDetector::cleanGrid() {
             break;
           }
         }
+        */
       } else {
         mk->enableOff();
         mk->setMarkerId(-1);
@@ -274,6 +414,9 @@ void GridDetector::cleanGrid() {
     // done activation and disactivation
     mTmpBlocks.clear();
     // ofLog(OF_LOG_NOTICE) << "Clear";
+
+    // update blocks and types
+    // updateBlockTypes();
   }
   mWindowCounter++;
 }

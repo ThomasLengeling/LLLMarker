@@ -8,20 +8,29 @@ GridImage::GridImage(glm::vec2 dims) {
   mLength = glm::vec2(0, 0);
   mGamma = 0.9;
   mActivateCrop = false;
-  mActivateCam = false;
+  mActivateCam = true;
 
   mCornerUp = glm::vec2(100, 100);
   mCornerDown = glm::vec2(300, 300);
   mDisp = glm::vec2(23, 23);
+
+  // mFboResolution.allocate(mDim.x, mDim.y, GL_RGBA);
+  // mPixs.allocate(mDim.x, mDim.y, OF_PIXELS_RGBA);
+
+  // clean start with Fbos
+  // mFboResolution.begin();
+  // ofClear(0, 0, 0, 255);
+  // FboResolution.end();
 }
 //-----------------------------------------------------------------------------
 void GridImage::setupCam(int id) {
   mCamId = id;
   mCam.setDeviceID(mCamId);
-  mCam.setDesiredFrameRate(60);
+  mCam.setDesiredFrameRate(10);
   mCam.initGrabber(mDim.x, mDim.y);
 
-  ofLog(OF_LOG_NOTICE) << "loaded Cam: " << mCamId << " " << mId;
+  ofLog(OF_LOG_NOTICE) << "loaded Cam: " << mCamId << " " << mId << " "
+                       << mDim.x << " " << mDim.y << "  " << mCam.getWidth();
 }
 //-----------------------------------------------------------------------------
 void GridImage::setupVideo(std::string name) {
@@ -37,6 +46,12 @@ bool GridImage::updateImage() {
   if (mActivateCam) {
     mCam.update();
     newFrame = mCam.isFrameNew();
+    if (newFrame) {
+      mFboResolution.begin();
+      mCam.draw(0, 0, mDim.x, mDim.y);
+      mFboResolution.end();
+      // ofLog(OF_LOG_NOTICE) << " " << newFrame << " ";
+    }
   } else {
     mVideoInput.update();
     newFrame = mVideoInput.isFrameNew();
@@ -103,6 +118,8 @@ void GridImage::cropImg(cv::Mat &inputVideo) {
   if (mRoi.x > 0 && mRoi.y > 0 && mRoi.width < mDim.x && mRoi.height < mDim.y) {
     cv::Mat cutMat(inputVideo, mRoi);
     cutMat.copyTo(mCropMat);
+  } else {
+    inputVideo.copyTo(mCropMat);
   }
 }
 //-----------------------------------------------------------------------------
@@ -134,4 +151,5 @@ void GridImage::drawCropImg() {
               mLength.y + mDisp.y);
 
   imgCut.draw(0, 0, 200, 200);
+  ofxCv::drawMat(mCropMat, 0, 200, 200, 200);
 }

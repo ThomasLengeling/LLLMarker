@@ -42,14 +42,15 @@ public:
 
     int getNumMarkers(){return mNumMarkers;}
 
-    void setMaxMarkers(int max){mMaxMarkers = max;}
+    void setMaxMarkers(int max);
     int getMaxMarkers(){return mMaxMarkers;}
 
     void setupGridJsonPos(std::string filePos);
-    void generateGridPos(glm::vec2 cornerUp, glm::vec2 cornerDown);
+    void generateGridPos();
     void setupBlocks();
 
-    void generateMarkers(std::vector<int> & ids, std::vector<BlockRef> & blocks );
+    void generateMarkers(std::vector<int> & ids, std::vector<BlockRef> & blocks, bool sort = false );
+    void clasification();
     void updateBlockTypes();
 
     void drawMarkers( );
@@ -68,7 +69,11 @@ public:
     void saveGridJson();
 
     //draw detected grid
-    void drawDetectedGrid();
+    void drawDetectedGrid(float posx, float posy, float size = 20, float space = 5);
+    void drawDetectedGridIn(float posx, float posy, float size = 20, float space = 5);
+    void drawDetectedBlock(float posx, float posy, float size = 20, float space = 5);
+
+    void drawBlock(float posx, float posy, float size = 20, float space = 5);
 
 private:
 
@@ -91,6 +96,8 @@ private:
     int mWindowIterMax;
     int mWindowCounter;
 
+    bool mCleanDone;
+
     //radius of detection
     float mRadDetection;
 
@@ -110,5 +117,6 @@ private:
     std::vector<BlockRef> mBlocks;
     std::vector<int> mTagsIds;
     std::vector<int> mFullIds;
+
 
 };

@@ -3,25 +3,45 @@ import qbs.Process
 import qbs.File
 import qbs.FileInfo
 import qbs.TextFile
-import "../../../libs/openFrameworksCompiled/project/qtcreator/ofApp.qbs" as ofApp
+import "../../../../libs/openFrameworksCompiled/project/qtcreator/ofApp.qbs" as ofApp
 
 Project{
-    property string of_root: "../../.."
+    property string of_root: "../../../../"
 
     ofApp {
-        name: { return FileInfo.baseName(path) }
+        name: { return FileInfo.baseName(sourceDirectory) }
 
         files: [
+            'src/Block.cpp',
+            'src/Block.h',
+            'src/Common.h',
+            'src/Detector.cpp',
+            'src/Detector.h',
+            'src/GridDetector.cpp',
+            'src/GridDetector.h',
+            'src/GridImage.cpp',
+            'src/GridImage.h',
+            'src/KnobAruco.cpp',
+            'src/KnobAruco.h',
+            'src/MarkerAruco.cpp',
+            'src/MarkerAruco.h',
+            'src/RectDetector.cpp',
+            'src/RectDetector.h',
+            'src/detector_params.yml',
+            'src/gui.h',
             'src/main.cpp',
             'src/ofApp.cpp',
             'src/ofApp.h',
+            'src/setup.h',
         ]
 
         of.addons: [
+            'ofxAruco3',
             'ofxCv',
+            'ofxDatGui',
+            'ofxNetwork',
             'ofxOpenCv',
             'ofxPoco',
-            'ofxAruco3',
         ]
 
         // additional flags for the project. the of module sets some
@@ -34,6 +54,9 @@ Project{
         of.linkerFlags: []      // flags passed to the linker
         of.defines: []          // defines are passed as -D to the compiler
                                 // and can be checked with #ifdef or #if in the code
+        of.frameworks: []       // osx only, additional frameworks to link with the project
+        of.staticLibraries: []  // static libraries
+        of.dynamicLibraries: [] // dynamic libraries
 
         // other flags can be set through the cpp module: http://doc.qt.io/qbs/cpp-module.html
         // eg: this will enable ccache when compiling

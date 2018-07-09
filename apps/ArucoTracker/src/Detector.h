@@ -36,8 +36,7 @@ public:
 
     void setupCalibration(int markersX, int markersY);
 
-    void detectMarkers(cv::Mat & inputVideo);
-    void detectMarkersGPU(cv::cuda::GpuMat & inputVideo);
+    void detectMarkers(cv::Mat & inputVideo, bool refiment = true);
 
 
     void toggleMarkerInfo(){mMarkerInfo = !mMarkerInfo;}

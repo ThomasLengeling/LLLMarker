@@ -45,7 +45,7 @@ public:
     void drawImage(int x, int y, int w, int h);
     void drawImage(int x, int y);
 
-    ofPixels & getImgPixels();
+    ofPixels  & getImgPixels();
 
 
     // clean Image
@@ -76,10 +76,13 @@ public:
     void updateDetectImg(ofImage & img){mVidImg = img;}
     ofImage & getImg(){return mVidImg;}
 
+    ofTexture & getFboTexture(){return mFboResolution.getTexture();}
+
 private:
     //input stream
     ofVideoGrabber      mCam;
     int                 mCamId;
+    ofPixels            mPixs;
 
     ofVideoPlayer       mVideoInput;
     std::string         mVideoName;
@@ -101,6 +104,8 @@ private:
 
     glm::vec2 mDim;
     glm::vec2 mLength;
+
+    ofFbo     mFboResolution;
 
     int mId;
     //img correction

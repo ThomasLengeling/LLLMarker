@@ -1,5 +1,6 @@
 ofxAruco3
 ofxCv
 ofxDatGui
-ofxOpenCv
 ofxNetwork
+ofxOpenCv
+ofxPoco

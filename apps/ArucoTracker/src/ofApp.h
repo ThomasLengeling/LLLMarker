@@ -44,7 +44,7 @@ LLL
 /*
 grid 1
      10
-     00  -> full 8 x 19 = 104 + 18 + 17 + 16+ 10 + 5 = 170
+     00  -> full 8 x 19 = 152 + 18 + 16 + 15+ 10 + 5 = 216
 
 grid 2
      01
@@ -61,7 +61,7 @@ grid 4
      TOTAL = 819 markers
 */
 
-#define MAX_MARKER_01 170
+#define MAX_MARKER_01 216
 #define MAX_MARKER_02 233
 #define MAX_MARKER_03 247
 #define MAX_MARKER_04 169
@@ -96,8 +96,8 @@ public:
 
   // GUI
   ofxDatButtonRef mBDebugVideo;
+  ofxDatButtonRef mBDebugVideoGrid;
   ofxDatButtonRef mBDebugGrid;
-
   ofxDatButtonRef mBSingleGrid;
   ofxDatButtonRef mBFullGrid;
 
@@ -156,16 +156,14 @@ public:
   ofTexture mCurrentVideo;
 
 
-  bool mVideoCapture;
   bool mStichImg;
   void setupVideo();
 
 
-
-
   // aruco etector
-  DetectorRef mArucoDetector;
+  std::vector<DetectorRef> mArucoDetector;
   int mTotalMarkers;
+  bool mRefimentDetector;
 
   ofImage vidImg;
   cv::Mat vidMat;
@@ -179,6 +177,7 @@ public:
 
   //
   std::vector<GridDetectorRef> mGridDetector;
+  bool mSortMarkers;
   void setupGridDetector();
 
   // send commands

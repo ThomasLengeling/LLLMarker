@@ -63,8 +63,8 @@ public:
     int getBlockType(){return mBType;}
 
     void makePairIdType(int id, int type);
-    void updateType(int type);
-    void updateId(int id);
+    void updateTypePair(int type);
+    void updateIdPair(int id);
     std::pair<int, int> getIdTypePair();
 
 
