@@ -6,8 +6,10 @@ May, 2018
 LLL
 */
 #pragma once
+
 #include "ofMain.h"
-#include "Common.h"
+
+#include "CommonTypes.h"
 #include "RectDetector.h"
 
 

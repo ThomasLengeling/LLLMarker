@@ -1,6 +1,6 @@
 #pragma once
 #include "ofMain.h"
-#include "Common.h"
+#include "CommonTypes.h"
 
 class KnobAruco;
 

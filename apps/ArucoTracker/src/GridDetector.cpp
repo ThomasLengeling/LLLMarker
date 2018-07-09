@@ -21,7 +21,7 @@ void GridDetector::setId(int id) { mId = id; }
 //-----------------------------------------------------------------------------
 void GridDetector::setupBlocks() {
   for (int i = 0; i < mMaxMarkers; i++) {
-    BlockRef block = Block::create();
+    QRBlockRef block = QRBlock::create();
     block->setMarkerId(i);
     mBlocks.push_back(block);
   }
@@ -118,14 +118,14 @@ void GridDetector::setupGridJsonPos(std::string filePos) {
 
 //-----------------------------------------------------------------------------
 void GridDetector::generateMarkers(std::vector<int> &ids,
-                                   std::vector<BlockRef> &blocks, bool sort) {
+                                   std::vector<QRBlockRef> &blocks, bool sort) {
   mTagsIds = ids;
   mCurrBlock = blocks;
 
   // clasification of ids and blocks
   if (sort) {
     std::sort(mCurrBlock.begin(), mCurrBlock.end(),
-              [](const BlockRef &lhs, const BlockRef &rhs) -> bool {
+              [](const QRBlockRef &lhs, const QRBlockRef &rhs) -> bool {
                 return lhs->getPos().x < rhs->getPos().x;
               });
     ofLog(OF_LOG_NOTICE) << "sorted";

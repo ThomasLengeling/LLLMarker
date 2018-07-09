@@ -13,9 +13,9 @@
 #include "ofxCv.h"
 #include "ofxOpenCv.h"
 
-#include "Block.h"
-#include "Common.h"
-#include "Detector.h"
+#include "QRBlock.h"
+#include "CommonTypes.h"
+#include "QRDetector.h"
 #include "KnobAruco.h"
 #include "MarkerAruco.h"
 #include "GridImage.h"
@@ -49,7 +49,7 @@ public:
     void generateGridPos();
     void setupBlocks();
 
-    void generateMarkers(std::vector<int> & ids, std::vector<BlockRef> & blocks, bool sort = false );
+    void generateMarkers(std::vector<int> & ids, std::vector<QRBlockRef> & blocks, bool sort = false );
     void clasification();
     void updateBlockTypes();
 
@@ -111,10 +111,10 @@ private:
     // check if found marker
     std::vector<MarkerArucoRef> mMarkers;
 
-    std::vector<BlockRef> mCurrBlock;
-    std::vector<std::vector<BlockRef>> mTmpBlocks;
+    std::vector<QRBlockRef> mCurrBlock;
+    std::vector<std::vector<QRBlockRef>> mTmpBlocks;
 
-    std::vector<BlockRef> mBlocks;
+    std::vector<QRBlockRef> mBlocks;
     std::vector<int> mTagsIds;
     std::vector<int> mFullIds;
 

@@ -17,21 +17,21 @@ LLL
 #include <map>
 #include <vector>
 
-#include "opencv2/stitching.hpp"
+
 #include <opencv2/aruco.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/gpu/gpu.hpp>
+
 
 // addons
 #include "ofxCv.h"
 #include "ofxDatGui.h"
 #include "ofxOpenCv.h"
 
-#include "Block.h"
-#include "Common.h"
-#include "Detector.h"
+#include "QRBlock.h"
+#include "CommonTypes.h"
+#include "QRDetector.h"
 #include "KnobAruco.h"
 #include "MarkerAruco.h"
 #include "gui.h"
@@ -161,7 +161,7 @@ public:
 
 
   // aruco etector
-  std::vector<DetectorRef> mArucoDetector;
+  std::vector<QRDetectorRef> mArucoDetector;
   int mTotalMarkers;
   bool mRefimentDetector;
 

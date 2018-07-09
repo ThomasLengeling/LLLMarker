@@ -1,0 +1,44 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "8CB33AE9A258661DA6A123499999A85DD2B0DCA0",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "8CB33AE9A258661DA6A123499999A85DD2B0DCA0" : 9223372036854775807,
+    "9233F0F4A2BE011BD468E5177A5AD6623263B23D" : 9223372036854775807,
+    "37526DA425E5430474A14FBFA1BC4525160B5FC1" : 9223372036854775807,
+    "2DE9C8846D9375EAACFABA8963120E8E7719BAF5" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "E9C745D4-667C-48C7-B285-A0B634E7D83B",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "8CB33AE9A258661DA6A123499999A85DD2B0DCA0" : "LLLMarker\/",
+    "9233F0F4A2BE011BD468E5177A5AD6623263B23D" : "..\/addons\/ofxDatGui",
+    "37526DA425E5430474A14FBFA1BC4525160B5FC1" : "..\/addons\/ofxCv",
+    "2DE9C8846D9375EAACFABA8963120E8E7719BAF5" : ".."
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "ArucoTracker",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "apps\/ArucoTracker\/ArucoTracker.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/openframeworks\/openFrameworks",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "2DE9C8846D9375EAACFABA8963120E8E7719BAF5"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/kylemcdonald\/ofxCv",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "37526DA425E5430474A14FBFA1BC4525160B5FC1"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/ThomasLengeling\/LLLMarker.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "8CB33AE9A258661DA6A123499999A85DD2B0DCA0"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/braitsch\/ofxDatGui.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "9233F0F4A2BE011BD468E5177A5AD6623263B23D"
+    }
+  ]
+}

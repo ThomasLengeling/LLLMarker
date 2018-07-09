@@ -13,7 +13,6 @@ LLL
 #include <iostream>
 #include <vector>
 
-#include <opencv2/aruco.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -50,8 +49,6 @@ public:
 
     // clean Image
     void adjustGamma(cv::Mat &img, float gamma);
-    // stich images
-    bool stichImage(cv::Mat &imgStitch, std::vector<cv::Mat> imgs);
 
     void toogleCrop(){mActivateCrop =! mActivateCrop;}
     void toogleCam(){mActivateCam =! mActivateCam;}

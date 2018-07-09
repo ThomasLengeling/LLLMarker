@@ -26,7 +26,7 @@ GridImage::GridImage(glm::vec2 dims) {
 void GridImage::setupCam(int id) {
   mCamId = id;
   mCam.setDeviceID(mCamId);
-  mCam.setDesiredFrameRate(10);
+  mCam.setDesiredFrameRate(15);
   mCam.initGrabber(mDim.x, mDim.y);
 
   ofLog(OF_LOG_NOTICE) << "loaded Cam: " << mCamId << " " << mId << " "
@@ -89,21 +89,6 @@ void GridImage::adjustGamma(cv::Mat &img, float gamma = 0.5) {
     }
     cv::LUT(img, lookUpTable, img);
   }
-}
-//-----------------------------------------------------------------------------
-bool GridImage::stichImage(cv::Mat &imgStitch, std::vector<cv::Mat> imgs) {
-  bool try_use_gpu = true;
-  bool success = true;
-  Stitcher::Mode mode = Stitcher::PANORAMA;
-
-  Ptr<Stitcher> stitcher = Stitcher::create(mode, try_use_gpu);
-  Stitcher::Status status = stitcher->stitch(imgs, imgStitch);
-
-  if (status != Stitcher::OK) {
-    ofLog(OF_LOG_NOTICE) << "Can't stitch images, error code = " << int(status);
-    success = false;
-  }
-  return success;
 }
 //-----------------------------------------------------------------------------
 void GridImage::cropImg(cv::Mat &inputVideo) {

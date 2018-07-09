@@ -12,8 +12,8 @@ Project{
         name: { return FileInfo.baseName(sourceDirectory) }
 
         files: [
-            'src/Block.cpp',
-            'src/Block.h',
+            'src/QRBlock.cpp',
+            'src/QRBlock.h',
             'src/Common.h',
             'src/Detector.cpp',
             'src/Detector.h',
