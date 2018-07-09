@@ -23,10 +23,10 @@ GridImage::GridImage(glm::vec2 dims) {
   // FboResolution.end();
 }
 //-----------------------------------------------------------------------------
-void GridImage::setupCam(int id) {
+void GridImage::setupCam(int id, int ftps) {
   mCamId = id;
   mCam.setDeviceID(mCamId);
-  mCam.setDesiredFrameRate(15);
+  mCam.setDesiredFrameRate(ftps);
   mCam.initGrabber(mDim.x, mDim.y);
 
   ofLog(OF_LOG_NOTICE) << "loaded Cam: " << mCamId << " " << mId << " "
@@ -100,9 +100,12 @@ void GridImage::cropImg(cv::Mat &inputVideo) {
   mRoi.height = mLength.y + mDisp.y;
 
   // Copy the data into new matrix
-  if (mRoi.x > 0 && mRoi.y > 0 && mRoi.width < mDim.x && mRoi.height < mDim.y) {
-    cv::Mat cutMat(inputVideo, mRoi);
-    cutMat.copyTo(mCropMat);
+  if (mRoi.width < mDim.x && mRoi.height < mDim.y) {
+    if (mRoi.x > 0 && mRoi.y > 0 && mRoi.width < mDim.x &&
+        mRoi.height < mDim.y) {
+      cv::Mat cutMat(inputVideo, mRoi);
+      cutMat.copyTo(mCropMat);
+    }
   } else {
     inputVideo.copyTo(mCropMat);
   }

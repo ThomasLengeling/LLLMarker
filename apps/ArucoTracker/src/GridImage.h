@@ -32,7 +32,7 @@ public:
         return std::make_shared<GridImage>(dims);
     }
 
-    void setupCam(int id);
+    void setupCam(int id, int ftps = 30);
     void setupVideo(std::string name);
 
     //cam

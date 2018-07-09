@@ -297,7 +297,7 @@ void ofApp::setupVideo() {
     i = 0;
     int camIdx[] = {0, 2, 4, 1};
     for (auto &gridImage : mGridImg) {
-      gridImage->setupCam(camIdx[i]);
+      gridImage->setupCam(camIdx[i], CAM_FRAMERATE);
       i++;
     }
     ofLog(OF_LOG_NOTICE) << "done loading CAM";

@@ -68,8 +68,10 @@ grid 4
 
 #define MAX_MARKER_DETECT 819
 
-#define CAM_WIDTH 1920  //1920
-#define CAM_HEIGHT 1080 //1080
+#define CAM_WIDTH 1280  //1920
+#define CAM_HEIGHT 720 //1080
+
+#define CAM_FRAMERATE 10
 
 
 class ofApp : public ofBaseApp {
