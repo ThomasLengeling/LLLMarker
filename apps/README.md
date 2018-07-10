@@ -17,6 +17,8 @@ brew install harfbuzz
 brew install hdf5
 brew install libpng
 brew install libsmf
+brew install ceres-solver
+brew install eigen glog gflags
 ````
 
 Permission to pkgconfig to brew link formulas
