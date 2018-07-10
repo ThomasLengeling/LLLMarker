@@ -19,6 +19,7 @@ brew install libpng
 brew install libsmf
 brew install ceres-solver
 brew install eigen glog gflags
+brew install vtk, viz
 ````
 
 Permission to pkgconfig to brew link formulas
