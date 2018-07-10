@@ -16,6 +16,7 @@ brew install freetype
 brew install harfbuzz
 brew install hdf5
 brew install libpng
+brew install libsmf
 ````
 
 Permission to pkgconfig to brew link formulas
