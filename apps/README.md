@@ -14,6 +14,7 @@ brew
 brew install cmake
 brew install freetype
 brew install harfbuzz
+brew install hdf5
 brew install libpng
 ````
 
