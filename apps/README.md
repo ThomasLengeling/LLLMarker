@@ -13,6 +13,7 @@ brew
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 brew install cmake
 brew install freetype
+brew install harfbuzz
 brew install libpng
 ````
 
