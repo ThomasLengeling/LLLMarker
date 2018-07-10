@@ -14,7 +14,11 @@ brew
 brew install cmake
 brew install freetype
 brew install libpng
+````
 
+Permission to pkgconfig to brew link formulas
+````
+sudo chown -R $(whoami) /usr/local/lib/pkgconfig
 ````
 
 openframeworks
