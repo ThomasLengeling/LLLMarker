@@ -59,8 +59,8 @@ grid 4
      TOTAL = 819 markers
 */
 
-#define MAX_MARKER_01 216
-#define MAX_MARKER_02 233
+#define MAX_MARKER_01 247 //216
+#define MAX_MARKER_02 247 //233
 #define MAX_MARKER_03 247
 #define MAX_MARKER_04 169
 

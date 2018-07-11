@@ -6,6 +6,7 @@ class Marker {
   PVector center;
 
   MarkerType type;
+  color cId;
 
   Marker() {
     center = new PVector();
@@ -17,6 +18,7 @@ class Marker {
     idAruco = -1;
 
     type = new MarkerType();
+    cId = color(0, 0, 255);
   }
 
   void updateRect(PVector v0, PVector v1, PVector v2, PVector v3) {
@@ -55,7 +57,7 @@ class Marker {
       endShape(CLOSE);
 
       fill(0);
-      textSize(18);
+      textSize(5);
       text(idAruco, center.x - 17, center.y);
     } else {
       beginShape();

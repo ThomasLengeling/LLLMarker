@@ -162,7 +162,7 @@ void GridDetector::drawBlock(float posx, float posy, float size, float space) {
 void GridDetector::drawDetectedGridIn(float posx, float posy, float size,
                                       float space) {
   int i = 0;
-  int j = mGridDim.y - 1;
+  int j = 0;//mGridDim.y - 1;
   float squareSize = size;
   float squareSpace = space;
   for (auto &mk : mMarkers) {
@@ -183,7 +183,7 @@ void GridDetector::drawDetectedGridIn(float posx, float posy, float size,
     i++;
     if (i >= mGridDim.x) {
       i = 0;
-      j--;
+      j++;
     }
   }
 }
@@ -386,12 +386,20 @@ void GridDetector::cleanGrid() {
 
     // send upd data and activations;
     int i = 0;
+    int indeX =0;
+    mUDPMsgIds="";
+    mUDPIds.clear();
+    std::string strMsg="";
+
     for (auto &mk : mMarkers) {
       float proba = mk->getProba(mWindowIterMax);
+
       if (proba >= 1.0 / (float)mWindowIterMax) {
         mk->enableOn();
         mk->setMarkerId(mIdsCounter[i]);
         mk->updateIdPair(mIdsCounter[i]);
+
+
 
         // find id and update it;
         /*
@@ -409,7 +417,24 @@ void GridDetector::cleanGrid() {
         mk->setMarkerId(-1);
       }
       i++;
+      indeX++;
+
+      //UDP
+      mUDPMsgIds += std::to_string(mk->getMarkerId());
+      mUDPMsgIds += " ";
+
+      strMsg += std::to_string(mk->getMarkerId());
+      strMsg += " ";
+
+      if(indeX >= mGridDim.x){
+        mUDPIds.push_back(strMsg);
+        strMsg = "";
+        indeX =0;
+      }
+
+
     }
+
 
     // done activation and disactivation
     mTmpBlocks.clear();

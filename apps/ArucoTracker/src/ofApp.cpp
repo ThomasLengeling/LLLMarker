@@ -50,6 +50,7 @@ void ofApp::update() {
   std::vector<ofPixels> pixelsImg;
   std::vector<cv::Mat> imageCopys;
   std::vector<bool> newFrames;
+  std::vector<std::string> UDPStrings;
   cv::Mat imageCopy;
 
   int j = 0;
@@ -151,6 +152,8 @@ void ofApp::update() {
         // save the positions and id from the detected markers.
         mGridDetector.at(i)->generateMarkers(mArucoDetector.at(i)->getTagIds(),
                                              mArucoDetector.at(i)->getBoard());
+
+
         i++;
       }
 
@@ -159,6 +162,42 @@ void ofApp::update() {
     }
   }
   cleanDetection();
+
+//  for (auto & gridDetector : mGridDetector) {
+//    UDPStrings.push_back(gridDetector->getUDPMsg());
+//  }
+
+  if (mBFullGrid->isActive()){
+    std::string compandStr;
+    compandStr+= "i ";
+
+    ofLog(OF_LOG_NOTICE) << "copy UDP msg";
+    for (int i = 0; i < 2; i++){
+      int index = i*2;
+      int indexNext = i*2 + 1;
+      auto currentVec =  mGridDetector.at(index)->getUDPMsgVector();
+      auto nextVec =  mGridDetector.at(indexNext)->getUDPMsgVector();
+
+      //ofLog(OF_LOG_NOTICE) << currentVec.size()<<" "<<nextVec.size();
+      for(int j = 0; j < currentVec.size(); j++){
+        compandStr += currentVec[j] + nextVec[j];
+      }
+    }
+
+
+    //send udps
+    if(compandStr.size() > 0){
+      udpConnection.Send(compandStr.c_str(), compandStr.length());
+      ofLog(OF_LOG_NOTICE) << "sent UDP: "<<compandStr.size();
+    }
+  }else if(mBSingleGrid->isActive()){
+    std::string udpMsg = mGridDetector.at(currentId)->getUDPMsg();
+
+    udpConnection.Send(udpMsg.c_str(), udpMsg.length());
+    ofLog(OF_LOG_NOTICE) << "sent UDP "<<currentId;
+
+  }
+
 
   offScreenRenderGrid();
 
@@ -327,7 +366,7 @@ void ofApp::drawInfoScreen(){
                        posx, 210);
 
     ofDrawBitmapString("UDP IP: " + mUDPIp, posx, 250);
-    ofDrawBitmapString("UDP Port: " + to_string(mUDPPort), posx, 270);        
+    ofDrawBitmapString("UDP Port: " + to_string(mUDPPort), posx, 270);
 }
 
 //--------------------------------------------------------------
@@ -503,7 +542,7 @@ void ofApp::keyPressed(int key) {
     mGridImg.at(mCurrentInputIdx)->resetCrop();
     ofLog(OF_LOG_NOTICE) << "Reset Crop " << mCurrentInputIdx;
   }
-  if (key == '9') {
+  if (key == 'u') {
     udpConnection.Send(mUDPHeader.c_str(), mUDPHeader.length());
     ofLog(OF_LOG_NOTICE) << "Set UDP";
   }
@@ -546,14 +585,14 @@ void ofApp::mouseDragged(int x, int y, int button) {
     {
       float distUp = ofDist(mGridImg.at(mCurrentInputIdx)->getCropUp().x,
                             mGridImg.at(mCurrentInputIdx)->getCropUp().y, x, y);
-      if (distUp >= 0.0 && distUp <= 20) {
+      if (distUp >= 0.0 && distUp <= 35) {
         mGridImg.at(mCurrentInputIdx)->setCropUp(glm::vec2(x, y));
       }
 
       float distDown =
           ofDist(mGridImg.at(mCurrentInputIdx)->getCropDown().x,
                  mGridImg.at(mCurrentInputIdx)->getCropDown().y, x, y);
-      if (distDown >= 0.0 && distDown <= 20) {
+      if (distDown >= 0.0 && distDown <= 35) {
         mGridImg.at(mCurrentInputIdx)->setCropDown(glm::vec2(x, y));
       }
     }

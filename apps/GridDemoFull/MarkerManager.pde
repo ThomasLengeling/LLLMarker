@@ -34,6 +34,16 @@ class MarkerManager {
   }
 
   void updateIdMarker(int index, int id) {
+    if(id == -1){
+        mMarkers.get(index).enable = false;
+    }else{
+      mMarkers.get(index).enable = false;
+    }
+    
+    MarkerType mt = new MarkerType();
+    mt.setType(int(id));
+    
+    mMarkers.get(index).type = mt;
     mMarkers.get(index).idAruco = id;
   }
 

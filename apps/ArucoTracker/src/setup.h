@@ -70,7 +70,7 @@ void ofApp::setupConnection() {
 //-----------------------------------------------------------------------------
 void ofApp::setupERICS() {
   // mUDPHeader += "header \n";
-  mUDPHeader = "ncols         " + to_string(mFullGridDim.x) + "\n";
+  mUDPHeader  = "ncols         " + to_string(mFullGridDim.x) + "\n";
   mUDPHeader += "nrows         " + to_string(mFullGridDim.y) + "\n";
   mUDPHeader += "xllcorner     " + std::string("20.0") + "\n";
   mUDPHeader += "yllcorner     " + std::string("30.0") + "\n";

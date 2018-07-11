@@ -75,8 +75,16 @@ public:
 
     void drawBlock(float posx, float posy, float size = 20, float space = 5);
 
+    std::string getUDPMsg(){return mUDPMsgIds;}
+    std::vector< std::string > getUDPMsgVector(){return mUDPIds;}
+
 private:
 
+    std::string mUDPMsgIds;
+
+    std::vector< std::string > mUDPIds;
+
+    //dimentions
     glm::vec2  mGridDim;
 
     //id;
