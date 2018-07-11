@@ -299,7 +299,11 @@ void ofApp::draw() {
   }
 
   // draw results
-  {
+  drawInfoScreen();
+}
+
+//--------------------------------------------------------------
+void ofApp::drawInfoScreen(){
     int maxM = mGridDetector.at(mCurrentInputIdx)->getMaxMarkers();
     int numM = mGridDetector.at(mCurrentInputIdx)->getNumMarkers();
     glm::vec2 cdim = mGridDetector.at(mCurrentInputIdx)->getDim();
@@ -321,7 +325,9 @@ void ofApp::draw() {
     ofDrawBitmapString("Full Dim: " + to_string(int(mFullGridDim.x)) + " " +
                            to_string(int(mFullGridDim.y)),
                        posx, 210);
-  }
+
+    ofDrawBitmapString("UDP IP: " + mUDPIp, posx, 250);
+    ofDrawBitmapString("UDP Port: " + to_string(mUDPPort), posx, 270);        
 }
 
 //--------------------------------------------------------------
@@ -370,6 +376,7 @@ void ofApp::updateGUI() {
   mBDebugMarkers->update();
 
   mBGridSelect->update();
+  mBCloseCams->update();
 
   for (auto &gridImage : mGridImg) {
     gridImage->updateGUISwap();
@@ -390,6 +397,7 @@ void ofApp::drawGUI() {
   mBDebugVideoGrid->draw();
 
   mBGridSelect->draw();
+  mBCloseCams->draw();
 
   for (auto &gridImage : mGridImg) {
     gridImage->drawGUISwap();
@@ -463,6 +471,7 @@ void ofApp::keyPressed(int key) {
       pt[inputImg]["y2"] = gridImage->getCropDown().y;
       pt[inputImg]["disX"] = gridImage->getCropDisp().x;
       pt[inputImg]["disY"] = gridImage->getCropDisp().y;
+      pt[inputImg]["camId"] = gridImage->getCamId();
       writer.push_back(pt);
       i++;
     }

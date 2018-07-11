@@ -37,9 +37,26 @@ void ofApp::setupValues() {
 }
 
 void ofApp::setupConnection() {
+  std::string jsonNet = "networkUDP.json";
+  ofLog(OF_LOG_NOTICE) << "Setup newtwork: "<<jsonNet;
+  ofFile file(jsonNet);
+  if (file.exists()) {
+    ofJson js;
+    file >> js;
+    for (auto &net : js) {
+      mUDPIp =  net["network"]["ip"];
+      mUDPPort =  int(net["network"]["port"]);
+    }
+    ofLog(OF_LOG_NOTICE) << "Loaded: UDP";
+    ofLog(OF_LOG_NOTICE) << "IP: "<<mUDPIp<<" Port: "<<mUDPPort;
+  }else{
+    mUDPIp = "127.0.0.1";
+    mUDPPort = 15800;
+    ofLog(OF_LOG_NOTICE) << "fail loading newtwork: "<<jsonNet<<" Default: "<<mUDPIp<<" "<<mUDPPort;
+  }
 
   ofxUDPSettings settings;
-  settings.sendTo("172.20.10.2", 15800);
+  settings.sendTo(mUDPIp, mUDPPort);
   settings.blocking = false;
   udpConnection.Setup(settings);
 
@@ -231,12 +248,23 @@ void ofApp::setupGUI() {
     mFboSingle.end();
   });
 
+  mBCloseCams = ofxDatButton::create();
+  mBCloseCams->button = new ofxDatGuiToggle("Close Cams");
+  mBCloseCams->button->setOpacity(0.8);
+  mBCloseCams->button->setWidth(390, .4);
+  mBCloseCams->button->setPosition(sliderStartX, 260);
+  mBCloseCams->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
+    for (auto &gridImage : mGridImg) {
+      gridImage->getCam().close();
+    }
+
+  });
+
   int i = 0;
   for (auto &gridImage : mGridImg) {
-    gridImage->setupGUISwap(sliderStartX, 250 +30*i);
+    gridImage->setupGUISwap(sliderStartX, 290 +30*i);
     i++;
   }
-
 
   ofLog(OF_LOG_NOTICE) << "done setup gui";
 }
@@ -258,9 +286,15 @@ void ofApp::setupCalibration() {
 }
 //-----------------------------------------------------------------------------
 void ofApp::setupVideo() {
+
   std::string movies[] = {"grid_01.mov", "grid_02.mov", "grid_03.mov",
                           "grid_04.mov"};
+  int camIds[] = {0, 0, 0, 0};
+
+
+  //setup inputs
   ofLog(OF_LOG_NOTICE) << "setting inputs: " << mNumInputs;
+
   for (int i = 0; i < mNumInputs; i++) {
     GridImageRef gridImage =
         GridImage::create(glm::vec2(CAM_WIDTH, CAM_HEIGHT));
@@ -268,6 +302,7 @@ void ofApp::setupVideo() {
     mGridImg.push_back(gridImage);
   }
 
+  ofLog(OF_LOG_NOTICE) << "Loading cam crop positions";
   ofFile file("img.json");
   bool foundFile = false;
   if (file.exists()) {
@@ -282,29 +317,37 @@ void ofApp::setupVideo() {
           glm::vec2(cam[inputImg]["x2"], cam[inputImg]["y2"]));
       mGridImg.at(j)->setCropDisp(
           glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
-      ofLog(OF_LOG_NOTICE) << "Set Crop: " << j;
+
+      camIds[j] = cam[inputImg]["camId"];
+      ofLog(OF_LOG_NOTICE) << "Set Crop: " << j<<" CamId: "<<  camIds[j];
       j++;
     }
-    ofLog(OF_LOG_NOTICE) << "done crop values JSON";
+    ofLog(OF_LOG_NOTICE) << "Done crop values JSON";
     foundFile = true;
   } else {
-    ofLog(OF_LOG_NOTICE) << "file does not exist img.json";
+    ofLog(OF_LOG_NOTICE) << "File does not exist img.json";
   }
 
   {
+    ofLog(OF_LOG_NOTICE) << "Loading Videos:";
     // load video
     int i = 0;
     for (auto &gridImage : mGridImg) {
       gridImage->setupVideo(movies[i]);
       i++;
     }
-    // ofLog(OF_LOG_NOTICE) << "done loading video";
+    ofLog(OF_LOG_NOTICE) << "Done loading video";
 
+    //Print available devices
+    ofLog(OF_LOG_NOTICE) << "Cam devices:";
+    ofVideoGrabber mVideoGrabber;
+    mVideoGrabber.listDevices();
+    ofLog(OF_LOG_NOTICE) << "Loading cam devices:";
     // load cam
     i = 0;
-    int camIdx[] = {0, 2, 4, 1};
+
     for (auto &gridImage : mGridImg) {
-      gridImage->setupCam(camIdx[i], CAM_FRAMERATE);
+      gridImage->setupCam(camIds[i], CAM_FRAMERATE);
       i++;
     }
     ofLog(OF_LOG_NOTICE) << "done loading CAM";

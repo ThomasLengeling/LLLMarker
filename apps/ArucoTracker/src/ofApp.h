@@ -17,12 +17,10 @@ LLL
 #include <map>
 #include <vector>
 
-
 #include <opencv2/aruco.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
-
 
 // addons
 #include "ofxCv.h"
@@ -110,6 +108,7 @@ public:
 
   ofxDatSliderRef mGammaValue;
   ofxDatMatrixRef mBGridSelect;
+  ofxDatButtonRef mBCloseCams;
 
 
   bool mDrawGUI;
@@ -185,6 +184,8 @@ public:
 
   // send commands
   ofxUDPManager udpConnection;
+  std::string   mUDPIp;
+  int           mUDPPort;
   std::string mUDPHeader;
   ofFile mTypeFile;
 
@@ -193,4 +194,6 @@ public:
 
   // save JSON file
   void saveJSONBlocks();
+
+  void drawInfoScreen();
 };

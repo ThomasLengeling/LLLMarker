@@ -42,6 +42,8 @@ public:
     ofVideoGrabber    & getCam(){return mCam;}
     ofVideoPlayer     & getVideo(){return mVideoInput;}
 
+    int getCamId(){return mCamId;}
+
     //setup GUI
     void setupGUISwap(float x, float y);
     void drawGUISwap();
@@ -89,6 +91,7 @@ public:
 private:
     //input stream
     ofVideoGrabber      mCam;
+    int                 mFps;
     int                 mCamId;
     ofPixels            mPixs;
 

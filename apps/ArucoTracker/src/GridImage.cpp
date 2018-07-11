@@ -9,6 +9,7 @@ GridImage::GridImage(glm::vec2 dims) {
   mGamma = 0.9;
   mActivateCrop = false;
   mActivateCam = true;
+  mFps = 30;
 
   mCornerUp = glm::vec2(100, 100);
   mCornerDown = glm::vec2(300, 300);
@@ -23,10 +24,12 @@ GridImage::GridImage(glm::vec2 dims) {
   // FboResolution.end();
 }
 //-----------------------------------------------------------------------------
-void GridImage::setupCam(int id, int ftps) {
+void GridImage::setupCam(int id, int fps) {
   mCamId = id;
+  mFps = fps;
   mCam.setDeviceID(mCamId);
-  mCam.setDesiredFrameRate(ftps);
+  mCam.setVerbose(true);
+  mCam.setDesiredFrameRate(mFps);
   mCam.initGrabber(mDim.x, mDim.y);
 
   ofLog(OF_LOG_NOTICE) << "loaded Cam: " << mCamId << " " << mId << " "
@@ -38,11 +41,18 @@ void GridImage::setupGUISwap(float x, float y) {
   mSwapCamId->matrix =
       new ofxDatGuiMatrix("Cam Selector: " + to_string(mId), 4, true);
   mSwapCamId->matrix->setRadioMode(true);
-  mSwapCamId->matrix->setOpacity(0.8);
+  mSwapCamId->matrix->setOpacity(0.7);
   mSwapCamId->matrix->setWidth(390, .4);
   mSwapCamId->matrix->setPosition(x, y);
   mSwapCamId->matrix->onMatrixEvent([&](ofxDatGuiMatrixEvent v) {
-    ofLog(OF_LOG_NOTICE) << "Index: " << v.child << std::endl;
+    ofLog(OF_LOG_NOTICE) <<"Id: "<<mCamId<< " New Index: " << v.child<< std::endl;
+      mCam.close();
+
+      mCamId = v.child;
+      mCam.setDeviceID(mCamId);
+      //mCam.setVerbose(true);
+      mCam.setDesiredFrameRate(mFps);
+      mCam.initGrabber(mDim.x, mDim.y);
   });
 }
 //-----------------------------------------------------------------------------
