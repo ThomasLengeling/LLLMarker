@@ -21,6 +21,8 @@ LLL
 #include "ofxCv.h"
 #include "ofxOpenCv.h"
 
+#include "gui.h"
+
 class GridImage;
 typedef std::shared_ptr<GridImage> GridImageRef;
 
@@ -32,6 +34,7 @@ public:
         return std::make_shared<GridImage>(dims);
     }
 
+    //setup video
     void setupCam(int id, int ftps = 30);
     void setupVideo(std::string name);
 
@@ -39,7 +42,12 @@ public:
     ofVideoGrabber    & getCam(){return mCam;}
     ofVideoPlayer     & getVideo(){return mVideoInput;}
 
+    //setup GUI
+    void setupGUISwap(float x, float y);
+    void drawGUISwap();
+    void updateGUISwap();
 
+    //draw update images
     bool updateImage();
     void drawImage(int x, int y, int w, int h);
     void drawImage(int x, int y);
@@ -58,10 +66,13 @@ public:
     void drawCropImg();
     void drawCropRoi();
 
+    void resetCrop();
+
     cv::Mat getCropMat(){return mCropMat;}
 
-    void setCropUp(glm::vec2 up){ mCornerUp = up; }
-    void setCropDown(glm::vec2 down){ mCornerDown = down; }
+    void setCropUp(glm::vec2 up);
+    void setCropDown(glm::vec2 down);
+
     void setCropDisp(glm::vec2 dis) { mDisp = dis; }
 
     glm::vec2 getCropUp(){return mCornerUp;}
@@ -80,6 +91,9 @@ private:
     ofVideoGrabber      mCam;
     int                 mCamId;
     ofPixels            mPixs;
+
+    //swap camId
+    ofxDatMatrixRef     mSwapCamId;
 
     ofVideoPlayer       mVideoInput;
     std::string         mVideoName;

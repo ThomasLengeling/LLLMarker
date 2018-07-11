@@ -33,6 +33,19 @@ void GridImage::setupCam(int id, int ftps) {
                        << mDim.x << " " << mDim.y << "  " << mCam.getWidth();
 }
 //-----------------------------------------------------------------------------
+void GridImage::setupGUISwap(float x, float y) {
+  mSwapCamId = ofxDatMatrix::create();
+  mSwapCamId->matrix =
+      new ofxDatGuiMatrix("Cam Selector: " + to_string(mId), 4, true);
+  mSwapCamId->matrix->setRadioMode(true);
+  mSwapCamId->matrix->setOpacity(0.8);
+  mSwapCamId->matrix->setWidth(390, .4);
+  mSwapCamId->matrix->setPosition(x, y);
+  mSwapCamId->matrix->onMatrixEvent([&](ofxDatGuiMatrixEvent v) {
+    ofLog(OF_LOG_NOTICE) << "Index: " << v.child << std::endl;
+  });
+}
+//-----------------------------------------------------------------------------
 void GridImage::setupVideo(std::string name) {
   mVideoName = name;
   mVideoInput.load(mVideoName);
@@ -63,6 +76,10 @@ ofPixels &GridImage::getImgPixels() {
   return (mActivateCam) ? mCam.getPixels() : mVideoInput.getPixels();
 }
 //-----------------------------------------------------------------------------
+void GridImage::setCropUp(glm::vec2 up) { mCornerUp = up; }
+//-----------------------------------------------------------------------------
+void GridImage::setCropDown(glm::vec2 down) { mCornerDown = down; }
+//-----------------------------------------------------------------------------
 void GridImage::drawImage(int x, int y, int w, int h) {
   if (mActivateCam) {
     mCam.draw(x, y, w, h);
@@ -70,13 +87,23 @@ void GridImage::drawImage(int x, int y, int w, int h) {
     mVideoInput.draw(x, y, w, h);
   }
 }
-
+//-----------------------------------------------------------------------------
 void GridImage::drawImage(int x, int y) {
   if (mActivateCam) {
     mCam.draw(x, y, mDim.x, mDim.y);
   } else {
     mVideoInput.draw(x, y, mDim.x, mDim.y);
   }
+}
+//-----------------------------------------------------------------------------
+void GridImage::drawGUISwap() {
+  // draw GUI
+  mSwapCamId->draw();
+}
+//-----------------------------------------------------------------------------
+void GridImage::updateGUISwap() {
+  // update GUI
+  mSwapCamId->update();
 }
 //-----------------------------------------------------------------------------
 void GridImage::adjustGamma(cv::Mat &img, float gamma = 0.5) {
@@ -90,8 +117,14 @@ void GridImage::adjustGamma(cv::Mat &img, float gamma = 0.5) {
     cv::LUT(img, lookUpTable, img);
   }
 }
+void GridImage::resetCrop() {
+  mCornerUp = glm::vec2(100, 100);
+  mCornerDown = glm::vec2(300, 300);
+  mDisp = glm::vec2(5, 5);
+}
 //-----------------------------------------------------------------------------
 void GridImage::cropImg(cv::Mat &inputVideo) {
+
   mLength.x = mCornerDown.x - mCornerUp.x;
   mLength.y = mCornerDown.y - mCornerUp.y;
   mRoi.x = mCornerUp.x;

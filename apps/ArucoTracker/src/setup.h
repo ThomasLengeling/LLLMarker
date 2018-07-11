@@ -231,6 +231,13 @@ void ofApp::setupGUI() {
     mFboSingle.end();
   });
 
+  int i = 0;
+  for (auto &gridImage : mGridImg) {
+    gridImage->setupGUISwap(sliderStartX, 250 +30*i);
+    i++;
+  }
+
+
   ofLog(OF_LOG_NOTICE) << "done setup gui";
 }
 //-----------------------------------------------------------------------------

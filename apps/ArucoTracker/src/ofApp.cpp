@@ -181,8 +181,7 @@ void ofApp::draw() {
     vidImg.draw(0, 0, 1280, 720);
 
     if (mBEnableCrop->isActive()) {
-      mGridImg.at(mCurrentInputIdx)
-          ->drawImage(0, 0, ofGetWidth(), ofGetHeight());
+      mGridImg.at(mCurrentInputIdx)->drawImage(0, 0);
     } else {
 
       int i = 0;
@@ -371,6 +370,10 @@ void ofApp::updateGUI() {
   mBDebugMarkers->update();
 
   mBGridSelect->update();
+
+  for (auto &gridImage : mGridImg) {
+    gridImage->updateGUISwap();
+  }
 }
 
 //--------------------------------------------------------------
@@ -387,6 +390,10 @@ void ofApp::drawGUI() {
   mBDebugVideoGrid->draw();
 
   mBGridSelect->draw();
+
+  for (auto &gridImage : mGridImg) {
+    gridImage->drawGUISwap();
+  }
 }
 
 //--------------------------------------------------------------
@@ -483,11 +490,17 @@ void ofApp::keyPressed(int key) {
   if (key == 'n') {
     mGridDetector.at(mCurrentInputIdx)->toogleDebugGrid();
   }
+  if (key == '8') {
+    mGridImg.at(mCurrentInputIdx)->resetCrop();
+    ofLog(OF_LOG_NOTICE) << "Reset Crop " << mCurrentInputIdx;
+  }
   if (key == '9') {
     udpConnection.Send(mUDPHeader.c_str(), mUDPHeader.length());
+    ofLog(OF_LOG_NOTICE) << "Set UDP";
   }
   if (key == '0') {
     mGridDetector.at(mCurrentInputIdx)->generateGridPos();
+    ofLog(OF_LOG_NOTICE) << "Reset gris pos " << mCurrentInputIdx;
   }
 }
 
