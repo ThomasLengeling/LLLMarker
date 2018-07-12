@@ -10,7 +10,7 @@ PFont myFont;
 //spyphon
 SyphonServer server;
 
-int gridWidht = 38;
+int gridWidht = 32;
 int gridHeight = 26;
 
 //gui

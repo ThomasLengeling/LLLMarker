@@ -37,7 +37,7 @@ class MarkerManager {
     if(id == -1){
         mMarkers.get(index).enable = false;
     }else{
-      mMarkers.get(index).enable = false;
+      mMarkers.get(index).enable = true;
     }
     
     MarkerType mt = new MarkerType();
