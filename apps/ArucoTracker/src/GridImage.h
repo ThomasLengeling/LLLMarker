@@ -56,9 +56,11 @@ public:
 
     ofPixels  & getImgPixels();
 
+    void setGamma(float gm){mGamma = gm;}
+    float getGamma(){return mGamma;}
 
     // clean Image
-    void adjustGamma(cv::Mat &img, float gamma);
+    void adjustGamma(cv::Mat &img);
 
     void toogleCrop(){mActivateCrop =! mActivateCrop;}
     void toogleCam(){mActivateCam =! mActivateCam;}
@@ -122,6 +124,7 @@ private:
     ofFbo     mFboResolution;
 
     int mId;
+
     //img correction
     float mGamma;
 };

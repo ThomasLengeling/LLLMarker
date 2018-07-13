@@ -76,13 +76,15 @@ void ofApp::update() {
     cv::Mat copyCrop;
     ofPixels pixs = pixelsImg.at(currentId);
     if (pixs.getHeight() > 0) {
+      pixs.rotate90(2);
       cv::Mat input = ofxCv::toCv(pixs).clone();
       mGridImg.at(currentId)->cropImg(input);
       cv::Mat copMat = mGridImg.at(currentId)->getCropMat();
       copMat.copyTo(copyCrop);
 
+      mGridImg.at(currentId)->setGamma(mGammaValue->getValue());
       // calculate Gamma
-      mGridImg.at(currentId)->adjustGamma(copyCrop, mGammaValue->getValue());
+      mGridImg.at(currentId)->adjustGamma(copyCrop);
       copyCrop.copyTo(imageCopy);
     } else {
       ofLog(OF_LOG_NOTICE) << "error size ";
@@ -93,11 +95,12 @@ void ofApp::update() {
     for (auto &pixs : pixelsImg) {
       cv::Mat copyCrop;
       if (pixs.getHeight() > 0) {
+        pixs.rotate90(2);
         cv::Mat input = ofxCv::toCv(pixs);
         mGridImg.at(i)->cropImg(input);
         cv::Mat copMat = mGridImg.at(i)->getCropMat();
         copMat.copyTo(copyCrop);
-        mGridImg.at(i)->adjustGamma(copyCrop, mGammaValue->getValue());
+        mGridImg.at(i)->adjustGamma(copyCrop);
         imageCopys.push_back(copyCrop);
       } else {
         ofLog(OF_LOG_NOTICE) << "error size: " << i;
@@ -153,7 +156,6 @@ void ofApp::update() {
         mGridDetector.at(i)->generateMarkers(mArucoDetector.at(i)->getTagIds(),
                                              mArucoDetector.at(i)->getBoard());
 
-
         i++;
       }
 
@@ -163,41 +165,38 @@ void ofApp::update() {
   }
   cleanDetection();
 
-//  for (auto & gridDetector : mGridDetector) {
-//    UDPStrings.push_back(gridDetector->getUDPMsg());
-//  }
+  //  for (auto & gridDetector : mGridDetector) {
+  //    UDPStrings.push_back(gridDetector->getUDPMsg());
+  //  }
 
-  if (mBFullGrid->isActive()){
+  if (mBFullGrid->isActive()) {
     std::string compandStr;
-    compandStr+= "i ";
+    compandStr += "i ";
 
     ofLog(OF_LOG_NOTICE) << "copy UDP msg";
-    for (int i = 0; i < 2; i++){
-      int index = i*2;
-      int indexNext = i*2 + 1;
-      auto currentVec =  mGridDetector.at(index)->getUDPMsgVector();
-      auto nextVec =  mGridDetector.at(indexNext)->getUDPMsgVector();
+    for (int i = 0; i < 2; i++) {
+      int index = i * 2;
+      int indexNext = i * 2 + 1;
+      auto currentVec = mGridDetector.at(index)->getUDPMsgVector();
+      auto nextVec = mGridDetector.at(indexNext)->getUDPMsgVector();
 
-      //ofLog(OF_LOG_NOTICE) << currentVec.size()<<" "<<nextVec.size();
-      for(int j = 0; j < currentVec.size(); j++){
+      // ofLog(OF_LOG_NOTICE) << currentVec.size()<<" "<<nextVec.size();
+      for (int j = 0; j < currentVec.size(); j++) {
         compandStr += currentVec[j] + nextVec[j];
       }
     }
 
-
-    //send udps
-    if(compandStr.size() > 0){
+    // send udps
+    if (compandStr.size() > 0) {
       udpConnection.Send(compandStr.c_str(), compandStr.length());
-      ofLog(OF_LOG_NOTICE) << "sent UDP: "<<compandStr.size();
+      ofLog(OF_LOG_NOTICE) << "sent UDP: " << compandStr.size();
     }
-  }else if(mBSingleGrid->isActive()){
+  } else if (mBSingleGrid->isActive()) {
     std::string udpMsg = mGridDetector.at(currentId)->getUDPMsg();
 
     udpConnection.Send(udpMsg.c_str(), udpMsg.length());
-    ofLog(OF_LOG_NOTICE) << "sent UDP "<<currentId;
-
+    ofLog(OF_LOG_NOTICE) << "sent UDP " << currentId;
   }
-
 
   offScreenRenderGrid();
 
@@ -342,31 +341,31 @@ void ofApp::draw() {
 }
 
 //--------------------------------------------------------------
-void ofApp::drawInfoScreen(){
-    int maxM = mGridDetector.at(mCurrentInputIdx)->getMaxMarkers();
-    int numM = mGridDetector.at(mCurrentInputIdx)->getNumMarkers();
-    glm::vec2 cdim = mGridDetector.at(mCurrentInputIdx)->getDim();
-    ofSetColor(255);
-    int posx = ofGetWidth() - 230;
-    ofDrawBitmapString("Fps: " + to_string(ofGetFrameRate()), posx, 20);
-    ofDrawBitmapString("Total Dec: " + to_string(mTotalMarkers), posx, 40);
-    ofDrawBitmapString("Max Dec: " + to_string(MAX_MARKER_DETECT), posx, 60);
-    ofDrawBitmapString("Inputs: " + to_string(mGridImg.size()), posx, 90);
-    ofDrawBitmapString("Current input: " + to_string(mCurrentInputIdx), posx,
-                       110);
-    ofDrawBitmapString("Max Markers Real: " + to_string(maxM), posx, 130);
-    ofDrawBitmapString("Markers: " + to_string(numM), posx, 150);
-    ofDrawBitmapString("Dim: " + to_string(int(cdim.x)) + " " +
-                           to_string(int(cdim.y)),
-                       posx, 170);
-    ofDrawBitmapString("Max Markers: " + to_string(int(cdim.x * cdim.y)), posx,
-                       190);
-    ofDrawBitmapString("Full Dim: " + to_string(int(mFullGridDim.x)) + " " +
-                           to_string(int(mFullGridDim.y)),
-                       posx, 210);
+void ofApp::drawInfoScreen() {
+  int maxM = mGridDetector.at(mCurrentInputIdx)->getMaxMarkers();
+  int numM = mGridDetector.at(mCurrentInputIdx)->getNumMarkers();
+  glm::vec2 cdim = mGridDetector.at(mCurrentInputIdx)->getDim();
+  ofSetColor(255);
+  int posx = ofGetWidth() - 230;
+  ofDrawBitmapString("Fps: " + to_string(ofGetFrameRate()), posx, 20);
+  ofDrawBitmapString("Total Dec: " + to_string(mTotalMarkers), posx, 40);
+  ofDrawBitmapString("Max Dec: " + to_string(MAX_MARKER_DETECT), posx, 60);
+  ofDrawBitmapString("Inputs: " + to_string(mGridImg.size()), posx, 90);
+  ofDrawBitmapString("Current input: " + to_string(mCurrentInputIdx), posx,
+                     110);
+  ofDrawBitmapString("Max Markers Real: " + to_string(maxM), posx, 130);
+  ofDrawBitmapString("Markers: " + to_string(numM), posx, 150);
+  ofDrawBitmapString("Dim: " + to_string(int(cdim.x)) + " " +
+                         to_string(int(cdim.y)),
+                     posx, 170);
+  ofDrawBitmapString("Max Markers: " + to_string(int(cdim.x * cdim.y)), posx,
+                     190);
+  ofDrawBitmapString("Full Dim: " + to_string(int(mFullGridDim.x)) + " " +
+                         to_string(int(mFullGridDim.y)),
+                     posx, 210);
 
-    ofDrawBitmapString("UDP IP: " + mUDPIp, posx, 250);
-    ofDrawBitmapString("UDP Port: " + to_string(mUDPPort), posx, 270);
+  ofDrawBitmapString("UDP IP: " + mUDPIp, posx, 250);
+  ofDrawBitmapString("UDP Port: " + to_string(mUDPPort), posx, 270);
 }
 
 //--------------------------------------------------------------
@@ -511,6 +510,8 @@ void ofApp::keyPressed(int key) {
       pt[inputImg]["disX"] = gridImage->getCropDisp().x;
       pt[inputImg]["disY"] = gridImage->getCropDisp().y;
       pt[inputImg]["camId"] = gridImage->getCamId();
+      pt[inputImg]["gamma"] = gridImage->getGamma();
+
       writer.push_back(pt);
       i++;
     }

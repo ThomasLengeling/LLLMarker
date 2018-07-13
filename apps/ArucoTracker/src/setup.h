@@ -319,7 +319,12 @@ void ofApp::setupVideo() {
           glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
 
       camIds[j] = cam[inputImg]["camId"];
+
+      float gm = float(cam[inputImg]["gamma"]);
+      mGridImg.at(j)->setGamma(gm);
+
       ofLog(OF_LOG_NOTICE) << "Set Crop: " << j<<" CamId: "<<  camIds[j];
+      ofLog(OF_LOG_NOTICE) << "Gamma: " << gm;
       j++;
     }
     ofLog(OF_LOG_NOTICE) << "Done crop values JSON";

@@ -45,14 +45,15 @@ void GridImage::setupGUISwap(float x, float y) {
   mSwapCamId->matrix->setWidth(390, .4);
   mSwapCamId->matrix->setPosition(x, y);
   mSwapCamId->matrix->onMatrixEvent([&](ofxDatGuiMatrixEvent v) {
-    ofLog(OF_LOG_NOTICE) <<"Id: "<<mCamId<< " New Index: " << v.child<< std::endl;
-      mCam.close();
+    ofLog(OF_LOG_NOTICE) << "Id: " << mCamId << " New Index: " << v.child
+                         << std::endl;
+    mCam.close();
 
-      mCamId = v.child;
-      mCam.setDeviceID(mCamId);
-      //mCam.setVerbose(true);
-      mCam.setDesiredFrameRate(mFps);
-      mCam.initGrabber(mDim.x, mDim.y);
+    mCamId = v.child;
+    mCam.setDeviceID(mCamId);
+    // mCam.setVerbose(true);
+    mCam.setDesiredFrameRate(mFps);
+    mCam.initGrabber(mDim.x, mDim.y);
   });
 }
 //-----------------------------------------------------------------------------
@@ -116,8 +117,7 @@ void GridImage::updateGUISwap() {
   mSwapCamId->update();
 }
 //-----------------------------------------------------------------------------
-void GridImage::adjustGamma(cv::Mat &img, float gamma = 0.5) {
-  mGamma = gamma;
+void GridImage::adjustGamma(cv::Mat &img) {
   if (!img.empty()) {
     cv::Mat lookUpTable(1, 256, CV_8U);
     unsigned char *p = lookUpTable.ptr();
