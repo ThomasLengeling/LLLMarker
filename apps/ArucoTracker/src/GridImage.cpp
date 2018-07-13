@@ -177,10 +177,10 @@ void GridImage::drawCropImg() {
   ofxCv::toOf(mCropMat, imgCut.getPixels());
   imgCut.update();
 
-  ofSetColor(0, 150, 200, 200);
+  ofSetColor(200, 200);
   imgCut.draw(mCornerUp.x, mCornerUp.y, mLength.x + mDisp.x,
               mLength.y + mDisp.y);
 
-  imgCut.draw(0, 0, 200, 200);
+  imgCut.draw(255, 200);
   ofxCv::drawMat(mCropMat, 0, 200, 200, 200);
 }

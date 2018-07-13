@@ -174,7 +174,7 @@ void ofApp::update() {
     compandStr += "i ";
 
     ofLog(OF_LOG_NOTICE) << "copy UDP msg";
-    for (int i = 0; i < 2; i++) {
+    for (int i = 1; i >= 0; i--) {
       int index = i * 2;
       int indexNext = i * 2 + 1;
       auto currentVec = mGridDetector.at(index)->getUDPMsgVector();
@@ -182,7 +182,7 @@ void ofApp::update() {
 
       // ofLog(OF_LOG_NOTICE) << currentVec.size()<<" "<<nextVec.size();
       for (int j = 0; j < currentVec.size(); j++) {
-        compandStr += currentVec[j] + nextVec[j];
+        compandStr += nextVec[j] + currentVec[j];
       }
     }
 
@@ -318,6 +318,20 @@ void ofApp::draw() {
     }
   }
 
+  if(mBFullCamView->isActive()){
+    int i = 0;
+    int j = 0;
+    ofSetColor(255, 255);
+    for (auto &gridImage : mGridImg) {
+      gridImage->drawImage(640 * i + 200, 360 * j + 200, 640, 360);
+      i++;
+      if(i >=2){
+        j++;
+        i=0;
+      }
+    }
+  }
+
   if (mEnableKnob) {
     mKnobAmenitie->drawArc();
     mKnobAmenitie->draw();
@@ -406,6 +420,7 @@ void ofApp::updateGUI() {
   mBEnableCrop->update();
   mBEnableVideo->update();
   mBDebugVideoGrid->update();
+  mBFullCamView->update();
 
   mBDebugVideo->update();
   mBDebugGrid->update();
@@ -426,6 +441,7 @@ void ofApp::drawGUI() {
   mGammaValue->draw();
   mBEnableCrop->draw();
   mBEnableVideo->draw();
+  mBFullCamView->draw();
 
   mBDebugVideo->draw();
   mBDebugGrid->draw();

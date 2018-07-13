@@ -100,6 +100,7 @@ public:
   ofxDatButtonRef mBDebugGrid;
   ofxDatButtonRef mBSingleGrid;
   ofxDatButtonRef mBFullGrid;
+  ofxDatButtonRef mBFullCamView;
 
   ofxDatButtonRef mBEnableCrop;
   ofxDatButtonRef mBCalibrateGrid;

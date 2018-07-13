@@ -192,6 +192,17 @@ void ofApp::setupGUI() {
     }
   });
 
+  mBFullCamView = ofxDatButton::create();
+  mBFullCamView->setActivation(false);
+  mBFullCamView->button = new ofxDatGuiToggle("Full Cam View");
+  mBFullCamView->button->setPosition(10, 260);
+  mBFullCamView->button->setWidth(100, .4);
+  mBFullCamView->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
+    mBFullCamView->mActive = !mBFullCamView->mActive;
+  });
+
+
+
   int sliderStartX = 150;
 
   mBEnableCrop = ofxDatButton::create();
