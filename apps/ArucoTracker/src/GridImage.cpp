@@ -6,7 +6,7 @@ using namespace cv;
 GridImage::GridImage(glm::vec2 dims) {
   mDim = dims;
   mLength = glm::vec2(0, 0);
-  mGamma = 0.9;
+  mGamma = 0.65;
   mActivateCrop = false;
   mActivateCam = true;
   mFps = 30;
@@ -15,25 +15,27 @@ GridImage::GridImage(glm::vec2 dims) {
   mCornerDown = glm::vec2(300, 300);
   mDisp = glm::vec2(23, 23);
 
-  // mFboResolution.allocate(mDim.x, mDim.y, GL_RGBA);
-  // mPixs.allocate(mDim.x, mDim.y, OF_PIXELS_RGBA);
+  mFboResolution.allocate(mDim.x, mDim.y, GL_RGBA);
+  mPixs.allocate(mDim.x, mDim.y, OF_PIXELS_RGBA);
 
   // clean start with Fbos
-  // mFboResolution.begin();
-  // ofClear(0, 0, 0, 255);
-  // FboResolution.end();
+  mFboResolution.begin();
+  ofClear(0, 0, 0, 255);
+  mFboResolution.end();
 }
 //-----------------------------------------------------------------------------
 void GridImage::setupCam(int id, int fps) {
   mCamId = id;
   mFps = fps;
   mCam.setDeviceID(mCamId);
-  mCam.setVerbose(true);
+  // mCam.setVerbose(true);
   mCam.setDesiredFrameRate(mFps);
   mCam.initGrabber(mDim.x, mDim.y);
+  mCam.setUseTexture(true);
 
   ofLog(OF_LOG_NOTICE) << "loaded Cam: " << mCamId << " " << mId << " "
-                       << mDim.x << " " << mDim.y << "  " << mCam.getWidth();
+                       << mDim.x << " " << mDim.y << "  " << mCam.getWidth()
+                       << " " << mCam.getHeight();
 }
 //-----------------------------------------------------------------------------
 void GridImage::setupGUISwap(float x, float y) {
@@ -58,9 +60,9 @@ void GridImage::setupGUISwap(float x, float y) {
 }
 //-----------------------------------------------------------------------------
 void GridImage::setupVideo(std::string name) {
-  mVideoName = name;
-  mVideoInput.load(mVideoName);
-  mVideoInput.play();
+  // mVideoName = name;
+  // mVideoInput.load(mVideoName);
+  // mVideoInput.play();
 
   ofLog(OF_LOG_NOTICE) << "loaded Video: " << mVideoName << " " << mId;
 }
@@ -71,20 +73,21 @@ bool GridImage::updateImage() {
     mCam.update();
     newFrame = mCam.isFrameNew();
     if (newFrame) {
-      mFboResolution.begin();
-      mCam.draw(0, 0, mDim.x, mDim.y);
-      mFboResolution.end();
+      // mFboResolution.begin();
+      // mCam.draw(0, 0, mDim.x, mDim.y);
+      // mFboResolution.end();
       // ofLog(OF_LOG_NOTICE) << " " << newFrame << " ";
     }
   } else {
-    mVideoInput.update();
-    newFrame = mVideoInput.isFrameNew();
+    // mVideoInput.update();
+    // newFrame = mVideoInput.isFrameNew();
   }
   return newFrame;
 }
 //-----------------------------------------------------------------------------
 ofPixels &GridImage::getImgPixels() {
-  return (mActivateCam) ? mCam.getPixels() : mVideoInput.getPixels();
+  // return (mActivateCam) ? mCam.getPixels() : mVideoInput.getPixels();
+  return mCam.getPixels();
 }
 //-----------------------------------------------------------------------------
 void GridImage::setCropUp(glm::vec2 up) { mCornerUp = up; }
@@ -148,9 +151,12 @@ void GridImage::cropImg(cv::Mat &inputVideo) {
         mRoi.height < mDim.y) {
       cv::Mat cutMat(inputVideo, mRoi);
       cutMat.copyTo(mCropMat);
+    } else {
+      ofLog(OF_LOG_NOTICE) << "erro crop";
     }
   } else {
     inputVideo.copyTo(mCropMat);
+    ofLog(OF_LOG_NOTICE) << "erro crop";
   }
 }
 //-----------------------------------------------------------------------------
@@ -177,10 +183,11 @@ void GridImage::drawCropImg() {
   ofxCv::toOf(mCropMat, imgCut.getPixels());
   imgCut.update();
 
-  ofSetColor(0, 150, 200, 200);
+  ofSetColor(200, 200);
   imgCut.draw(mCornerUp.x, mCornerUp.y, mLength.x + mDisp.x,
               mLength.y + mDisp.y);
 
-  imgCut.draw(0, 0, 200, 200);
+  // imgCut.draw(255, 200);
   ofxCv::drawMat(mCropMat, 0, 200, 200, 200);
+  imgCut.draw(0, 400, 200, 200);
 }

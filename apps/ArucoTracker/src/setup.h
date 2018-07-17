@@ -38,27 +38,45 @@ void ofApp::setupValues() {
 
 void ofApp::setupConnection() {
   std::string jsonNet = "networkUDP.json";
-  ofLog(OF_LOG_NOTICE) << "Setup newtwork: "<<jsonNet;
+  ofLog(OF_LOG_NOTICE) << "Setup newtwork: " << jsonNet;
   ofFile file(jsonNet);
   if (file.exists()) {
     ofJson js;
     file >> js;
+    int i = 0;
     for (auto &net : js) {
-      mUDPIp =  net["network"]["ip"];
-      mUDPPort =  int(net["network"]["port"]);
+      if (i == 0) {
+        mUDPIp = net["network_" + to_string(i)]["ip"];
+        mUDPPort = int(net["network_" + to_string(i)]["port"]);
+      } else if (i == 1) {
+        mUDPRadarIp = net["network_" + to_string(i)]["ip"];
+        mUDPRadarPort = int(net["network_" + to_string(i)]["port"]);
+      }
+      i++;
     }
-    ofLog(OF_LOG_NOTICE) << "Loaded: UDP";
-    ofLog(OF_LOG_NOTICE) << "IP: "<<mUDPIp<<" Port: "<<mUDPPort;
-  }else{
+    ofLog(OF_LOG_NOTICE) << "Loaded: UDP Table:";
+    ofLog(OF_LOG_NOTICE) << "IP: " << mUDPIp << " Port: " << mUDPPort;
+
+    ofLog(OF_LOG_NOTICE) << "Loaded: UDP Radar:";
+    ofLog(OF_LOG_NOTICE) << "IP: " << mUDPRadarIp << " Port: " << mUDPRadarPort;
+  } else {
     mUDPIp = "127.0.0.1";
     mUDPPort = 15800;
-    ofLog(OF_LOG_NOTICE) << "fail loading newtwork: "<<jsonNet<<" Default: "<<mUDPIp<<" "<<mUDPPort;
+    ofLog(OF_LOG_NOTICE) << "fail loading newtwork: " << jsonNet
+                         << " Default: " << mUDPIp << " " << mUDPPort;
   }
 
-  ofxUDPSettings settings;
-  settings.sendTo(mUDPIp, mUDPPort);
-  settings.blocking = false;
-  udpConnection.Setup(settings);
+  // radar
+  // ofxUDPSettings settingsRadar;
+  // settingsRadar.sendTo(mUDPRadarIp, mUDPRadarPort);
+  // settingsRadar.blocking = false;
+  // udpConnectionRadar.Setup(settingsRadar);
+
+  // table
+  ofxUDPSettings settingsTable;
+  settingsTable.sendTo(mUDPIp, mUDPPort);
+  settingsTable.blocking = false;
+  udpConnection.Setup(settingsTable);
 
   if (mDebug) {
     string message = "connected to Aruco Detector";
@@ -70,7 +88,7 @@ void ofApp::setupConnection() {
 //-----------------------------------------------------------------------------
 void ofApp::setupERICS() {
   // mUDPHeader += "header \n";
-  mUDPHeader  = "ncols         " + to_string(mFullGridDim.x) + "\n";
+  mUDPHeader = "ncols         " + to_string(mFullGridDim.x) + "\n";
   mUDPHeader += "nrows         " + to_string(mFullGridDim.y) + "\n";
   mUDPHeader += "xllcorner     " + std::string("20.0") + "\n";
   mUDPHeader += "yllcorner     " + std::string("30.0") + "\n";
@@ -192,6 +210,15 @@ void ofApp::setupGUI() {
     }
   });
 
+  mBFullCamView = ofxDatButton::create();
+  mBFullCamView->setActivation(false);
+  mBFullCamView->button = new ofxDatGuiToggle("Full Cam View");
+  mBFullCamView->button->setPosition(10, 260);
+  mBFullCamView->button->setWidth(100, .4);
+  mBFullCamView->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
+    mBFullCamView->mActive = !mBFullCamView->mActive;
+  });
+
   int sliderStartX = 150;
 
   mBEnableCrop = ofxDatButton::create();
@@ -217,7 +244,7 @@ void ofApp::setupGUI() {
 
   mGammaValue = ofxDatSlider::create();
   mGammaValue->slider =
-      new ofxDatGuiSlider(mGammaValue->ofParam.set("gamma", 0.87, 0, 2));
+      new ofxDatGuiSlider(mGammaValue->ofParam.set("gamma", 0.65, 0, 2));
   mGammaValue->slider->setWidth(390, .4);
   mGammaValue->slider->setPosition(sliderStartX, 110);
   mGammaValue->slider->onSliderEvent(
@@ -262,7 +289,7 @@ void ofApp::setupGUI() {
 
   int i = 0;
   for (auto &gridImage : mGridImg) {
-    gridImage->setupGUISwap(sliderStartX, 290 +30*i);
+    gridImage->setupGUISwap(sliderStartX, 290 + 30 * i);
     i++;
   }
 
@@ -291,8 +318,7 @@ void ofApp::setupVideo() {
                           "grid_04.mov"};
   int camIds[] = {0, 0, 0, 0};
 
-
-  //setup inputs
+  // setup inputs
   ofLog(OF_LOG_NOTICE) << "setting inputs: " << mNumInputs;
 
   for (int i = 0; i < mNumInputs; i++) {
@@ -323,7 +349,7 @@ void ofApp::setupVideo() {
       float gm = float(cam[inputImg]["gamma"]);
       mGridImg.at(j)->setGamma(gm);
 
-      ofLog(OF_LOG_NOTICE) << "Set Crop: " << j<<" CamId: "<<  camIds[j];
+      ofLog(OF_LOG_NOTICE) << "Set Crop: " << j << " CamId: " << camIds[j];
       ofLog(OF_LOG_NOTICE) << "Gamma: " << gm;
       j++;
     }
@@ -343,7 +369,7 @@ void ofApp::setupVideo() {
     }
     ofLog(OF_LOG_NOTICE) << "Done loading video";
 
-    //Print available devices
+    // Print available devices
     ofLog(OF_LOG_NOTICE) << "Cam devices:";
     ofVideoGrabber mVideoGrabber;
     mVideoGrabber.listDevices();

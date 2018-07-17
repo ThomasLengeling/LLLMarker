@@ -20,7 +20,7 @@
 #include "MarkerAruco.h"
 #include "GridImage.h"
 
-#define RAD_DETECTION 35
+#define RAD_DETECTION 38
 #define MAX_MARKERS 1000
 
 class GridDetector;
@@ -60,7 +60,10 @@ public:
     void recordGrid();
 
     void setupCleaner();
+    void updateCleaner();
+    void resetCleaner();
     void cleanGrid();
+    bool isDoneCleaner(){return mCleanDone;}
 
 
     void setGridPos(glm::vec2 mousePos);
@@ -76,13 +79,23 @@ public:
     void drawBlock(float posx, float posy, float size = 20, float space = 5);
 
     std::string getUDPMsg(){return mUDPMsgIds;}
-    std::vector< std::string > getUDPMsgVector(){return mUDPIds;}
+    std::vector< std::string > getUDPMsgVector(){return mUDPStrIds;}
+    std::vector< std::vector<int> > getUDPVector(){return mUDPVecIds;}
+
+    std::string getUPDNumTypes(){return mUDPNumTags;}
 
 private:
 
+    //tags
     std::string mUDPMsgIds;
 
-    std::vector< std::string > mUDPIds;
+    //tags
+    std::vector< std::string > mUDPStrIds;
+
+    std::vector< std::vector<int> > mUDPVecIds;
+
+    //tags num tags
+    std::string mUDPNumTags;
 
     //dimentions
     glm::vec2  mGridDim;
@@ -105,6 +118,16 @@ private:
     int mWindowCounter;
 
     bool mCleanDone;
+
+    ///radar
+    int mNumRL;
+    int mNumRM;
+    int mNumRS;
+
+    int mNumOL;
+    int mNumOM;
+    int mNumOS;
+    int mNumPark;
 
     //radius of detection
     float mRadDetection;

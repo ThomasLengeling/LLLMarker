@@ -29,9 +29,9 @@ void QRDetector::setupCalibration(int markersX, int markersY) {
   // detectorParams->adaptiveThreshWinSizeMax = 50;
   // detectorParams->adaptiveThreshWinSizeStep = 10;
 
-  detectorParams->perspectiveRemovePixelPerCell = 6; // 10
+  detectorParams->perspectiveRemovePixelPerCell = 10; // 10
   detectorParams->perspectiveRemoveIgnoredMarginPerCell = 0.3;
-  detectorParams->errorCorrectionRate = 0.51;
+  detectorParams->errorCorrectionRate = 0.53;
   detectorParams->maxErroneousBitsInBorderRate = 0.3;
   detectorParams->minOtsuStdDev = 2;
 
@@ -53,20 +53,24 @@ void QRDetector::detectMarkers(cv::Mat &inputVideo, bool refiment) {
   std::vector<std::vector<cv::Point2f>> corners;
   std::vector<std::vector<cv::Point2f>> rejected;
 
+  cv::Mat input;
+  inputVideo.copyTo(input);
+  inputVideo.copyTo(mVidCopy);
+
   mTagsIds.clear();
   mBlock.clear();
 
-  aruco::detectMarkers(inputVideo, dictionary, corners, arucoIds,
-                       detectorParams);
-  if (refiment) {
-    aruco::refineDetectedMarkers(inputVideo, board, corners, arucoIds,
-                                 rejected);
-  }
+  // ofxCv::imitate(input, inputVideo);
+
+  aruco::detectMarkers(input, dictionary, corners, arucoIds, detectorParams);
+  // if (refiment) {
+  aruco::refineDetectedMarkers(input, board, corners, arucoIds, rejected);
+  //}
 
   if (arucoIds.size() > 0) {
 
     if (mMarkerInfo) {
-      aruco::drawDetectedMarkers(inputVideo, corners, arucoIds);
+      aruco::drawDetectedMarkers(input, corners, arucoIds);
     }
     InputArrayOfArrays cornersDetected = corners;
     InputArray idsDetected = arucoIds;
@@ -103,11 +107,14 @@ void QRDetector::detectMarkers(cv::Mat &inputVideo, bool refiment) {
       mBlock.push_back(cva);
     }
 
-    // create video output
-    inputVideo.copyTo(mVidMat);
-    ofxCv::toOf(mVidMat, mVidImg.getPixels());
-    mVidImg.update();
+  } else {
+    ofLog(OF_LOG_NOTICE) << "non size Aruco detector";
   }
+
+  // create video output
+  input.copyTo(mVidMat);
+  ofxCv::toOf(mVidMat, mVidImg.getPixels());
+  mVidImg.update();
 }
 
 // Calibrate

@@ -9,6 +9,14 @@ GridDetector::GridDetector(glm::vec2 dim) {
 
   mRadDetection = RAD_DETECTION;
   mMaxMarkers = mGridDim.x * mGridDim.y;
+
+  mNumRL = 0;
+  mNumRM = 0;
+  mNumRS = 0;
+  mNumOL = 0;
+  mNumOM = 0;
+  mNumOS = 0;
+  mNumPark = 0;
 }
 //-----------------------------------------------------------------------------
 void GridDetector::setMaxMarkers(int max) {
@@ -66,7 +74,8 @@ void GridDetector::setupCleaner() {
 
   // cleaner
   mWindowCounter = 0;
-  mWindowIterMax = 3;
+  mWindowIterMax = 4; ///
+  mCleanDone = false;
 
   for (int i = 0; i < mMaxMarkers; i++) {
     mIdsCounter.emplace(i, 0); // mFullIds.at(i), 0);
@@ -162,7 +171,7 @@ void GridDetector::drawBlock(float posx, float posy, float size, float space) {
 void GridDetector::drawDetectedGridIn(float posx, float posy, float size,
                                       float space) {
   int i = 0;
-  int j = 0;//mGridDim.y - 1;
+  int j = 0; // mGridDim.y - 1;
   float squareSize = size;
   float squareSpace = space;
   for (auto &mk : mMarkers) {
@@ -346,13 +355,27 @@ void GridDetector::recordGrid() {
     }
   }
 }
+//-----------------------------------------------------------------------------
+void GridDetector::updateCleaner() {
+  // update clenaer variables
+  mWindowCounter++;
+  if (mWindowCounter >= mWindowIterMax) {
+    mWindowCounter = 0;
+    mCleanDone = true;
+  }
+}
+//-----------------------------------------------------------------------------
+void GridDetector::resetCleaner() {
+  // reset
+  if (mCleanDone) {
+    mWindowCounter = 0;
+    mCleanDone = false;
+  }
+}
 
 //-----------------------------------------------------------------------------
 void GridDetector::cleanGrid() {
-  if (mWindowCounter >= mWindowIterMax) {
-
-    mWindowCounter = 0;
-
+  if (mCleanDone) {
     // clasical probabilty of ocurance
 
     // ofLog(OF_LOG_NOTICE) << "reset proba";
@@ -384,22 +407,30 @@ void GridDetector::cleanGrid() {
 
     // ofLog(OF_LOG_NOTICE) << "Update";
 
+    // reset
+    mNumRL = 0;
+    mNumRM = 0;
+    mNumRS = 0;
+    mNumOL = 0;
+    mNumOM = 0;
+    mNumOS = 0;
+    mNumPark = 0;
+
     // send upd data and activations;
     int i = 0;
-    int indeX =0;
-    mUDPMsgIds="";
-    mUDPIds.clear();
-    std::string strMsg="";
+    int indeX = 0;
+    mUDPMsgIds = "";
+    mUDPStrIds.clear();
+    mUDPVecIds.clear();
+    std::vector<int> udpVectorRow;
+    std::string strMsg = "";
 
     for (auto &mk : mMarkers) {
       float proba = mk->getProba(mWindowIterMax);
-
       if (proba >= 1.0 / (float)mWindowIterMax) {
         mk->enableOn();
         mk->setMarkerId(mIdsCounter[i]);
         mk->updateIdPair(mIdsCounter[i]);
-
-
 
         // find id and update it;
         /*
@@ -419,29 +450,56 @@ void GridDetector::cleanGrid() {
       i++;
       indeX++;
 
-      //UDP
-      mUDPMsgIds += std::to_string(mk->getMarkerId());
+      int newId = mk->getMarkerId();
+
+      /*
+            ///residential
+            if(newId == 0){
+              mNumRL++;
+            }else if(newId == 9){
+              mNumRM++;
+            }else if(newId == 19){
+              mNumRS++;
+            }else if(newId == 43){
+              mNumOL++;
+            }else if(newId == 63){
+              mNumOM++;
+            }else if(newId == 126){
+              mNumOS++;
+            }else if(newId == 138){
+              mNumPark++;
+            }
+      */
+
+      // UDP
+      mUDPMsgIds += std::to_string(newId);
       mUDPMsgIds += " ";
 
-      strMsg += std::to_string(mk->getMarkerId());
+      udpVectorRow.push_back(newId);
+
+      strMsg += std::to_string(newId);
       strMsg += " ";
 
-      if(indeX >= mGridDim.x){
-        mUDPIds.push_back(strMsg);
+      if (indeX >= mGridDim.x) {
+        mUDPStrIds.push_back(strMsg);
+        mUDPVecIds.push_back(udpVectorRow);
         strMsg = "";
-        indeX =0;
+        udpVectorRow.clear();
+        indeX = 0;
       }
-
-
     }
 
+    // Num Tags
+    // mUDPNumTags  = to_string(mNumRL)+" "+to_string(mNumRM)+"
+    // "+to_string(mNumRS)+" ";
+    // mUDPNumTags += to_string(mNumOL)+" "+to_string(mNumOM)+"
+    // "+to_string(mNumOS)+" "+to_string(mNumPark);
 
     // done activation and disactivation
     mTmpBlocks.clear();
-    // ofLog(OF_LOG_NOTICE) << "Clear";
+    ofLog(OF_LOG_NOTICE) << "done";
 
     // update blocks and types
     // updateBlockTypes();
   }
-  mWindowCounter++;
 }

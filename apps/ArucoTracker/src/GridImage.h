@@ -72,7 +72,7 @@ public:
 
     void resetCrop();
 
-    cv::Mat getCropMat(){return mCropMat;}
+    cv::Mat & getCropMat(){return mCropMat;}
 
     void setCropUp(glm::vec2 up);
     void setCropDown(glm::vec2 down);

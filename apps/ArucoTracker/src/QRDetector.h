@@ -36,7 +36,9 @@ public:
 
     void setupCalibration(int markersX, int markersY);
 
-    void detectMarkers(cv::Mat & inputVideo, bool refiment = true);
+    void detectMarkers(cv::Mat  & inputVideo, bool refiment = true);
+
+    cv::Mat getInput(){return mVidCopy;}
 
 
     void toggleMarkerInfo(){mMarkerInfo = !mMarkerInfo;}
@@ -48,8 +50,8 @@ public:
 
     std::vector< QRBlockRef > & getBoard(){return mBlock;}
 
-    cv::Mat getMatImg(){return mVidMat;}
-    ofImage getOfImg(){return mVidImg;}
+    cv::Mat & getMatImg(){return mVidMat;}
+    ofImage & getOfImg(){return mVidImg;}
 
     int getMinId(){return mMinFoundId;}
     int getMaxId(){return mMaxFoundId;}
@@ -80,6 +82,7 @@ private:
 
     //video output in two formats
     cv::Mat mVidMat;
+    cv::Mat mVidCopy;
     ofImage mVidImg;
 
     bool mMarkerInfo;

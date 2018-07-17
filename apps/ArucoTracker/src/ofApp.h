@@ -66,10 +66,10 @@ grid 4
 
 #define MAX_MARKER_DETECT 819
 
-#define CAM_WIDTH 1920  //1920
+#define CAM_WIDTH  1920  //1920
 #define CAM_HEIGHT 1080 //1080
 
-#define CAM_FRAMERATE 10
+#define CAM_FRAMERATE 10 //10
 
 
 class ofApp : public ofBaseApp {
@@ -100,6 +100,7 @@ public:
   ofxDatButtonRef mBDebugGrid;
   ofxDatButtonRef mBSingleGrid;
   ofxDatButtonRef mBFullGrid;
+  ofxDatButtonRef mBFullCamView;
 
   ofxDatButtonRef mBEnableCrop;
   ofxDatButtonRef mBCalibrateGrid;
@@ -169,6 +170,7 @@ public:
 
   ofImage vidImg;
   cv::Mat vidMat;
+  cv::Mat copyTest;
 
   //inputs
   int mNumInputs;
@@ -188,6 +190,10 @@ public:
   int           mUDPPort;
   std::string mUDPHeader;
   ofFile mTypeFile;
+
+  ofxUDPManager udpConnectionRadar;
+  std::string   mUDPRadarIp;
+  int           mUDPRadarPort;
 
   void setupConnection();
   void setupERICS();
