@@ -187,7 +187,11 @@ void GridImage::drawCropImg() {
   imgCut.draw(mCornerUp.x, mCornerUp.y, mLength.x + mDisp.x,
               mLength.y + mDisp.y);
 
+<<<<<<< HEAD
   // imgCut.draw(255, 200);
+=======
+  imgCut.draw(255, 200);
+>>>>>>> 910d4e5f9e2b1cbf5d73f04be240192e393301da
   ofxCv::drawMat(mCropMat, 0, 200, 200, 200);
   imgCut.draw(0, 400, 200, 200);
 }
