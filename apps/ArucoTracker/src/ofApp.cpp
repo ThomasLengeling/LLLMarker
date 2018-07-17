@@ -235,42 +235,7 @@ void ofApp::update() {
     }
   }
 
-<<<<<<< HEAD
   cleanDetection();
-=======
-  //  for (auto & gridDetector : mGridDetector) {
-  //    UDPStrings.push_back(gridDetector->getUDPMsg());
-  //  }
-
-  if (mBFullGrid->isActive()) {
-    std::string compandStr;
-    compandStr += "i ";
-
-    ofLog(OF_LOG_NOTICE) << "copy UDP msg";
-    for (int i = 1; i >= 0; i--) {
-      int index = i * 2;
-      int indexNext = i * 2 + 1;
-      auto currentVec = mGridDetector.at(index)->getUDPMsgVector();
-      auto nextVec = mGridDetector.at(indexNext)->getUDPMsgVector();
-
-      // ofLog(OF_LOG_NOTICE) << currentVec.size()<<" "<<nextVec.size();
-      for (int j = 0; j < currentVec.size(); j++) {
-        compandStr += nextVec[j] + currentVec[j];
-      }
-    }
-
-    // send udps
-    if (compandStr.size() > 0) {
-      udpConnection.Send(compandStr.c_str(), compandStr.length());
-      ofLog(OF_LOG_NOTICE) << "sent UDP: " << compandStr.size();
-    }
-  } else if (mBSingleGrid->isActive()) {
-    std::string udpMsg = mGridDetector.at(currentId)->getUDPMsg();
-
-    udpConnection.Send(udpMsg.c_str(), udpMsg.length());
-    ofLog(OF_LOG_NOTICE) << "sent UDP " << currentId;
-  }
->>>>>>> 910d4e5f9e2b1cbf5d73f04be240192e393301da
 
   offScreenRenderGrid();
 
@@ -392,26 +357,16 @@ void ofApp::draw() {
     }
   }
 
-<<<<<<< HEAD
   if (mBFullCamView->isActive()) {
-=======
-  if(mBFullCamView->isActive()){
->>>>>>> 910d4e5f9e2b1cbf5d73f04be240192e393301da
     int i = 0;
     int j = 0;
     ofSetColor(255, 255);
     for (auto &gridImage : mGridImg) {
       gridImage->drawImage(640 * i + 200, 360 * j + 200, 640, 360);
       i++;
-<<<<<<< HEAD
       if (i >= 2) {
         j++;
         i = 0;
-=======
-      if(i >=2){
-        j++;
-        i=0;
->>>>>>> 910d4e5f9e2b1cbf5d73f04be240192e393301da
       }
     }
   }

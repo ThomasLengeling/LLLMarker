@@ -219,11 +219,6 @@ void ofApp::setupGUI() {
     mBFullCamView->mActive = !mBFullCamView->mActive;
   });
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 910d4e5f9e2b1cbf5d73f04be240192e393301da
   int sliderStartX = 150;
 
   mBEnableCrop = ofxDatButton::create();
