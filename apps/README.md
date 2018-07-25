@@ -38,7 +38,7 @@ https://github.com/openframeworks/openFrameworks/tree/c274c7fb51b4ae0552cd4cdb00
 
 
 
-Download
+Download opencv and install
 
 ````
 git clone https://github.com/opencv/opencv
@@ -112,4 +112,17 @@ Step 3: Install Python libraries
 sudo apt-get install python-dev python-pip python3-dev python3-pip
 sudo -H pip2 install -U pip numpy
 sudo -H pip3 install -U pip numpy
+````
+
+### Download and install opencv
+
+````
+git clone https://github.com/opencv/opencv
+git clone https://github.com/opencv/opencv_contrib
+cd opencv
+mkdir build
+cd build
+cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules  ..
+make -j8
+sudo make install
 ````
