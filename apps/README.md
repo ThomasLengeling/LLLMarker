@@ -3,8 +3,9 @@
 
 Compile QR Detector + openFrameworks
 
+# LLLMarker libraries dependencies installation
 
-https://gist.github.com/leonmak/67a70ccc83e149058c29b51b1ca0d161
+OS:
 
 ## Mac Installation
 
@@ -35,7 +36,6 @@ openframeworks
 https://github.com/openframeworks/openFrameworks
 
 https://github.com/openframeworks/openFrameworks/tree/c274c7fb51b4ae0552cd4cdb00475458aeeb610a
-
 
 
 Download opencv and install
@@ -126,3 +126,8 @@ cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D OPENCV_E
 make -j8
 sudo make install
 ````
+
+
+# Run app
+
+Run the application
