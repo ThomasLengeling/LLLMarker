@@ -2,6 +2,7 @@ void ofApp::setupValues() {
   // num Inputs
   mNumInputs = 4;
 
+  mDrawGUI = true;
   mSortMarkers = false;
   mRefimentDetector = true;
   mCurrentInputIdx = 1;
@@ -292,6 +293,10 @@ void ofApp::setupGUI() {
     gridImage->setupGUISwap(sliderStartX, 290 + 30 * i);
     i++;
   }
+
+  // initial comands for setup
+  mBFullGrid->setActivation(true);
+  mBDebugVideoGrid->setActivation(true);
 
   ofLog(OF_LOG_NOTICE) << "done setup gui";
 }
