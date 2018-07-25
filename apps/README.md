@@ -20,6 +20,8 @@ brew install libsmf
 brew install ceres-solver
 brew install eigen glog gflags
 brew install vtk, viz
+
+pip install --upgrade pip setuptools
 ````
 
 Permission to pkgconfig to brew link formulas
