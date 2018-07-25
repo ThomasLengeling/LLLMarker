@@ -22,6 +22,7 @@ brew install ceres-solver
 brew install eigen glog gflags
 brew install vtk, viz
 brew install pkg-config
+brew install tbb
 
 pip install --upgrade pip setuptools
 ````
