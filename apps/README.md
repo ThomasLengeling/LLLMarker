@@ -20,6 +20,7 @@ brew install libsmf
 brew install ceres-solver
 brew install eigen glog gflags
 brew install vtk, viz
+brew install pkg-config
 
 pip install --upgrade pip setuptools
 ````
