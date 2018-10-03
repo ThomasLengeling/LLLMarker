@@ -86,19 +86,11 @@ void ofApp::cleanDetection() {
           }
         }
 
-        // ofLog(OF_LOG_NOTICE) << currentVec.size()<<" "<<nextVec.size();
-
-        // str
-        // for (int j = 0; i < currentVec.size(); j++) {
-        //  compandStr += nextVec[j] + currentVec[j];
-        //}
       }
 
       // send udps
       if (compandStr.size() > 0) {
         udpConnection.Send(compandStr.c_str(), compandStr.length());
-        // ofLog(OF_LOG_NOTICE) << "send UDP" << std::endl;
-        // ofLog(OF_LOG_NOTICE) << "send UDP" << compandStr;
       }
     }
 
@@ -128,14 +120,6 @@ void ofApp::update() {
     newFrame = gridImage->updateImage();
     newFrames.push_back(newFrame);
     pixelsImg.push_back(gridImage->getImgPixels());
-    if (newFrame) {
-
-      // pixelsImg.at(j) = gridImage->getImgPixels();
-      // ofLog(OF_LOG_NOTICE) << "New Frame " << j << std::endl;
-    } else {
-      // ofLog(OF_LOG_NOTICE) << "empty frame: " << j;
-    }
-
     j++;
   }
 
@@ -151,6 +135,7 @@ void ofApp::update() {
       copMat.copyTo(copyCrop);
 
       mGridImg.at(currentId)->setGamma(mGammaValue->getValue());
+
       // calculate Gamma
       mGridImg.at(currentId)->adjustGamma(copyCrop);
       copyCrop.copyTo(imageCopy);
@@ -307,7 +292,6 @@ void ofApp::draw() {
         float posy = j * (jump.y) + j * 50 + 20;
 
         gridDetector->drawDetectedGridIn(posx, posy, sqsize, sqspace);
-        // mGridImg.at(k)->getImg().draw(640*2 + 50 + i, 50);
 
         i++;
         k++;
@@ -315,6 +299,7 @@ void ofApp::draw() {
           j++;
           i = 0;
         }
+
       }
     }
   }
@@ -389,8 +374,6 @@ void ofApp::draw() {
     mGridImg.at(mCurrentInputIdx)->drawCropRoi();
   }
 
-  // ofxCv::drawMat(vidMat, 0, 600, 200, 200);
-  // ofxCv::drawMat(copyTest, 0, 800, 200, 200);
   // draw results
   drawInfoScreen();
 }
@@ -581,7 +564,6 @@ void ofApp::keyPressed(int key) {
     mSortMarkers = !mSortMarkers;
   }
   if (key == 's') {
-    mStichImg = !mStichImg;
   }
   if (key == 'd') {
     mDebug = !mDebug;

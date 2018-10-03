@@ -36,6 +36,8 @@ LLL
 #include "GridImage.h"
 #include "GridDetector.h"
 
+#define NUM_CAM_INPUTS 1
+
 #define DEFAULT_GRID_WIDTH  19
 #define DEFAULT_GRID_HEIGHT 13
 
@@ -158,10 +160,7 @@ public:
 
   ofTexture mCurrentVideo;
 
-
-  bool mStichImg;
   void setupVideo();
-
 
   // aruco etector
   std::vector<QRDetectorRef> mArucoDetector;

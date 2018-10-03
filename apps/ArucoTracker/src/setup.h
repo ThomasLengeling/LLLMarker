@@ -1,37 +1,53 @@
 void ofApp::setupValues() {
   // num Inputs
-  mNumInputs = 4;
+  mNumInputs        = NUM_CAM_INPUTS;
 
-  mDrawGUI = true;
-  mSortMarkers = false;
+  mDrawGUI          = true;
+  mSortMarkers      = false;
   mRefimentDetector = true;
-  mCurrentInputIdx = 1;
+  mCurrentInputIdx  = 0;
 
-  glm::vec2 gridSizes[] = {glm::vec2(19, 13), glm::vec2(13, 13),
+  if(mNumInputs > 1){
+    glm::vec2 gridSizes[] = {glm::vec2(19, 13), glm::vec2(13, 13),
                            glm::vec2(19, 13), glm::vec2(13, 13)};
+    glm::vec2 sum;
+    int i = 0;
+    for (auto &gs : gridSizes) {
+      mGridSizes.push_back(gs);
+      sum += gs;
+      ofLog(OF_LOG_NOTICE) << "grid: " << i << " " << gs.x << " " << gs.y;
+      i++;
+    }
 
-  glm::vec2 sum;
-  int i = 0;
-  for (auto &gs : gridSizes) {
-    mGridSizes.push_back(gs);
-    sum += gs;
-    ofLog(OF_LOG_NOTICE) << "grid: " << i << " " << gs.x << " " << gs.y;
-    i++;
+    mFullGridDim = sum / 2.0;
+
+    mMaxMarkers.push_back(MAX_MARKER_01);
+    mMaxMarkers.push_back(MAX_MARKER_02);
+    mMaxMarkers.push_back(MAX_MARKER_03);
+    mMaxMarkers.push_back(MAX_MARKER_04);
   }
-  mFullGridDim = sum / 2.0;
 
-  mMaxMarkers.push_back(MAX_MARKER_01);
-  mMaxMarkers.push_back(MAX_MARKER_02);
-  mMaxMarkers.push_back(MAX_MARKER_03);
-  mMaxMarkers.push_back(MAX_MARKER_04);
+  if(mNumInputs == 1){
+    glm::vec2 gridSizes[] = {glm::vec2(2, 2)};
+
+    glm::vec2 sum;
+    int i = 0;
+    for (auto &gs : gridSizes) {
+      mGridSizes.push_back(gs);
+      sum += gs;
+      ofLog(OF_LOG_NOTICE) << "grid: " << i << " " << gs.x << " " << gs.y;
+      i++;
+    }
+    mFullGridDim = sum / 2.0;
+    mMaxMarkers.push_back(4);
+  }
+
 
   ofLog(OF_LOG_NOTICE) << "Max Grid: " << mFullGridDim.x << " "
                        << mFullGridDim.y;
 
-  mStichImg = false;
 
   // load video first
-
   mTotalMarkers = 0;
 
   ofLog(OF_LOG_NOTICE) << "done setup init";
@@ -108,8 +124,7 @@ void ofApp::setupKnob() {
   mKnobAmenitie = KnobAruco::create();
   mEnableKnob = false;
   if (mEnableKnob) {
-
-    ofFile file("gridpos.json");
+    ofFile file("knobpos.json");
     if (file.exists()) {
       ofJson js;
       file >> js;
@@ -295,8 +310,8 @@ void ofApp::setupGUI() {
   }
 
   // initial comands for setup
-  mBFullGrid->setActivation(true);
-  mBDebugVideoGrid->setActivation(true);
+  mBFullGrid->setActivation(false);
+  mBDebugVideoGrid->setActivation(false);
 
   ofLog(OF_LOG_NOTICE) << "done setup gui";
 }
@@ -308,7 +323,7 @@ void ofApp::setupDetection() {
     mArucoDetector.push_back(detector);
   }
 
-  ofLog(OF_LOG_NOTICE) << "done setup detector: " << mNumInputs;
+  ofLog(OF_LOG_NOTICE) << "done setup detector: " << mArucoDetector.size();
 }
 
 //-----------------------------------------------------------------------------
@@ -333,7 +348,7 @@ void ofApp::setupVideo() {
     mGridImg.push_back(gridImage);
   }
 
-  ofLog(OF_LOG_NOTICE) << "Loading cam crop positions";
+  ofLog(OF_LOG_NOTICE) << "Loading cam crop positions "<<mGridImg.size();
   ofFile file("img.json");
   bool foundFile = false;
   if (file.exists()) {
@@ -341,21 +356,39 @@ void ofApp::setupVideo() {
     file >> js;
     int j = 0;
     for (auto &cam : js) {
-      std::string inputImg("cam" + to_string(j));
-      mGridImg.at(j)->setCropUp(
-          glm::vec2(cam[inputImg]["x1"], cam[inputImg]["y1"]));
-      mGridImg.at(j)->setCropDown(
-          glm::vec2(cam[inputImg]["x2"], cam[inputImg]["y2"]));
-      mGridImg.at(j)->setCropDisp(
-          glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
 
-      camIds[j] = cam[inputImg]["camId"];
+        if(mNumInputs == 1 && j == 4){
+          cout<<cam<<std::endl;
+          std::string inputImg("cam_gui");
+          ofLog(OF_LOG_NOTICE) << "Loadig... "<<cam[inputImg]["x1"]<<" "<<cam[inputImg]["y1"] <<std::endl;
+          mGridImg.at(0)->setCropUp(glm::vec2(float(cam[inputImg]["x1"]), float(cam[inputImg]["y1"])));
+          mGridImg.at(0)->setCropDown(glm::vec2(cam[inputImg]["x2"], cam[inputImg]["y2"]));
+          mGridImg.at(0)->setCropDisp(glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
 
-      float gm = float(cam[inputImg]["gamma"]);
-      mGridImg.at(j)->setGamma(gm);
+          camIds[0] = cam[inputImg]["camId"];
 
-      ofLog(OF_LOG_NOTICE) << "Set Crop: " << j << " CamId: " << camIds[j];
-      ofLog(OF_LOG_NOTICE) << "Gamma: " << gm;
+        //  float gm = std::stof(cam[inputImg]["gamma"]);
+          mGridImg.at(0)->setGamma(0.5);
+
+          ofLog(OF_LOG_NOTICE) << "Set Crop: " << j << " CamId: " << camIds[0];
+        }
+        if(mNumInputs != 1){
+          std::string inputImg("cam" + to_string(j));
+          mGridImg.at(j)->setCropUp(
+              glm::vec2(cam[inputImg]["x1"], cam[inputImg]["y1"]));
+          mGridImg.at(j)->setCropDown(
+              glm::vec2(cam[inputImg]["x2"], cam[inputImg]["y2"]));
+          mGridImg.at(j)->setCropDisp(
+              glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
+
+          camIds[j] = cam[inputImg]["camId"];
+
+          float gm = float(cam[inputImg]["gamma"]);
+          mGridImg.at(j)->setGamma(gm);
+
+          ofLog(OF_LOG_NOTICE) << "Set Crop: " << j << " CamId: " << camIds[j];
+          ofLog(OF_LOG_NOTICE) << "Gamma: " << gm;
+        }
       j++;
     }
     ofLog(OF_LOG_NOTICE) << "Done crop values JSON";
