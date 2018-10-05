@@ -37,7 +37,7 @@ void ofApp::cleanDetection() {
     if (mGridDetector.at(mCurrentInputIdx)->isDoneCleaner()) {
       std::string udpMsg = "i ";
       udpMsg += mGridDetector.at(mCurrentInputIdx)->getUDPMsg();
-      udpConnection.Send(udpMsg.c_str(), udpMsg.length());
+      mUDPConnectionTable.Send(udpMsg.c_str(), udpMsg.length());
     }
 
     mGridDetector.at(mCurrentInputIdx)->resetCleaner();
@@ -90,7 +90,7 @@ void ofApp::cleanDetection() {
 
       // send udps
       if (compandStr.size() > 0) {
-        udpConnection.Send(compandStr.c_str(), compandStr.length());
+        mUDPConnectionTable.Send(compandStr.c_str(), compandStr.length());
       }
     }
 
@@ -175,17 +175,17 @@ void ofApp::update() {
       mTotalMarkers += mArucoDetector.at(currentId)->getNumMarkers();
 
       // get the marker image output
-      vidImg = mArucoDetector.at(currentId)->getOfImg();
-      vidMat = mArucoDetector.at(currentId)->getMatImg();
+      mInputDetectImg = mArucoDetector.at(currentId)->getOfImg();
+      //vidMat = mArucoDetector.at(currentId)->getMatImg();
 
-      mGridImg.at(currentId)->updateDetectImg(vidImg);
+      mGridImg.at(currentId)->updateDetectImg(mInputDetectImg);
 
       // save the positions and id from the detected markers.
       mGridDetector.at(currentId)->generateMarkers(
           mArucoDetector.at(currentId)->getTagIds(),
           mArucoDetector.at(currentId)->getBoard(), mSortMarkers);
 
-      copyTest = mArucoDetector.at(currentId)->getInput();
+      //copyTest = mArucoDetector.at(currentId)->getInput();
       mGridDetector.at(currentId)->updateCleaner();
     } else {
       ofLog(OF_LOG_NOTICE) << "empty mat img copy: " << currentId;
@@ -203,10 +203,10 @@ void ofApp::update() {
         mTotalMarkers += mArucoDetector.at(i)->getNumMarkers();
 
         // get the marker image output
-        vidImg = mArucoDetector.at(i)->getOfImg();
-        vidMat = mArucoDetector.at(i)->getMatImg();
+        mInputDetectImg = mArucoDetector.at(i)->getOfImg();
+        //vidMat = mArucoDetector.at(i)->getMatImg();
 
-        mGridImg.at(i)->updateDetectImg(vidImg);
+        mGridImg.at(i)->updateDetectImg(mInputDetectImg);
 
         // save the positions and id from the detected markers.
         mGridDetector.at(i)->generateMarkers(mArucoDetector.at(i)->getTagIds(),
@@ -240,7 +240,7 @@ void ofApp::draw() {
 
   if (mBDebugVideo->isActive()) {
     ofSetColor(255);
-    vidImg.draw(0, 0, 1280, 720);
+    mInputDetectImg.draw(0, 0, 1280, 720);
 
     if (mBEnableCrop->isActive()) {
       mGridImg.at(mCurrentInputIdx)->drawImage(0, 0);
@@ -421,7 +421,7 @@ void ofApp::recordGrid() {
 void ofApp::offScreenRenderGrid() {
   if (mBSingleGrid->isActive()) {
     mFboSingle.begin();
-    vidImg.draw(0, 0);
+    mInputDetectImg.draw(0, 0);
     mGridDetector.at(mCurrentInputIdx)->drawMarkers();
     mFboSingle.end();
   }
@@ -583,8 +583,9 @@ void ofApp::keyPressed(int key) {
     ofLog(OF_LOG_NOTICE) << "Reset Crop " << mCurrentInputIdx;
   }
   if (key == 'u') {
-    udpConnection.Send(mUDPHeader.c_str(), mUDPHeader.length());
-    ofLog(OF_LOG_NOTICE) << "Set UDP";
+    std::string msgInfo(mUDPRadarIp+" "+to_string(mUDPRadarPort));
+    mUDPConnectionTable.Send(msgInfo.c_str(), msgInfo.length());
+    ofLog(OF_LOG_NOTICE) << "Set UDP Table Test";
   }
   if (key == '0') {
     mGridDetector.at(mCurrentInputIdx)->generateGridPos();

@@ -58,6 +58,7 @@ void ofApp::setupValues() {
   ofLog(OF_LOG_NOTICE) << "done setup init";
 }
 
+//-----------------------------------------------------------------------------
 void ofApp::setupConnection() {
   std::string jsonNet = "networkUDP.json";
   ofLog(OF_LOG_NOTICE) << "Setup newtwork: " << jsonNet;
@@ -88,21 +89,21 @@ void ofApp::setupConnection() {
                          << " Default: " << mUDPIp << " " << mUDPPort;
   }
 
-  // radar
-  // ofxUDPSettings settingsRadar;
-  // settingsRadar.sendTo(mUDPRadarIp, mUDPRadarPort);
-  // settingsRadar.blocking = false;
-  // udpConnectionRadar.Setup(settingsRadar);
+  //radar
+  ofxUDPSettings settingsRadar;
+  settingsRadar.sendTo(mUDPRadarIp, mUDPRadarPort);
+  settingsRadar.blocking = false;
+  mUDPConnectionRadar.Setup(settingsRadar);
 
   // table
   ofxUDPSettings settingsTable;
   settingsTable.sendTo(mUDPIp, mUDPPort);
   settingsTable.blocking = false;
-  udpConnection.Setup(settingsTable);
+  mUDPConnectionTable.Setup(settingsTable);
 
   if (mDebug) {
-    string message = "connected to Aruco Detector";
-    udpConnection.Send(message.c_str(), message.length());
+    std::string message = "connected to Aruco Detector";
+    mUDPConnectionTable.Send(message.c_str(), message.length());
   }
 
   ofLog(OF_LOG_NOTICE) << "done setup UDP connection ";
@@ -391,9 +392,6 @@ void ofApp::setupCam() {
       ofLog(OF_LOG_NOTICE) << "File does not exist img.json";
     }
   }
-
-  // Mat settings for Aruco detector
-  vidImg.allocate(CAM_WIDTH, CAM_HEIGHT, OF_IMAGE_COLOR);
 
   // fill the fbos with the appropiate dimentions
   mFboSingle.allocate(CAM_WIDTH, CAM_HEIGHT, GL_RGBA);

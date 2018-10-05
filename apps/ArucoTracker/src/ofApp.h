@@ -68,25 +68,6 @@ public:
   // system values
   bool mDebug;
 
-  // GUI
-  ofxDatButtonRef mBDebugVideo;
-  ofxDatButtonRef mBDebugVideoGrid;
-  ofxDatButtonRef mBDebugGrid;
-  ofxDatButtonRef mBSingleGrid;
-  ofxDatButtonRef mBFullGrid;
-  ofxDatButtonRef mBFullCamView;
-
-  ofxDatButtonRef mBEnableCrop;
-  ofxDatButtonRef mBCalibrateGrid;
-  ofxDatButtonRef mBEnableVideo;
-  ofxDatButtonRef mBDebugMarkers;
-
-  ofxDatSliderRef mGammaValue;
-  ofxDatMatrixRef mBGridSelect;
-  ofxDatButtonRef mBCloseCams;
-
-  bool mDrawGUI;
-
   //GUI functions
   void setupGUI();
   void updateGUI();
@@ -118,11 +99,39 @@ public:
   //draw info on screen
   void drawInfoScreen();
 
+  //setuo video for testing
+  void setupVideo();
+
+  //setup cameras for input detectors
+  void setupCam();
+
+  //setup Knob information for GUI
+  void  setupKnob();
+
+  //setup markers detector
+  void   setupGridDetector();
+
+  // GUI
+  bool mDrawGUI;
+  ofxDatButtonRef mBDebugVideo;
+  ofxDatButtonRef mBDebugVideoGrid;
+  ofxDatButtonRef mBDebugGrid;
+  ofxDatButtonRef mBSingleGrid;
+  ofxDatButtonRef mBFullGrid;
+  ofxDatButtonRef mBFullCamView;
+
+  ofxDatButtonRef mBEnableCrop;
+  ofxDatButtonRef mBCalibrateGrid;
+  ofxDatButtonRef mBEnableVideo;
+  ofxDatButtonRef mBDebugMarkers;
+
+  ofxDatSliderRef mGammaValue;
+  ofxDatMatrixRef mBGridSelect;
+  ofxDatButtonRef mBCloseCams;
 
   // knob
   KnobArucoRef mKnobAmenitie;
   bool mEnableKnob;
-  void setupKnob();
 
 
   // 4 camera render
@@ -137,21 +146,14 @@ public:
   int mNumCam;
   int mCurrentInputIdx;
 
-  cv::Mat videoInputMat;
-
   ofTexture mCurrentVideo;
-
-  void setupVideo();
-  void setupCam();
 
   // aruco etector
   std::vector<QRDetectorRef> mArucoDetector;
   int mTotalMarkers;
   bool mRefimentDetector;
 
-  ofImage vidImg;
-  cv::Mat vidMat;
-  cv::Mat copyTest;
+  ofImage mInputDetectImg;
 
   //inputs
   int mNumInputs;
@@ -161,20 +163,17 @@ public:
   std::vector<glm::vec2> mGridSizes;
   std::vector<int> mMaxMarkers;
 
-  //
+  //grid detector
   std::vector<GridDetectorRef> mGridDetector;
   bool mSortMarkers;
-  void setupGridDetector();
 
   // send commands
-  ofxUDPManager udpConnection;
+  ofxUDPManager mUDPConnectionTable;
   std::string   mUDPIp;
   int           mUDPPort;
-  std::string mUDPHeader;
-  ofFile mTypeFile;
 
   //network for Radar communication
-  ofxUDPManager udpConnectionRadar;
+  ofxUDPManager mUDPConnectionRadar;
   std::string   mUDPRadarIp;
   int           mUDPRadarPort;
 
