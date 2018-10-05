@@ -29,11 +29,11 @@ void ofApp::setup() {
 
 void ofApp::cleanDetection() {
 
-  // calculate probabilyt and clean noise
-  //
+  // calculate probabilyt and clean nois
   if (mBSingleGrid->isActive()) {
     mGridDetector.at(mCurrentInputIdx)->cleanGrid();
 
+    //send a single grid
     if (mGridDetector.at(mCurrentInputIdx)->isDoneCleaner()) {
       std::string udpMsg = "i ";
       udpMsg += mGridDetector.at(mCurrentInputIdx)->getUDPMsg();
@@ -42,6 +42,8 @@ void ofApp::cleanDetection() {
 
     mGridDetector.at(mCurrentInputIdx)->resetCleaner();
   } else if (mBFullGrid->isActive()) {
+
+    //if we have clean succesfully 4 times the.
     int doneClean = 0;
     for (auto &gridDetector : mGridDetector) {
       gridDetector->cleanGrid();
@@ -50,12 +52,11 @@ void ofApp::cleanDetection() {
       }
     }
 
-    // send UDP
+    // send UDP in the correct format.
     if (doneClean == 4) {
       std::string compandStr;
       compandStr += "i ";
 
-      // ofLog(OF_LOG_NOTICE) << "copy UDP msg";
       for (int i = 1; i >= 0; i--) {
         int index = i * 2;
         int indexNext = i * 2 + 1;
@@ -88,7 +89,7 @@ void ofApp::cleanDetection() {
 
       }
 
-      // send udps
+      // send the full grid
       if (compandStr.size() > 0) {
         mUDPConnectionTable.Send(compandStr.c_str(), compandStr.length());
       }
@@ -231,9 +232,6 @@ void ofApp::update() {
 }
 
 //--------------------------------------------------------------
-void ofApp::drawArucoMarkers() {}
-
-//--------------------------------------------------------------
 void ofApp::draw() {
   ofSetColor(0, 0, 0, 255);
   ofRect(0, 0, ofGetWidth(), ofGetHeight());
@@ -265,10 +263,10 @@ void ofApp::draw() {
       int id = mCurrentInputIdx;
       float sqsize = 36;
       float sqspace = 5;
+
       glm::vec2 dim = mGridDetector.at(id)->getDim();
       int spaceX = dim.x * (sqsize + sqspace);
       int spaceY = dim.y * (sqsize + sqspace);
-      // mGridDetector.at(id)->drawDetectedGridIn(10, 280, sqsize, sqspace);
 
       mGridDetector.at(id)->drawDetectedGridIn(10, 280, sqsize, sqspace);
       mGridDetector.at(id)->drawDetectedGrid(spaceX + 50, 50, sqsize, sqspace);
@@ -284,8 +282,7 @@ void ofApp::draw() {
       for (auto gridDetector : mGridDetector) {
         if (k > 0) {
           glm::vec2 dim = mGridDetector.at(k - 1)->getDim();
-          jump = glm::vec2(dim.x * (sqsize + sqspace) * i,
-                           dim.y * (sqsize + sqspace) * j);
+          jump = glm::vec2(dim.x * (sqsize + sqspace) * i, dim.y * (sqsize + sqspace) * j);
         }
 
         float posx = i * (jump.x) + i * 50 + 20;
@@ -304,8 +301,10 @@ void ofApp::draw() {
     }
   }
 
+
   if (mBDebugGrid->isActive()) {
 
+    //draw full grid or a single cma view
     ofSetColor(255);
     if (mBSingleGrid->isActive()) {
       mFboSingle.draw(0, 0);
@@ -324,11 +323,10 @@ void ofApp::draw() {
       }
     }
 
+    //draw the crop img single or full
     if (mBEnableCrop->isActive()) {
-      mGridImg.at(mCurrentInputIdx)
-          ->drawImage(0, 0, ofGetWidth(), ofGetHeight());
+      mGridImg.at(mCurrentInputIdx)->drawImage(0, 0, ofGetWidth(), ofGetHeight());
     } else {
-
       int i = 0;
       for (auto &gridImage : mGridImg) {
         if (mCurrentInputIdx == i) {
@@ -342,6 +340,7 @@ void ofApp::draw() {
     }
   }
 
+  //draw full input view
   if (mBFullCamView->isActive()) {
     int i = 0;
     int j = 0;
@@ -356,6 +355,7 @@ void ofApp::draw() {
     }
   }
 
+  //draw knobs
   if (mEnableKnob) {
     mKnobAmenitie->drawArc();
     mKnobAmenitie->draw();
@@ -369,6 +369,7 @@ void ofApp::draw() {
     drawGUI();
   }
 
+  //draw input cams
   if (mBEnableCrop->isActive()) {
     mGridImg.at(mCurrentInputIdx)->drawCropImg();
     mGridImg.at(mCurrentInputIdx)->drawCropRoi();
@@ -389,19 +390,12 @@ void ofApp::drawInfoScreen() {
   ofDrawBitmapString("Total Dec: " + to_string(mTotalMarkers), posx, 40);
   ofDrawBitmapString("Max Dec: " + to_string(mTotalMaxMarkers), posx, 60);
   ofDrawBitmapString("Inputs: " + to_string(mGridImg.size()), posx, 90);
-  ofDrawBitmapString("Current input: " + to_string(mCurrentInputIdx), posx,
-                     110);
+  ofDrawBitmapString("Current input: " + to_string(mCurrentInputIdx), posx, 110);
   ofDrawBitmapString("Max Markers Real: " + to_string(maxM), posx, 130);
   ofDrawBitmapString("Markers: " + to_string(numM), posx, 150);
-  ofDrawBitmapString("Dim: " + to_string(int(cdim.x)) + " " +
-                         to_string(int(cdim.y)),
-                     posx, 170);
-  ofDrawBitmapString("Max Markers: " + to_string(int(cdim.x * cdim.y)), posx,
-                     190);
-  ofDrawBitmapString("Full Dim: " + to_string(int(mFullGridDim.x)) + " " +
-                         to_string(int(mFullGridDim.y)),
-                     posx, 210);
-
+  ofDrawBitmapString("Dim: " + to_string(int(cdim.x)) + " " + to_string(int(cdim.y)), posx, 170);
+  ofDrawBitmapString("Max Markers: " + to_string(int(cdim.x * cdim.y)), posx, 190);
+  ofDrawBitmapString("Full Dim: " + to_string(int(mFullGridDim.x)) + " " + to_string(int(mFullGridDim.y)), posx, 210);
   ofDrawBitmapString("UDP IP: " + mUDPIp, posx, 250);
   ofDrawBitmapString("UDP Port: " + to_string(mUDPPort), posx, 270);
 }
@@ -510,6 +504,7 @@ void ofApp::saveJSONBlocks() {
 void ofApp::keyPressed(int key) {
   if (key == 'g') {
     mDrawGUI = !mDrawGUI;
+    ofLog(OF_LOG_NOTICE) << "Draw GUI " << mDrawGUI;
   }
 
   if (key == '1') {
@@ -562,11 +557,13 @@ void ofApp::keyPressed(int key) {
 
   if (key == 'v') {
     mSortMarkers = !mSortMarkers;
+    ofLog(OF_LOG_NOTICE) << "Soft " << mSortMarkers;
   }
   if (key == 's') {
   }
   if (key == 'd') {
     mDebug = !mDebug;
+    ofLog(OF_LOG_NOTICE) << "Debug " << mDebug;
   }
   if (key == 'r') {
     mRefimentDetector = !mRefimentDetector;

@@ -85,8 +85,6 @@ public:
   // clean Detection
   void cleanDetection();
 
-  void drawArucoMarkers();
-
   //draw grid info
   void offScreenRenderGrid();
 
@@ -143,7 +141,6 @@ public:
 
   //grid image
   std::vector<GridImageRef> mGridImg;
-  int mNumCam;
   int mCurrentInputIdx;
 
   ofTexture mCurrentVideo;
