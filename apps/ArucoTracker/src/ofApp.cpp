@@ -182,11 +182,9 @@ void ofApp::update() {
       mGridImg.at(currentId)->updateDetectImg(mInputDetectImg);
 
       // save the positions and id from the detected markers.
-      mGridDetector.at(currentId)->generateMarkers(
-          mArucoDetector.at(currentId)->getTagIds(),
-          mArucoDetector.at(currentId)->getBoard(), mSortMarkers);
+      mGridDetector.at(currentId)->generateMarkers(mArucoDetector.at(currentId)->getTagIds(), mArucoDetector.at(currentId)->getBoard(), mSortMarkers);
 
-      //copyTest = mArucoDetector.at(currentId)->getInput();
+      //update error check
       mGridDetector.at(currentId)->updateCleaner();
     } else {
       ofLog(OF_LOG_NOTICE) << "empty mat img copy: " << currentId;
@@ -210,9 +208,9 @@ void ofApp::update() {
         mGridImg.at(i)->updateDetectImg(mInputDetectImg);
 
         // save the positions and id from the detected markers.
-        mGridDetector.at(i)->generateMarkers(mArucoDetector.at(i)->getTagIds(),
-                                             mArucoDetector.at(i)->getBoard());
+        mGridDetector.at(i)->generateMarkers(mArucoDetector.at(i)->getTagIds(), mArucoDetector.at(i)->getBoard());
 
+        //update errors
         mGridDetector.at(i)->updateCleaner();
         i++;
       }
@@ -508,28 +506,20 @@ void ofApp::keyPressed(int key) {
   }
 
   if (key == '1') {
-
     std::cout << "record grid positions" << std::endl;
   }
 
   if (key == '5') {
-    mGridImg.at(mCurrentInputIdx)
-        ->setCropDisp(mGridImg.at(mCurrentInputIdx)->getCropDisp() +
-                      glm::vec2(1, 1));
+    mGridImg.at(mCurrentInputIdx)->setCropDisp(mGridImg.at(mCurrentInputIdx)->getCropDisp() + glm::vec2(1, 1));
   }
 
   if (key == '6') {
-    mGridImg.at(mCurrentInputIdx)
-        ->setCropDisp(mGridImg.at(mCurrentInputIdx)->getCropDisp() -
-                      glm::vec2(1, 1));
+    mGridImg.at(mCurrentInputIdx)->setCropDisp(mGridImg.at(mCurrentInputIdx)->getCropDisp() - glm::vec2(1, 1));
   }
 
   if (key == '2') {
     mGridDetector.at(mCurrentInputIdx)->saveGridJson();
     ofLog(OF_LOG_NOTICE) << "saved json grid positions: " << mCurrentInputIdx;
-
-    // knob
-    // saveJSONBlocks();
   }
 
   if (key == '3') {
@@ -603,6 +593,7 @@ void ofApp::mouseDragged(int x, int y, int button) {
   }
 
   // Physical GUI
+  //move center points for the GUI
   {
     if (mEnableKnob) {
       glm::vec2 posStatic = mKnobAmenitie->getStaticPos();
@@ -618,18 +609,17 @@ void ofApp::mouseDragged(int x, int y, int button) {
       }
     }
   }
-  //
+
+  //crop input camera information
   if (mBEnableCrop->isActive()) {
     {
-      float distUp = ofDist(mGridImg.at(mCurrentInputIdx)->getCropUp().x,
-                            mGridImg.at(mCurrentInputIdx)->getCropUp().y, x, y);
+      float distUp = ofDist(mGridImg.at(mCurrentInputIdx)->getCropUp().x,  mGridImg.at(mCurrentInputIdx)->getCropUp().y, x, y);
       if (distUp >= 0.0 && distUp <= 35) {
         mGridImg.at(mCurrentInputIdx)->setCropUp(glm::vec2(x, y));
       }
 
       float distDown =
-          ofDist(mGridImg.at(mCurrentInputIdx)->getCropDown().x,
-                 mGridImg.at(mCurrentInputIdx)->getCropDown().y, x, y);
+          ofDist(mGridImg.at(mCurrentInputIdx)->getCropDown().x, mGridImg.at(mCurrentInputIdx)->getCropDown().y, x, y);
       if (distDown >= 0.0 && distDown <= 35) {
         mGridImg.at(mCurrentInputIdx)->setCropDown(glm::vec2(x, y));
       }

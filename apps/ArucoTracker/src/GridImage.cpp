@@ -47,8 +47,7 @@ void GridImage::setupGUISwap(float x, float y) {
   mSwapCamId->matrix->setWidth(390, .4);
   mSwapCamId->matrix->setPosition(x, y);
   mSwapCamId->matrix->onMatrixEvent([&](ofxDatGuiMatrixEvent v) {
-    ofLog(OF_LOG_NOTICE) << "Id: " << mCamId << " New Index: " << v.child
-                         << std::endl;
+    ofLog(OF_LOG_NOTICE) << "Id: " << mCamId << " New Index: " << v.child<< std::endl;
     mCam.close();
 
     mCamId = v.child;
@@ -184,10 +183,7 @@ void GridImage::drawCropImg() {
   imgCut.update();
 
   ofSetColor(200, 200);
-  imgCut.draw(mCornerUp.x, mCornerUp.y, mLength.x + mDisp.x,
-              mLength.y + mDisp.y);
-
-  // imgCut.draw(255, 200);
+  imgCut.draw(mCornerUp.x, mCornerUp.y, mLength.x + mDisp.x, mLength.y + mDisp.y);
 
   ofxCv::drawMat(mCropMat, 0, 200, 200, 200);
   imgCut.draw(0, 400, 200, 200);

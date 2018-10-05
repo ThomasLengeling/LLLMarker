@@ -259,19 +259,19 @@ void GridDetector::drawMarkers() {
 
     if (mk->isEnable()) {
       ofSetColor(255);
-      ofDrawCircle(pos.x, pos.y, 7, 7);
+      ofDrawCircle(pos.x, pos.y, 7);
       ofSetColor(200, 80);
-      ofDrawCircle(pos.x, pos.y, mRadDetection / 2.0, mRadDetection / 2.0);
+      ofDrawCircle(pos.x, pos.y, mRadDetection / 2.0);
     } else {
       ofSetColor(255, 255, 0);
-      ofDrawCircle(pos.x, pos.y, 4, 4);
+      ofDrawCircle(pos.x, pos.y, 4);
       ofSetColor(255, 355, 100);
-      ofDrawCircle(pos.x, pos.y, mRadDetection / 2.0, mRadDetection / 2.0);
+      ofDrawCircle(pos.x, pos.y, mRadDetection / 2.0);
     }
 
     if (mDebugGrid) {
       ofSetColor(0, 100, 200, 100);
-      ofDrawCircle(pos.x, pos.y, mRadDetection, mRadDetection);
+      ofDrawCircle(pos.x, pos.y, mRadDetection);
     }
 
     ofSetColor(255);
@@ -292,8 +292,7 @@ void GridDetector::saveGridJson() {
     writer.push_back(pt);
     i++;
   }
-  ofLog(OF_LOG_NOTICE) << "json write: 0" + to_string(mId + 1) + " - " +
-                              to_string(mId);
+  ofLog(OF_LOG_NOTICE) << "json write: 0" + to_string(mId + 1) + " - " + to_string(mId);
   ofSaveJson("gridpos_0" + to_string(mId + 1) + ".json", writer);
 }
 
@@ -329,24 +328,6 @@ void GridDetector::recordGrid() {
       }
 
       ofLog(OF_LOG_NOTICE) << "Done update fullids";
-
-      {
-        /*
-      int i = 0;
-      for (auto &block : mBlocks) {
-        for (auto &marker : mMarkers) {
-          if (block->getMarkerId() == marker->getIdTypePair().first) {
-            int mkId = marker->getIdTypePair().first;
-            block->setMarkerId(mkId);
-            // std::cout << block->getMarkerId() << " " << mkId <<
-            // std::endl;
-            break;
-          }
-          i++;
-        }
-      }
-      */
-      }
 
       ofLog(OF_LOG_NOTICE) << "Num Uniques: " << mFullIds.size();
       ofLog(OF_LOG_NOTICE) << "Done Recording";
@@ -499,7 +480,5 @@ void GridDetector::cleanGrid() {
     mTmpBlocks.clear();
     ofLog(OF_LOG_NOTICE) << "done";
 
-    // update blocks and types
-    // updateBlockTypes();
   }
 }

@@ -30,7 +30,7 @@ void RectDetector::drawRect() {
 
   ofSetColor(255, 150);
   for (auto &v : mCornerVertex) {
-    ofDrawCircle(v.x, v.y, 2, 2);
+    ofDrawCircle(v.x, v.y, 2);
   }
 }
 

@@ -1,3 +1,11 @@
+/*
+
+Thomas Sanchez Lengeling
+May, 2018
+
+LLL
+*/
+
 #pragma once
 
 #include <string>

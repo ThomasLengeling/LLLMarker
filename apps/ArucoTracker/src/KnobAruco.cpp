@@ -1,13 +1,13 @@
 #include "KnobAruco.h"
 
 KnobAruco::KnobAruco() {
-  mStaticId = -1;
+  mStaticId  = -1;
   mDynamicId = -1;
 
   mDynamicGridId = -1;
-  mStaticGridId = -1;
+  mStaticGridId  = -1;
 
-  mStaticActive = false;
+  mStaticActive  = false;
   mDynamicActive = false;
 
   mStaticPos = glm::vec2(50, 50);
@@ -17,8 +17,8 @@ KnobAruco::KnobAruco() {
 
   mStartArc = 0;
   mFinalArc = 0;
-  mMaxArcs = 8;
-  mNumArcs = mMaxArcs - mStartArc - mFinalArc;
+  mMaxArcs  = 8;
+  mNumArcs  =  mMaxArcs - mStartArc - mFinalArc;
 
   fillArcs();
 

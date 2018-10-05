@@ -71,7 +71,7 @@ private:
     cv::Ptr<cv::aruco::Dictionary> dictionary;
     cv::Ptr<cv::aruco::DetectorParameters> detectorParams;
 
-    std::vector< QRBlockRef >                mBlock;
+    std::vector< QRBlockRef >           mBlock;
 
     std::vector< int >                  mTagsIds;
 
