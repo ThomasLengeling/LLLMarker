@@ -108,22 +108,6 @@ void ofApp::setupConnection() {
   ofLog(OF_LOG_NOTICE) << "done setup UDP connection ";
 }
 //-----------------------------------------------------------------------------
-void ofApp::setupERICS() {
-  // mUDPHeader += "header \n";
-  mUDPHeader = "ncols         " + to_string(mFullGridDim.x) + "\n";
-  mUDPHeader += "nrows         " + to_string(mFullGridDim.y) + "\n";
-  mUDPHeader += "xllcorner     " + std::string("20.0") + "\n";
-  mUDPHeader += "yllcorner     " + std::string("30.0") + "\n";
-  mUDPHeader += "cellsize      " + std::string("10.0") + "\n";
-  mUDPHeader += "NODATA_value  " + std::string("-1") + "\n";
-
-  udpConnection.Send(mUDPHeader.c_str(), mUDPHeader.length());
-
-  ofLog(OF_LOG_NOTICE) << "Header :" << std::endl << mUDPHeader;
-  ofLog(OF_LOG_NOTICE) << "done format";
-}
-
-//-----------------------------------------------------------------------------
 void ofApp::setupKnob() {
 
   mKnobAmenitie = KnobAruco::create();
@@ -357,10 +341,7 @@ void ofApp::setupCalibration() {
   ofLog(OF_LOG_NOTICE) << "done setup calibration";
 }
 //-----------------------------------------------------------------------------
-void ofApp::setupVideo() {
-
-  std::string movies[] = {"grid_01.mov", "grid_02.mov", "grid_03.mov",
-                          "grid_04.mov"};
+void ofApp::setupCam() {
 
   // setup inputs
   ofLog(OF_LOG_NOTICE) << "setting inputs: " << mNumInputs;
@@ -411,17 +392,6 @@ void ofApp::setupVideo() {
     }
   }
 
-  {
-    ofLog(OF_LOG_NOTICE) << "Loading Videos:";
-    // load video
-    int i = 0;
-    for (auto &gridImage : mGridImg) {
-      gridImage->setupVideo(movies[i]);
-      i++;
-    }
-    ofLog(OF_LOG_NOTICE) << "Done loading video";
-  }
-
   // Mat settings for Aruco detector
   vidImg.allocate(CAM_WIDTH, CAM_HEIGHT, OF_IMAGE_COLOR);
 
@@ -435,9 +405,27 @@ void ofApp::setupVideo() {
 
   ofLog(OF_LOG_NOTICE) << "done setup video";
 }
+//-----------------------------------------------------------------------------
+void ofApp::setupVideo(){
 
+  ofLog(OF_LOG_NOTICE) << "Loading Videos:";
+
+  std::string movies[] = {"grid_01.mov", "grid_02.mov", "grid_03.mov",
+                          "grid_04.mov"};
+
+  // load video
+  int i = 0;
+  for (auto &gridImage : mGridImg) {
+    gridImage->setupVideo(movies[i]);
+    i++;
+  }
+  ofLog(OF_LOG_NOTICE) << "Done loading video";
+
+}
+//-----------------------------------------------------------------------------
 void ofApp::setupGridDetector() {
 
+  //generate detector information
   for (int i = 0; i < mNumInputs; i++) {
     ofLog(OF_LOG_NOTICE) << "setup grid: " << i << " " << mGridSizes.at(i);
     GridDetectorRef griD = GridDetector::create(mGridSizes.at(i));

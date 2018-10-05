@@ -19,8 +19,8 @@ void ofApp::setup() {
   setupDetection();
   setupCalibration();
   setupVideo();
+  setupCam();
   setupConnection();
-  setupERICS();
   setupKnob();
   setupGUI();
 

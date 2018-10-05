@@ -87,6 +87,7 @@ public:
 
   bool mDrawGUI;
 
+  //GUI functions
   void setupGUI();
   void updateGUI();
   void drawGUI();
@@ -99,7 +100,6 @@ public:
 
   void updateGrid();
   void recordGrid();
-  bool mRecordOnce;
 
   // clean Detection
   void cleanDetection();
@@ -108,6 +108,15 @@ public:
 
   //draw grid info
   void offScreenRenderGrid();
+
+  //create network communication
+  void setupConnection();
+
+  // save JSON file
+  void saveJSONBlocks();
+
+  //draw info on screen
+  void drawInfoScreen();
 
 
   // knob
@@ -133,6 +142,7 @@ public:
   ofTexture mCurrentVideo;
 
   void setupVideo();
+  void setupCam();
 
   // aruco etector
   std::vector<QRDetectorRef> mArucoDetector;
@@ -163,15 +173,10 @@ public:
   std::string mUDPHeader;
   ofFile mTypeFile;
 
+  //network for Radar communication
   ofxUDPManager udpConnectionRadar;
   std::string   mUDPRadarIp;
   int           mUDPRadarPort;
 
-  void setupConnection();
-  void setupERICS();
 
-  // save JSON file
-  void saveJSONBlocks();
-
-  void drawInfoScreen();
 };
