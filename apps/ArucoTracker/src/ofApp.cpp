@@ -387,7 +387,7 @@ void ofApp::drawInfoScreen() {
   int posx = ofGetWidth() - 230;
   ofDrawBitmapString("Fps: " + to_string(ofGetFrameRate()), posx, 20);
   ofDrawBitmapString("Total Dec: " + to_string(mTotalMarkers), posx, 40);
-  ofDrawBitmapString("Max Dec: " + to_string(MAX_MARKER_DETECT), posx, 60);
+  ofDrawBitmapString("Max Dec: " + to_string(mTotalMaxMarkers), posx, 60);
   ofDrawBitmapString("Inputs: " + to_string(mGridImg.size()), posx, 90);
   ofDrawBitmapString("Current input: " + to_string(mCurrentInputIdx), posx,
                      110);
@@ -429,10 +429,10 @@ void ofApp::offScreenRenderGrid() {
   else if (mBFullGrid->isActive()) {
     int i = 0;
     for (auto &fbo : mFboGrid) {
-      fbo.begin();
+      mFboFullGrid.begin();
       mGridImg.at(i)->getImg().draw(0, 0);
       mGridDetector.at(i)->drawMarkers();
-      fbo.end();
+      mFboFullGrid.end();
       i++;
     }
   }

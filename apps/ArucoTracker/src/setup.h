@@ -6,46 +6,51 @@ void ofApp::setupValues() {
   mSortMarkers      = false;
   mRefimentDetector = true;
   mCurrentInputIdx  = 0;
+  mTotalMaxMarkers  = 0;
 
+  //load imputs for #cameras
   if(mNumInputs > 1){
-    glm::vec2 gridSizes[] = {glm::vec2(19, 13), glm::vec2(13, 13),
-                           glm::vec2(19, 13), glm::vec2(13, 13)};
-    glm::vec2 sum;
-    int i = 0;
-    for (auto &gs : gridSizes) {
-      mGridSizes.push_back(gs);
-      sum += gs;
-      ofLog(OF_LOG_NOTICE) << "grid: " << i << " " << gs.x << " " << gs.y;
-      i++;
+    ofFile file("griddef.json");
+    if (file.exists()) {
+      ofJson js;
+      file >> js;
+      int j = 0;
+      for (auto & grid : js) {
+        std::string inputGrid("grid" + to_string(j));
+        mGridSizes.push_back( glm::vec2(grid[inputGrid]["x"], grid[inputGrid]["y"] ) );
+        mMaxMarkers.push_back( grid[inputGrid]["max"]);
+        mTotalMaxMarkers += grid[inputGrid]["max"].get<int>();
+        ofLog(OF_LOG_NOTICE) <<j<<": "<<glm::vec2(grid[inputGrid]["x"], grid[inputGrid]["y"] ) <<" "<< grid[inputGrid]["max"]<<std::endl;
+        j++;
+      }
+      ofLog(OF_LOG_NOTICE) << "Done grid values JSON";
+    } else {
+      ofLog(OF_LOG_NOTICE) << "File does not exist griddef.json";
     }
-
-    mFullGridDim = sum / 2.0;
-
-    mMaxMarkers.push_back(MAX_MARKER_01);
-    mMaxMarkers.push_back(MAX_MARKER_02);
-    mMaxMarkers.push_back(MAX_MARKER_03);
-    mMaxMarkers.push_back(MAX_MARKER_04);
   }
 
-  if(mNumInputs == 1){
-    glm::vec2 gridSizes[] = {glm::vec2(2, 2)};
+  //load for GUI interaction
+  if(INPUT_KNOB == 1){
+    ofLog(OF_LOG_NOTICE) << "Setting up grid gui definition";
+    ofFile file("griddef.json");
+    if (file.exists()) {
+      ofJson gridjs;
+      file >> gridjs;
+      std::string inputGrid("grid_gui");
 
-    glm::vec2 sum;
-    int i = 0;
-    for (auto &gs : gridSizes) {
-      mGridSizes.push_back(gs);
-      sum += gs;
-      ofLog(OF_LOG_NOTICE) << "grid: " << i << " " << gs.x << " " << gs.y;
-      i++;
+      mGridSizes.push_back( glm::vec2(gridjs[inputGrid]["x"], gridjs[inputGrid]["y"] ) );
+      mMaxMarkers.push_back( gridjs[inputGrid]["max"]);
+      mTotalMaxMarkers += gridjs[inputGrid]["max"].get<int>();
+
+      ofLog(OF_LOG_NOTICE) << glm::vec2(gridjs[inputGrid]["x"], gridjs[inputGrid]["y"] ) <<" "<< gridjs[inputGrid]["max"]<<std::endl;
+
+      ofLog(OF_LOG_NOTICE) << "Done grid values JSON";
+    } else {
+      ofLog(OF_LOG_NOTICE) << "File does not exist griddef.json";
     }
-    mFullGridDim = sum / 2.0;
-    mMaxMarkers.push_back(4);
   }
 
-
-  ofLog(OF_LOG_NOTICE) << "Max Grid: " << mFullGridDim.x << " "
-                       << mFullGridDim.y;
-
+  ofLog(OF_LOG_NOTICE) << "Max Grid: " << mFullGridDim.x << " " << mFullGridDim.y;
 
   // load video first
   mTotalMarkers = 0;
@@ -173,6 +178,26 @@ void ofApp::setupKnob() {
     } else {
       ofLog(OF_LOG_NOTICE) << "setup fail knob";
     }
+  }
+
+  ofLog(OF_LOG_NOTICE) << "Loading cam crop positions "<<mGridImg.size();
+  ofFile file("imggui.json");
+  if (file.exists()) {
+    ofJson cam_gui;
+    file >> cam_gui;
+    std::string inputImg("cam_gui");
+
+    mGridImg.at(0)->setCropUp(glm::vec2(float(cam_gui[inputImg]["x1"]), float(cam_gui[inputImg]["y1"])));
+    mGridImg.at(0)->setCropDown(glm::vec2(cam_gui[inputImg]["x2"], cam_gui[inputImg]["y2"]));
+    mGridImg.at(0)->setCropDisp(glm::vec2(cam_gui[inputImg]["disX"], cam_gui[inputImg]["disY"]));
+    mGridImg.at(0)->setupCam(cam_gui[inputImg]["camId"]);
+
+    //  float gm = std::stof(cam[inputImg]["gamma"]);
+    mGridImg.at(0)->setGamma(0.5);
+
+    ofLog(OF_LOG_NOTICE) << "Set Cam: " << cam_gui[inputImg]["camId"];
+  } else {
+    ofLog(OF_LOG_NOTICE) << "File does not exist img.json";
   }
 }
 
@@ -336,7 +361,6 @@ void ofApp::setupVideo() {
 
   std::string movies[] = {"grid_01.mov", "grid_02.mov", "grid_03.mov",
                           "grid_04.mov"};
-  int camIds[] = {0, 0, 0, 0};
 
   // setup inputs
   ofLog(OF_LOG_NOTICE) << "setting inputs: " << mNumInputs;
@@ -348,53 +372,43 @@ void ofApp::setupVideo() {
     mGridImg.push_back(gridImage);
   }
 
-  ofLog(OF_LOG_NOTICE) << "Loading cam crop positions "<<mGridImg.size();
-  ofFile file("img.json");
-  bool foundFile = false;
-  if (file.exists()) {
-    ofJson js;
-    file >> js;
-    int j = 0;
-    for (auto &cam : js) {
+  // Print available devices
+  ofLog(OF_LOG_NOTICE) << "Cam devices:";
+  ofVideoGrabber mVideoGrabber;
+  mVideoGrabber.listDevices();
 
-        if(mNumInputs == 1 && j == 4){
-          cout<<cam<<std::endl;
-          std::string inputImg("cam_gui");
-          ofLog(OF_LOG_NOTICE) << "Loadig... "<<cam[inputImg]["x1"]<<" "<<cam[inputImg]["y1"] <<std::endl;
-          mGridImg.at(0)->setCropUp(glm::vec2(float(cam[inputImg]["x1"]), float(cam[inputImg]["y1"])));
-          mGridImg.at(0)->setCropDown(glm::vec2(cam[inputImg]["x2"], cam[inputImg]["y2"]));
-          mGridImg.at(0)->setCropDisp(glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
+  if(mNumInputs > 1){
+    ofLog(OF_LOG_NOTICE) << "Loading cam and crop positions "<<mGridImg.size();
+    ofFile file("img.json");
+    bool foundFile = false;
+    if (file.exists()) {
+      ofJson js;
+      file >> js;
+      int j = 0;
+      for (auto &cam : js) {
+        std::string inputImg("cam" + to_string(j));
+        int camId =  cam[inputImg]["camId"];
+        ofLog(OF_LOG_NOTICE)<<"Loading: " << j << ": CamId: " << camId;
 
-          camIds[0] = cam[inputImg]["camId"];
 
-        //  float gm = std::stof(cam[inputImg]["gamma"]);
-          mGridImg.at(0)->setGamma(0.5);
+        mGridImg.at(j)->setCropUp(glm::vec2(cam[inputImg]["x1"], cam[inputImg]["y1"]));
+        mGridImg.at(j)->setCropDown(glm::vec2(cam[inputImg]["x2"], cam[inputImg]["y2"]));
+        mGridImg.at(j)->setCropDisp(glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
 
-          ofLog(OF_LOG_NOTICE) << "Set Crop: " << j << " CamId: " << camIds[0];
-        }
-        if(mNumInputs != 1){
-          std::string inputImg("cam" + to_string(j));
-          mGridImg.at(j)->setCropUp(
-              glm::vec2(cam[inputImg]["x1"], cam[inputImg]["y1"]));
-          mGridImg.at(j)->setCropDown(
-              glm::vec2(cam[inputImg]["x2"], cam[inputImg]["y2"]));
-          mGridImg.at(j)->setCropDisp(
-              glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
+        float gm = float(cam[inputImg]["gamma"]);
+        mGridImg.at(j)->setGamma(gm);
 
-          camIds[j] = cam[inputImg]["camId"];
+        ofLog(OF_LOG_NOTICE) << "Loading cam devices:";
+        mGridImg.at(j)->setupCam(camId, CAM_FRAMERATE);
 
-          float gm = float(cam[inputImg]["gamma"]);
-          mGridImg.at(j)->setGamma(gm);
-
-          ofLog(OF_LOG_NOTICE) << "Set Crop: " << j << " CamId: " << camIds[j];
-          ofLog(OF_LOG_NOTICE) << "Gamma: " << gm;
-        }
-      j++;
+        ofLog(OF_LOG_NOTICE) << "Gamma: " << gm;
+        j++;
+      }
+      ofLog(OF_LOG_NOTICE) << "Done crop values JSON";
+      foundFile = true;
+    } else {
+      ofLog(OF_LOG_NOTICE) << "File does not exist img.json";
     }
-    ofLog(OF_LOG_NOTICE) << "Done crop values JSON";
-    foundFile = true;
-  } else {
-    ofLog(OF_LOG_NOTICE) << "File does not exist img.json";
   }
 
   {
@@ -406,20 +420,6 @@ void ofApp::setupVideo() {
       i++;
     }
     ofLog(OF_LOG_NOTICE) << "Done loading video";
-
-    // Print available devices
-    ofLog(OF_LOG_NOTICE) << "Cam devices:";
-    ofVideoGrabber mVideoGrabber;
-    mVideoGrabber.listDevices();
-    ofLog(OF_LOG_NOTICE) << "Loading cam devices:";
-    // load cam
-    i = 0;
-
-    for (auto &gridImage : mGridImg) {
-      gridImage->setupCam(camIds[i], CAM_FRAMERATE);
-      i++;
-    }
-    ofLog(OF_LOG_NOTICE) << "done loading CAM";
   }
 
   // Mat settings for Aruco detector
@@ -450,12 +450,12 @@ void ofApp::setupGridDetector() {
     mGridDetector.push_back(griD);
 
     // allocate fbo for drawing
-    ofFbo fbo;
-    fbo.allocate(CAM_WIDTH, CAM_HEIGHT, GL_RGB);
-    fbo.begin();
+    ofFbo fboTemp;
+    fboTemp.allocate(CAM_WIDTH, CAM_HEIGHT, GL_RGB);
+    fboTemp.begin();
     ofClear(0, 0, 0);
-    fbo.end();
-    mFboGrid.push_back(fbo);
+    fboTemp.end();
+    mFboGrid.push_back(fboTemp);
   }
 
   ofLog(OF_LOG_NOTICE) << "done setup grid :" << mNumInputs;

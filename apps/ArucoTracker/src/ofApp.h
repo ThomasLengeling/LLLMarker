@@ -38,35 +38,7 @@ LLL
 
 #define NUM_CAM_INPUTS 1
 
-#define DEFAULT_GRID_WIDTH  19
-#define DEFAULT_GRID_HEIGHT 13
-
-/*
-grid 1
-     10
-     00  -> full 8 x 19 = 152 + 18 + 16 + 15+ 10 + 5 = 216
-
-grid 2
-     01
-     00  -> full 12 x 19 = 228 +5 = 233
-
-grid 3
-     00
-     10  -> full 247
-
-grid 4
-     00
-     01  -> full 169
-
-     TOTAL = 819 markers
-*/
-
-#define MAX_MARKER_01 247 //216
-#define MAX_MARKER_02 247 //233
-#define MAX_MARKER_03 247
-#define MAX_MARKER_04 169
-
-#define MAX_MARKER_DETECT 819
+#define INPUT_KNOB 1
 
 #define CAM_WIDTH  1920  //1920
 #define CAM_HEIGHT 1080 //1080
@@ -113,7 +85,6 @@ public:
   ofxDatMatrixRef mBGridSelect;
   ofxDatButtonRef mBCloseCams;
 
-
   bool mDrawGUI;
 
   void setupGUI();
@@ -148,6 +119,7 @@ public:
   // 4 camera render
   ofFbo mFboSingle;
   std::vector<ofFbo> mFboGrid;
+  ofFbo mFboFullGrid;
 
   bool mSingleCam;
 
@@ -175,6 +147,7 @@ public:
   int mNumInputs;
 
   glm::vec2 mFullGridDim;
+  int mTotalMaxMarkers;
   std::vector<glm::vec2> mGridSizes;
   std::vector<int> mMaxMarkers;
 
