@@ -104,7 +104,6 @@ private:
     std::string         mVideoName;
 
     ofImage             mVidImg;
-    cv::Mat             mVidMat;
 
     bool mActivateCam;
 
