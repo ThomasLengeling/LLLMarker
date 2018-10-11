@@ -17,7 +17,7 @@ void QRDetector::resetMinMax() {
 void QRDetector::setupCalibration(int markersX, int markersY) {
   float markerLength = 0.0162;     // 0.0165
   float markerSeparation = 0.0042; // 0045
-  int dictionaryId = 11;
+  int dictionaryId = 0; //11
   std::string outputFile = "./cal.txt";
 
   int calibrationFlags = 0;
@@ -37,8 +37,10 @@ void QRDetector::setupCalibration(int markersX, int markersY) {
 
   bool refindStrategy = false;
 
+  //pedfine marker
   dictionary = cv::aruco::getPredefinedDictionary(
       cv::aruco::PREDEFINED_DICTIONARY_NAME(dictionaryId));
+
 
   // create board object
   cv::Ptr<cv::aruco::GridBoard> gridboard = cv::aruco::GridBoard::create(

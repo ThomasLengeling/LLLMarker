@@ -66,7 +66,7 @@ void ofApp::draw(){
 	ofSetColor(30);
 	ofDrawBitmapString("Id: "+to_string(mMakerId), 15, 15);
 	ofDrawBitmapString("Dictionary Id: "+to_string(mDictionaryId) +" "+mDictionaryTags.at(mDictionaryId), 15, 35);
-
+	ofDrawBitmapString("Custom Id: "+to_string(CUSTOM_DIC), 300, 35);
 
 	ofSetColor(255);
 	mVidImg.draw(50, 50);
@@ -130,6 +130,30 @@ void ofApp::keyPressed(int key){
 		mGenerateTags = true;
 	}
 
+	if(key == 'p'){
+		mVidImg.save(mDictionaryTags.at(mDictionaryId)+"_"+to_string(mMakerId)+".png");
+	}
+
+	if(key == 'd'){
+		mVidImg = createCustomMarker(mMakerId);
+		std::cout<<"generated custom markers"<<std::endl;
+	}
+
+	if(key == 'f'){
+		mVidImg = createCustomMarker(mMakerId);
+		std::cout<<"generated custom markers"<<std::endl;
+	}
+
+	if(key == 'c'){
+			for(int i = 0; i < CUSTOM_DIC; i++){
+				ofImage img = createCustomMarker(i);
+				img.save("cus_"+to_string(CUSTOM_DIC)+"/"+to_string(mDictionaryId)+"_"+to_string(i)+".png");
+			}
+			mGenerateTags = false;
+			std::cout<<"Done Custom Generating "<<CUSTOM_DIC<<std::endl;
+
+	}
+
 }
 
 //--------------------------------------------------------------
@@ -167,6 +191,30 @@ void ofApp::gotMessage(ofMessage msg){
 
 }
 
+//--------------------------------------------------------------
+ofImage ofApp::createCustomMarker(int id)
+{
+	int markerId =  id;
+	int borderBits = 1;
+	int markerSize = 400;
+	bool showImage = false;
+
+	cv::Ptr<cv::aruco::Dictionary> dic = cv::aruco::Dictionary::create(CUSTOM_DIC, 4);
+
+	cv::Mat markerImg;
+	cv::Mat outputMat;
+	ofImage img;
+
+	cv::aruco::drawMarker(dic, markerId, markerSize, markerImg, borderBits);
+
+	// create video output
+  markerImg.copyTo(outputMat);
+  ofxCv::toOf(outputMat, img.getPixels());
+  img.update();
+	return img;
+}
+
+//--------------------------------------------------------------
 ofImage ofApp::createMarker(int dicId, int id, int bBits)
 {
 

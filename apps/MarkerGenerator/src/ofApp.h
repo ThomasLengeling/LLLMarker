@@ -11,6 +11,8 @@
 #include "ofxCv.h"
 #include "ofxOpenCv.h"
 
+#define CUSTOM_DIC 50
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -29,6 +31,7 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 
 		ofImage createMarker(int dicId, int id, int bBits);
+		ofImage createCustomMarker(int id);
 
 private:
 	int mMakerId;
