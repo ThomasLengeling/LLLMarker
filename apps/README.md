@@ -139,3 +139,4 @@ git clone https://github.com/opencv/opencv
 git clone https://github.com/opencv/opencv_contrib
 
 install cmake
+https://cmake.org/download/
