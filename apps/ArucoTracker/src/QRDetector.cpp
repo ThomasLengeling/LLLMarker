@@ -1,3 +1,4 @@
+
 #include "QRDetector.h"
 
 using namespace std;
@@ -15,9 +16,9 @@ void QRDetector::resetMinMax() {
 }
 
 void QRDetector::setupCalibration(int markersX, int markersY) {
-  float markerLength = 0.0162;     // 0.0165
+  float markerLength     = 0.0162;     // 0.0165
   float markerSeparation = 0.0042; // 0045
-  int dictionaryId = 0; //11
+  int dictionaryId       = QR_4x4_25; //11
   std::string outputFile = "./cal.txt";
 
   int calibrationFlags = 0;
@@ -117,6 +118,12 @@ void QRDetector::detectMarkers(cv::Mat &inputVideo, bool refiment) {
   input.copyTo(mVidMat);
   ofxCv::toOf(mVidMat, mVidImg.getPixels());
   mVidImg.update();
+}
+
+//calibrate Camera sequence
+void QRDetector::calibrateCamera(){
+
+
 }
 
 // Calibrate

@@ -25,6 +25,8 @@ LLL
 class QRDetector;
 typedef std::shared_ptr<QRDetector> QRDetectorRef;
 
+#define QR_4x4_25   0
+#define QR_6x6_1000 11
 
 class QRDetector{
 public:
@@ -56,6 +58,8 @@ public:
     int getMinId(){return mMinFoundId;}
     int getMaxId(){return mMaxFoundId;}
 
+    void calibrateCamera();
+
 
     //calibration
     bool readDetectorParameters(std::string filename, cv::Ptr< cv::aruco::DetectorParameters> & params);
@@ -66,9 +70,9 @@ public:
 
 private:
 
-    //aruco
-    cv::Ptr<cv::aruco::Board> board;
-    cv::Ptr<cv::aruco::Dictionary> dictionary;
+    //qr aruco
+    cv::Ptr<cv::aruco::Board>       board;
+    cv::Ptr<cv::aruco::Dictionary>  dictionary;
     cv::Ptr<cv::aruco::DetectorParameters> detectorParams;
 
     std::vector< QRBlockRef >           mBlock;

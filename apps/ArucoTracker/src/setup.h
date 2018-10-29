@@ -8,6 +8,7 @@ void ofApp::setupValues() {
   mCurrentInputIdx  = 0;
   mTotalMaxMarkers  = 0;
 
+
   //load imputs for #cameras
   if(mNumInputs > 1){
     ofFile file("griddef.json");
@@ -170,17 +171,19 @@ void ofApp::setupKnob() {
   if (file.exists()) {
     ofJson cam_gui;
     file >> cam_gui;
-    std::string inputImg("cam_gui");
+    for (auto & knobPos : cam_gui) {
+      std::string inputImg("cam_gui");
 
-    mGridImg.at(0)->setCropUp(glm::vec2(float(cam_gui[inputImg]["x1"]), float(cam_gui[inputImg]["y1"])));
-    mGridImg.at(0)->setCropDown(glm::vec2(cam_gui[inputImg]["x2"], cam_gui[inputImg]["y2"]));
-    mGridImg.at(0)->setCropDisp(glm::vec2(cam_gui[inputImg]["disX"], cam_gui[inputImg]["disY"]));
-    mGridImg.at(0)->setupCam(cam_gui[inputImg]["camId"]);
+      mGridImg.at(0)->setCropUp(glm::vec2(float(knobPos[inputImg]["x1"]), float(knobPos[inputImg]["y1"])));
+      mGridImg.at(0)->setCropDown(glm::vec2(knobPos[inputImg]["x2"], knobPos[inputImg]["y2"]));
+      mGridImg.at(0)->setCropDisp(glm::vec2(knobPos[inputImg]["disX"], knobPos[inputImg]["disY"]));
+      mGridImg.at(0)->setupCam(knobPos[inputImg]["camId"]);
 
-    //  float gm = std::stof(cam[inputImg]["gamma"]);
-    mGridImg.at(0)->setGamma(0.5);
+      //  float gm = std::stof(cam[inputImg]["gamma"]);
+      mGridImg.at(0)->setGamma(0.5);
+      ofLog(OF_LOG_NOTICE) << "Set Cam: " << knobPos[inputImg]["camId"];
+    }
 
-    ofLog(OF_LOG_NOTICE) << "Set Cam: " << cam_gui[inputImg]["camId"];
   } else {
     ofLog(OF_LOG_NOTICE) << "File does not exist img.json";
   }

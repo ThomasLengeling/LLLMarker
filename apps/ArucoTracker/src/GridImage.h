@@ -97,30 +97,33 @@ private:
     int                 mCamId;
     ofPixels            mPixs;
 
+    glm::vec2           mDim;
+    glm::vec2           mLength;
+
+    //Resolution of the I
+    ofFbo               mFboResolution;
+
     //swap camId
     ofxDatMatrixRef     mSwapCamId;
 
+    //video player
     ofVideoPlayer       mVideoInput;
     std::string         mVideoName;
 
+    //input image
     ofImage             mVidImg;
 
+    //acative streaming
     bool mActivateCam;
 
-    //crop
-    bool mActivateCrop;
-
-    cv::Rect mRoi;
+    //crop of image
+    bool      mActivateCrop;
+    cv::Rect  mRoi;
     glm::vec2 mCornerUp;
     glm::vec2 mCornerDown;
     glm::vec2 mDisp;
+    cv::Mat   mCropMat;
 
-    cv::Mat mCropMat;
-
-    glm::vec2 mDim;
-    glm::vec2 mLength;
-
-    ofFbo     mFboResolution;
 
     int mId;
 

@@ -29,6 +29,7 @@ LLL
 #include "GridImage.h"
 
 #define RAD_DETECTION 38
+#define MOUSE_RADIUS  17
 #define MAX_MARKERS 1000
 
 class GridDetector;
@@ -62,7 +63,13 @@ public:
     void updateBlockTypes();
 
     void drawMarkers( );
+
+    //update grid positions
     void toogleDebugGrid(){mDebugGrid =!mDebugGrid;}
+    void toogleUpdateGrid(){mUpdateGrid = !mUpdateGrid;}
+
+    void gridPosIdInc();
+    void gridPosIdDec();
 
     void calibrateGrid();
     void recordGrid();
@@ -78,6 +85,7 @@ public:
 
     //save json files
     void saveGridJson();
+    void saveGridJson(std::string fileName);
 
     //draw detected grid
     void drawDetectedGrid(float posx, float posy, float size = 20, float space = 5);
@@ -119,6 +127,12 @@ private:
 
     //debug grid
     bool mDebugGrid;
+
+    //update grid
+    bool mUpdateGrid;
+    int mCurrentGridId;
+
+
     bool mRecordOnce;
 
     //clearner

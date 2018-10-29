@@ -18,7 +18,7 @@ class ProbabiltyAruco;
 
 typedef std::shared_ptr<MarkerAruco> MarkerArucoRef;
 
-
+//------------------------------------------------------------------------------
 class ProbabiltyAruco{
 public:
     ProbabiltyAruco();
@@ -31,6 +31,7 @@ private:
     int   mInc;
 };
 
+//------------------------------------------------------------------------------
 class MarkerAruco : public RectDetector, public ProbabiltyAruco{
 public:
     MarkerAruco() : RectDetector(), ProbabiltyAruco() {
@@ -71,17 +72,31 @@ public:
 
 
 private:
+    //QR id
     int        mMakerId;
+
+    //grid id
     int        mGridId;
 
+    //orientation of the marker
     int        mOrientation;
+
+    //position in the screen
     glm::vec2  mPos;
+
+    //activate for detection
     bool       mEnable;
 
+    //debug mode
+    bool       mDebug;
+
+    //block type, RO, RL, RM, OS, etc..
     BlockType  mBType;
 
+    //Marker type
     MarkerType mCurrentType;
 
+    //probabily that the marker is detectes
     float      mProb;
 
     //id correponds the type

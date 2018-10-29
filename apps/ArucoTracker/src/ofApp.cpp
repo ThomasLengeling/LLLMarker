@@ -384,6 +384,7 @@ void ofApp::drawInfoScreen() {
   glm::vec2 cdim = mGridDetector.at(mCurrentInputIdx)->getDim();
   ofSetColor(255);
   int posx = ofGetWidth() - 230;
+
   ofDrawBitmapString("Fps: " + to_string(ofGetFrameRate()), posx, 20);
   ofDrawBitmapString("Total Dec: " + to_string(mTotalMarkers), posx, 40);
   ofDrawBitmapString("Max Dec: " + to_string(mTotalMaxMarkers), posx, 60);
@@ -518,31 +519,57 @@ void ofApp::keyPressed(int key) {
   }
 
   if (key == '2') {
-    mGridDetector.at(mCurrentInputIdx)->saveGridJson();
-    ofLog(OF_LOG_NOTICE) << "saved json grid positions: " << mCurrentInputIdx;
+    if(INPUT_KNOB == 0){
+      mGridDetector.at(mCurrentInputIdx)->saveGridJson();
+      ofLog(OF_LOG_NOTICE) << "saved json grid positions: " << mCurrentInputIdx;
+    }else{
+      mGridDetector.at(mCurrentInputIdx)->saveGridJson("knobpos.json");
+      ofLog(OF_LOG_NOTICE) << "saved json Knob positions";
+    }
   }
 
   if (key == '3') {
-    ofJson writer;
-    int i = 0;
-    for (auto &gridImage : mGridImg) {
+      if(INPUT_KNOB == 0){
+        ofJson writer;
+        int i = 0;
+        for (auto &gridImage : mGridImg) {
+          ofJson pt;
+          std::string inputImg("cam" + to_string(i));
+          pt[inputImg]["x1"] = gridImage->getCropUp().x;
+          pt[inputImg]["y1"] = gridImage->getCropUp().y;
+          pt[inputImg]["x2"] = gridImage->getCropDown().x;
+          pt[inputImg]["y2"] = gridImage->getCropDown().y;
+          pt[inputImg]["disX"] = gridImage->getCropDisp().x;
+          pt[inputImg]["disY"] = gridImage->getCropDisp().y;
+          pt[inputImg]["camId"] = gridImage->getCamId();
+          pt[inputImg]["gamma"] = gridImage->getGamma();
+
+          writer.push_back(pt);
+          i++;
+        }
+
+        ofLog(OF_LOG_NOTICE) << "Image json write grid";
+        ofSaveJson("img.json", writer);
+    }else{
+      ofJson writer;
+
       ofJson pt;
-      std::string inputImg("cam" + to_string(i));
-      pt[inputImg]["x1"] = gridImage->getCropUp().x;
-      pt[inputImg]["y1"] = gridImage->getCropUp().y;
-      pt[inputImg]["x2"] = gridImage->getCropDown().x;
-      pt[inputImg]["y2"] = gridImage->getCropDown().y;
-      pt[inputImg]["disX"] = gridImage->getCropDisp().x;
-      pt[inputImg]["disY"] = gridImage->getCropDisp().y;
-      pt[inputImg]["camId"] = gridImage->getCamId();
-      pt[inputImg]["gamma"] = gridImage->getGamma();
+      std::string inputImg("cam_gui");
+      pt[inputImg]["x1"] = mGridImg.at(0)->getCropUp().x;
+      pt[inputImg]["y1"] = mGridImg.at(0)->getCropUp().y;
+      pt[inputImg]["x2"] = mGridImg.at(0)->getCropDown().x;
+      pt[inputImg]["y2"] = mGridImg.at(0)->getCropDown().y;
+      pt[inputImg]["disX"] = mGridImg.at(0)->getCropDisp().x;
+      pt[inputImg]["disY"] = mGridImg.at(0)->getCropDisp().y;
+      pt[inputImg]["camId"] = mGridImg.at(0)->getCamId();
+      pt[inputImg]["gamma"] = mGridImg.at(0)->getGamma();
 
       writer.push_back(pt);
-      i++;
+
+      ofLog(OF_LOG_NOTICE) << "Image json write Knob";
+      ofSaveJson("imggui.json", writer);
     }
 
-    ofLog(OF_LOG_NOTICE) << "Image json write";
-    ofSaveJson("img.json", writer);
   }
 
   if (key == 'v') {
@@ -578,6 +605,12 @@ void ofApp::keyPressed(int key) {
     mGridDetector.at(mCurrentInputIdx)->generateGridPos();
     ofLog(OF_LOG_NOTICE) << "Reset gris pos " << mCurrentInputIdx;
   }
+
+  if(key == 'v'){
+    mGridDetector.at(mCurrentInputIdx)->toogleUpdateGrid();
+    ofLog(OF_LOG_NOTICE) << "Update grid Position";
+  }
+
 }
 
 //--------------------------------------------------------------
@@ -625,13 +658,34 @@ void ofApp::mouseDragged(int x, int y, int button) {
       }
     }
   }
+
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button) {}
 
 //--------------------------------------------------------------
-void ofApp::mouseReleased(int x, int y, int button) {}
+void ofApp::mouseReleased(int x, int y, int button) {
+  //move center points for the GUI
+  {
+    if (mEnableKnob) {
+      glm::vec2 posStatic = mKnobAmenitie->getStaticPos();
+      float distStatic = ofDist(posStatic.x, posStatic.y, x, y);
+      if (distStatic >= 0.0 && distStatic <= 15) {
+        mKnobAmenitie->setStaticPos(glm::vec2(x, y));
+      }
+
+      glm::vec2 posDynamic = mKnobAmenitie->getDynamicPos();
+      float distDynamic = ofDist(posDynamic.x, posDynamic.y, x, y);
+      if (distDynamic >= 0.0 && distDynamic <= 15) {
+        mKnobAmenitie->setDynamicPos(glm::vec2(x, y));
+      }
+    }
+  }
+
+  mCurrentGridId++;
+
+}
 
 //--------------------------------------------------------------
 void ofApp::mouseEntered(int x, int y) {}

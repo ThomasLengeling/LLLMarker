@@ -6,6 +6,7 @@ GridDetector::GridDetector(glm::vec2 dim) {
   mRecordOnce = true;
   mCalibrateGrid = false;
   mCleanDone = false;
+  mCurrentGridId =0;
 
   mRadDetection = RAD_DETECTION;
   mMaxMarkers = mGridDim.x * mGridDim.y;
@@ -142,6 +143,7 @@ void GridDetector::generateMarkers(std::vector<int> &ids,
   mNumMarkers = mCurrBlock.size();
   mTmpBlocks.push_back(mCurrBlock);
 }
+
 //-----------------------------------------------------------------------------
 void GridDetector::drawBlock(float posx, float posy, float size, float space) {
   int i = 0;
@@ -168,6 +170,8 @@ void GridDetector::drawBlock(float posx, float posy, float size, float space) {
     }
   }
 }
+
+//-----------------------------------------------------------------------------
 void GridDetector::drawDetectedGridIn(float posx, float posy, float size,
                                       float space) {
   int i = 0;
@@ -196,6 +200,7 @@ void GridDetector::drawDetectedGridIn(float posx, float posy, float size,
     }
   }
 }
+
 //-----------------------------------------------------------------------------
 void GridDetector::drawDetectedGrid(float posx, float posy, float size,
                                     float space) {
@@ -226,6 +231,7 @@ void GridDetector::drawDetectedGrid(float posx, float posy, float size,
     }
   }
 }
+
 //-----------------------------------------------------------------------------
 void GridDetector::updateBlockTypes() {
   // update blocks and types
@@ -246,12 +252,13 @@ void GridDetector::setGridPos(glm::vec2 mousePos) {
     for (auto &mk : mMarkers) {
       glm::vec2 pos = mk->getPos();
       float dist = glm::fastDistance(pos, mousePos);
-      if (dist >= 0.0 && dist <= 15) {
+      if (dist >= 0.0 && dist <= DET_RADIUS) {
         mk->setPos(mousePos);
       }
     }
   }
 }
+
 //-----------------------------------------------------------------------------
 void GridDetector::drawMarkers() {
   for (auto &mk : mMarkers) {
@@ -269,8 +276,13 @@ void GridDetector::drawMarkers() {
       ofDrawCircle(pos.x, pos.y, mRadDetection / 2.0);
     }
 
+    //update grid position
     if (mDebugGrid) {
       ofSetColor(0, 100, 200, 100);
+      ofDrawCircle(pos.x, pos.y, mRadDetection);
+    }
+    if(mUpdateGrid){
+      ofSetColor(80, 80, 150, 150);
       ofDrawCircle(pos.x, pos.y, mRadDetection);
     }
 
@@ -279,9 +291,31 @@ void GridDetector::drawMarkers() {
     ofDrawBitmapString(mk->getGridId(), pos.x - 25, pos.y - 17);
   }
 }
+
 //-----------------------------------------------------------------------------
+void GridDetector::gridPosIdInc(){
+  mCurrentGridId++;
+  if(mCurrentGridId >= mMaxMarkers){
+    mCurrentGridId = 0;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void GridDetector::gridPosIdDec(){
+  mCurrentGridId--;
+  if(mCurrentGridId <= 0){
+    mCurrentGridId = mMaxMarkers - 1;
+  }
+}
+
+//-----------------------------------------------------------------------------
+// save json
 void GridDetector::saveGridJson() {
-  // save json
+  saveGridJson("gridpos_0" + to_string(mId + 1) + ".json");
+}
+
+//-----------------------------------------------------------------------------
+void GridDetector::saveGridJson(std::string fileName){
   ofJson writer;
   int i = 0;
   for (auto &mk : mMarkers) {
@@ -293,13 +327,14 @@ void GridDetector::saveGridJson() {
     i++;
   }
   ofLog(OF_LOG_NOTICE) << "json write: 0" + to_string(mId + 1) + " - " + to_string(mId);
-  ofSaveJson("gridpos_0" + to_string(mId + 1) + ".json", writer);
+  ofSaveJson(fileName, writer);
 }
 
 //-----------------------------------------------------------------------------
 void GridDetector::calibrateGrid() {
   // draw grid
 }
+
 //-----------------------------------------------------------------------------
 void GridDetector::recordGrid() {
   if (mRecordOnce) {
@@ -336,6 +371,7 @@ void GridDetector::recordGrid() {
     }
   }
 }
+
 //-----------------------------------------------------------------------------
 void GridDetector::updateCleaner() {
   // update clenaer variables
