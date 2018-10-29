@@ -133,3 +133,9 @@ sudo make install
 openCV
 
 https://www.learnopencv.com/install-opencv3-on-windows/
+
+
+git clone https://github.com/opencv/opencv
+git clone https://github.com/opencv/opencv_contrib
+
+install cmake
