@@ -128,7 +128,8 @@ make -j8
 sudo make install
 ````
 
+## Windows installation
 
-# Run app
+openCV
 
-Run the application
+https://www.learnopencv.com/install-opencv3-on-windows/
