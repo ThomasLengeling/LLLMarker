@@ -27,6 +27,7 @@ void ofApp::setup() {
   ofLog(OF_LOG_NOTICE) << "finished setup";
 }
 
+//---------------------------------------------------------------------------
 void ofApp::cleanDetection() {
 
   // calculate probabilyt and clean nois
@@ -299,7 +300,7 @@ void ofApp::draw() {
     }
   }
 
-
+//-------------------------------------------------------------
   if (mBDebugGrid->isActive()) {
 
     //draw full grid or a single cma view
@@ -399,7 +400,7 @@ void ofApp::drawInfoScreen() {
   ofDrawBitmapString("UDP Port: " + to_string(mUDPPort), posx, 270);
 }
 
-//--------------------------------------------------------------
+//-------------------------------------------------------------------------
 void ofApp::recordGrid() {
   // updte points
   if (mBSingleGrid->isActive()) {
@@ -410,7 +411,7 @@ void ofApp::recordGrid() {
     }
   }
 }
-
+//---------------------------------------------------------------------------
 void ofApp::offScreenRenderGrid() {
   if (mBSingleGrid->isActive()) {
     mFboSingle.begin();

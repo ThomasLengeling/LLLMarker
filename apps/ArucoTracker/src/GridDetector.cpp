@@ -282,8 +282,10 @@ void GridDetector::drawMarkers() {
       ofDrawCircle(pos.x, pos.y, mRadDetection);
     }
     if(mUpdateGrid){
-      ofSetColor(80, 80, 150, 150);
-      ofDrawCircle(pos.x, pos.y, mRadDetection);
+      if(mk->isDebugPos()){
+        ofSetColor(80, 80, 150, 150);
+        ofDrawCircle(pos.x, pos.y, mRadDetection);
+      }
     }
 
     ofSetColor(255);
@@ -294,18 +296,30 @@ void GridDetector::drawMarkers() {
 
 //-----------------------------------------------------------------------------
 void GridDetector::gridPosIdInc(){
+  //disable current maker
+  mMarkers.at(mCurrentGridId)->disableDebugPos();
+
   mCurrentGridId++;
   if(mCurrentGridId >= mMaxMarkers){
     mCurrentGridId = 0;
   }
+
+  //update current marker
+  mMarkers.at(mCurrentGridId)->enableDebugPos();
 }
 
 //-----------------------------------------------------------------------------
 void GridDetector::gridPosIdDec(){
+  //disable current maker
+  mMarkers.at(mCurrentGridId)->disableDebugPos();
+
   mCurrentGridId--;
   if(mCurrentGridId <= 0){
     mCurrentGridId = mMaxMarkers - 1;
   }
+
+    //update current marker
+    mMarkers.at(mCurrentGridId)->enableDebugPos();
 }
 
 //-----------------------------------------------------------------------------
@@ -363,7 +377,6 @@ void GridDetector::recordGrid() {
       }
 
       ofLog(OF_LOG_NOTICE) << "Done update fullids";
-
       ofLog(OF_LOG_NOTICE) << "Num Uniques: " << mFullIds.size();
       ofLog(OF_LOG_NOTICE) << "Done Recording";
 

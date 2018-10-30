@@ -4,6 +4,7 @@
 ProbabiltyAruco::ProbabiltyAruco() {
   mProba = 0.0;
   mInc = 0;
+  mDebugPos = false;
 }
 //--------------------------------------------------------------
 void ProbabiltyAruco::incProba() { mInc++; }

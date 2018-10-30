@@ -70,6 +70,11 @@ public:
     void updateIdPair(int id);
     std::pair<int, int> getIdTypePair();
 
+    //debug position
+    void enableDebugPos(){mDebugPos = true;}
+    void disableDebugPos(){mDebugPos = false;}
+
+    bool isDebugPos(){return mDebugPos;}
 
 private:
     //QR id
@@ -86,6 +91,9 @@ private:
 
     //activate for detection
     bool       mEnable;
+
+    //debg position based on the grid
+    bool       mDebugPos;
 
     //debug mode
     bool       mDebug;
