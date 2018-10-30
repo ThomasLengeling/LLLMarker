@@ -128,7 +128,20 @@ make -j8
 sudo make install
 ````
 
+## Windows installation
 
-# Run app
+openCV
 
-Run the application
+https://www.learnopencv.com/install-opencv3-on-windows/
+
+
+git clone https://github.com/opencv/opencv
+git clone https://github.com/opencv/opencv_contrib
+
+- install cmake
+ https://cmake.org/download/
+
+- 
+
+Configure contrib library:
+https://stackoverflow.com/questions/37517983/opencv-install-opencv-contrib-on-windows
