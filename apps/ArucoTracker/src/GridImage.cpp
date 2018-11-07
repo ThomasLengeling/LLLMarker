@@ -40,8 +40,7 @@ void GridImage::setupCam(int id, int fps) {
 //-----------------------------------------------------------------------------
 void GridImage::setupGUISwap(float x, float y) {
   mSwapCamId = ofxDatMatrix::create();
-  mSwapCamId->matrix =
-      new ofxDatGuiMatrix("Cam Selector: " + to_string(mId), 4, true);
+  mSwapCamId->matrix =new ofxDatGuiMatrix("Cam Selector: " + to_string(mId), 4, true);
   mSwapCamId->matrix->setRadioMode(true);
   mSwapCamId->matrix->setOpacity(0.7);
   mSwapCamId->matrix->setWidth(390, .4);

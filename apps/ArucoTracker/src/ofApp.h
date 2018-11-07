@@ -27,7 +27,6 @@ LLL
 #include "ofxDatGui.h"
 #include "ofxOpenCv.h"
 
-#include "QRBlock.h"
 #include "CommonTypes.h"
 #include "QRDetector.h"
 #include "KnobAruco.h"
@@ -35,6 +34,7 @@ LLL
 #include "gui.h"
 #include "GridImage.h"
 #include "GridDetector.h"
+#include "QRBlock.h"
 
 #define NUM_CAM_INPUTS 1
 
@@ -117,6 +117,9 @@ public:
   ofxDatButtonRef mBSingleGrid;
   ofxDatButtonRef mBFullGrid;
   ofxDatButtonRef mBFullCamView;
+
+  //cam calibration process
+  ofxDatButtonRef mCamCalibration;
 
   ofxDatButtonRef mBEnableCrop;
   ofxDatButtonRef mBCalibrateGrid;

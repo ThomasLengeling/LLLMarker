@@ -248,6 +248,15 @@ void ofApp::setupGUI() {
     mBFullCamView->mActive = !mBFullCamView->mActive;
   });
 
+  mCamCalibration = ofxDatButton::create();
+  mCamCalibration->setActivation(false);
+  mCamCalibration->button = new ofxDatGuiToggle("Camera Calibration");
+  mCamCalibration->button->setPosition(10, 310);
+  mCamCalibration->button->setWidth(100, .4);
+  mCamCalibration->button->onButtonEvent([&](ofxDatGuiButtonEvent v) {
+    mCamCalibration->mActive = !mBFullCamView->mActive;
+  });
+
   int sliderStartX = 150;
 
   mBEnableCrop = ofxDatButton::create();

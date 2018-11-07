@@ -20,6 +20,7 @@ LLL
 #include "ofxOpenCv.h"
 #include "ofxDatGui.h"
 
+
 #include "QRBlock.h"
 
 class QRDetector;
@@ -60,7 +61,6 @@ public:
 
     void calibrateCamera();
 
-
     //calibration
     bool readDetectorParameters(std::string filename, cv::Ptr< cv::aruco::DetectorParameters> & params);
     bool saveCameraParams(const std::string &filename, cv::Size imageSize,
@@ -71,13 +71,13 @@ public:
 private:
 
     //qr aruco
-    cv::Ptr<cv::aruco::Board>       board;
-    cv::Ptr<cv::aruco::Dictionary>  dictionary;
+    cv::Ptr<cv::aruco::Board>              board;
+    cv::Ptr<cv::aruco::Dictionary>         dictionary;
     cv::Ptr<cv::aruco::DetectorParameters> detectorParams;
 
-    std::vector< QRBlockRef >           mBlock;
+    std::vector< QRBlockRef >               mBlock;
 
-    std::vector< int >                  mTagsIds;
+    std::vector< int >                      mTagsIds;
 
     int mMinFoundId;
     int mMaxFoundId;

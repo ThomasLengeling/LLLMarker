@@ -159,10 +159,8 @@ void GridDetector::drawBlock(float posx, float posy, float size, float space) {
     ofDrawRectangle(glm::vec2(x, y), squareSize, squareSize);
 
     ofSetColor(255);
-    ofDrawBitmapString(block->getMarkerId(), x + squareSize / 3.0,
-                       y + squareSize * (1.0 / 3.0));
-    ofDrawBitmapString(block->getType(), x + squareSize / 3.0,
-                       y + squareSize * (2.0 / 3.0));
+    ofDrawBitmapString(block->getMarkerId(), x + squareSize / 3.0, y + squareSize * (1.0 / 3.0));
+    ofDrawBitmapString(block->getType(), x + squareSize / 3.0, y + squareSize * (2.0 / 3.0));
     i++;
     if (i >= mGridDim.x) {
       i = 0;
@@ -189,10 +187,8 @@ void GridDetector::drawDetectedGridIn(float posx, float posy, float size,
     ofDrawRectangle(glm::vec2(x, y), squareSize, squareSize);
 
     ofSetColor(255);
-    ofDrawBitmapString(mk->getGridId(), x + squareSize / 3.0,
-                       y + squareSize * (1.0 / 3.0));
-    ofDrawBitmapString(mk->getMarkerId(), x + squareSize / 3.0,
-                       y + squareSize * (2.0 / 3.0));
+    ofDrawBitmapString(mk->getGridId(), x + squareSize / 3.0, y + squareSize * (1.0 / 3.0));
+    ofDrawBitmapString(mk->getMarkerId(), x + squareSize / 3.0, y + squareSize * (2.0 / 3.0));
     i++;
     if (i >= mGridDim.x) {
       i = 0;
@@ -252,7 +248,7 @@ void GridDetector::setGridPos(glm::vec2 mousePos) {
     for (auto &mk : mMarkers) {
       glm::vec2 pos = mk->getPos();
       float dist = glm::fastDistance(pos, mousePos);
-      if (dist >= 0.0 && dist <= DET_RADIUS) {
+      if (dist >= 0.0 && dist <= MOUSE_RADIUS) {
         mk->setPos(mousePos);
       }
     }

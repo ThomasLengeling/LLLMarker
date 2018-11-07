@@ -440,6 +440,8 @@ void ofApp::updateGUI() {
   mBDebugVideoGrid->update();
   mBFullCamView->update();
 
+  mCamCalibration->update();
+
   mBDebugVideo->update();
   mBDebugGrid->update();
   mBSingleGrid->update();
@@ -460,6 +462,8 @@ void ofApp::drawGUI() {
   mBEnableCrop->draw();
   mBEnableVideo->draw();
   mBFullCamView->draw();
+
+  mCamCalibration->draw();
 
   mBDebugVideo->draw();
   mBDebugGrid->draw();
@@ -683,8 +687,6 @@ void ofApp::mouseReleased(int x, int y, int button) {
       }
     }
   }
-
-  mCurrentGridId++;
 
 }
 

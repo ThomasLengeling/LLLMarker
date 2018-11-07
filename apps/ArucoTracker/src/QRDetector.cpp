@@ -1,4 +1,3 @@
-
 #include "QRDetector.h"
 
 using namespace std;

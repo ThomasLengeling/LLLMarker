@@ -11,7 +11,7 @@ LLL
 
 #include "CommonTypes.h"
 #include "RectDetector.h"
-
+#include "QRBlock.h"
 
 class MarkerAruco;
 class ProbabiltyAruco;
@@ -39,6 +39,7 @@ public:
         mMakerId = -1;
         mBType = BlockType::grid;
         mIdType = std::make_pair(-1, 0);
+        mDebugPos = false;
     }
 
     static MarkerArucoRef create(){
