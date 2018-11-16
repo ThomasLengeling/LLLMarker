@@ -100,6 +100,8 @@ public:
 
     std::string getUPDNumTypes(){return mUDPNumTags;}
 
+    void drawRotation();
+
 private:
 
     //tags

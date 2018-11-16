@@ -235,6 +235,7 @@ void ofApp::draw() {
   ofSetColor(0, 0, 0, 255);
   ofRect(0, 0, ofGetWidth(), ofGetHeight());
 
+  //draw video streaming information
   if (mBDebugVideo->isActive()) {
     ofSetColor(255);
     mInputDetectImg.draw(0, 0, 1280, 720);
@@ -256,6 +257,7 @@ void ofApp::draw() {
     }
   }
 
+  //draw video steam as a grid
   if (mBDebugVideoGrid->isActive()) {
 
     if (mBSingleGrid->isActive()) {
@@ -354,6 +356,11 @@ void ofApp::draw() {
     }
   }
 
+  //draw rotation of the markers
+  for (auto gridDetector : mGridDetector) {
+    gridDetector->drawRotation();
+  }
+
   //draw knobs
   if (mEnableKnob) {
     mKnobAmenitie->drawArc();
@@ -378,7 +385,7 @@ void ofApp::draw() {
   drawInfoScreen();
 }
 
-//--------------------------------------------------------------
+//----------------------------------------------------------------------------
 void ofApp::drawInfoScreen() {
   int maxM = mGridDetector.at(mCurrentInputIdx)->getMaxMarkers();
   int numM = mGridDetector.at(mCurrentInputIdx)->getNumMarkers();
