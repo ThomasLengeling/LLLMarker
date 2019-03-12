@@ -10,19 +10,20 @@ void ofApp::setupValues() {
 
 
   //load imputs for #cameras
+
   if(mNumInputs > 1){
+    ofLog(OF_LOG_NOTICE) << "Reading Cam Definition griddef.json";
     ofFile file("griddef.json");
     if (file.exists()) {
-      ofJson js;
-      file >> js;
-      int j = 0;
-      for (auto & grid : js) {
-        std::string inputGrid("grid" + to_string(j));
-        mGridSizes.push_back( glm::vec2(grid[inputGrid]["x"], grid[inputGrid]["y"] ) );
-        mMaxMarkers.push_back( grid[inputGrid]["max"]);
-        mTotalMaxMarkers += grid[inputGrid]["max"].get<int>();
-        ofLog(OF_LOG_NOTICE) <<j<<": "<<glm::vec2(grid[inputGrid]["x"], grid[inputGrid]["y"] ) <<" "<< grid[inputGrid]["max"]<<std::endl;
-        j++;
+      ofJson gridjs;
+      file >> gridjs;
+      for (int j = 0; j < mNumInputs; j++) {
+        std::string inputGrid("grid_" + to_string(j));
+        ofLog(OF_LOG_NOTICE) << inputGrid<<" "<<j;
+        mGridSizes.push_back( glm::vec2(gridjs[inputGrid]["x"], gridjs[inputGrid]["y"] ) );
+        mMaxMarkers.push_back( gridjs[inputGrid]["max"]);
+        mTotalMaxMarkers += gridjs[inputGrid]["max"].get<int>();
+        ofLog(OF_LOG_NOTICE) <<j<<": "<<glm::vec2(gridjs[inputGrid]["x"], gridjs[inputGrid]["y"] ) <<" "<< gridjs[inputGrid]["max"]<<std::endl;
       }
       ofLog(OF_LOG_NOTICE) << "Done grid values JSON";
     } else {
@@ -113,58 +114,6 @@ void ofApp::setupConnection() {
 void ofApp::setupKnob() {
 
   mKnobAmenitie = KnobAruco::create();
-  mEnableKnob = false;
-  if (mEnableKnob) {
-    ofFile file("knobpos.json");
-    if (file.exists()) {
-      ofJson js;
-      file >> js;
-      int i = 0;
-      cout << js << endl;
-      for (auto &gridPos : js) {
-
-        int type = gridPos[to_string(i)]["type"];
-
-        if (type == BlockType::knobStatic) {
-          float posx = gridPos[to_string(i)]["posx"];
-          float posy = gridPos[to_string(i)]["posy"];
-          mKnobAmenitie->setStaticPos(glm::vec2(posx, posy));
-          mKnobAmenitie->setStaticGridId(i);
-          MarkerArucoRef m = MarkerAruco::create();
-          m->setMarkerId(-1);
-          m->setRectPos(
-              glm::vec2(posx - 20, posy - 20), glm::vec2(posx + 20, posy - 20),
-              glm::vec2(posx + 20, posy + 20), glm::vec2(posx - 20, posy + 20));
-          m->setPos(glm::vec2(posx, posy));
-          m->setGridId(i);
-          m->setBlockType(BlockType::knobStatic);
-          // mMarkers.push_back(m);
-          std::cout << "knob statics Id:" << i << std::endl;
-        }
-        if (type == BlockType::knobDynamic) {
-          float posx = gridPos[to_string(i)]["posx"];
-          float posy = gridPos[to_string(i)]["posy"];
-          mKnobAmenitie->setDynamicPos(glm::vec2(posx, posy));
-          mKnobAmenitie->setDynamicGridId(i);
-          MarkerArucoRef m = MarkerAruco::create();
-          m->setMarkerId(-1);
-          m->setRectPos(
-              glm::vec2(posx - 20, posy - 20), glm::vec2(posx + 20, posy - 20),
-              glm::vec2(posx + 20, posy + 20), glm::vec2(posx - 20, posy + 20));
-          m->setPos(glm::vec2(posx, posy));
-          m->setGridId(i);
-          m->setBlockType(BlockType::knobDynamic);
-          // mMarkers.push_back(m);
-          std::cout << "knob dynamic Id:" << i << std::endl;
-        }
-
-        i++;
-      }
-      ofLog(OF_LOG_NOTICE) << "done setup knob";
-    } else {
-      ofLog(OF_LOG_NOTICE) << "setup fail knob";
-    }
-  }
 
   ofLog(OF_LOG_NOTICE) << "Loading cam crop positions "<<mGridImg.size();
   ofFile file("imggui.json");
@@ -376,27 +325,25 @@ void ofApp::setupCam() {
     ofFile file("img.json");
     bool foundFile = false;
     if (file.exists()) {
-      ofJson js;
-      file >> js;
-      int j = 0;
-      for (auto &cam : js) {
-        std::string inputImg("cam" + to_string(j));
-        int camId =  cam[inputImg]["camId"];
+      ofJson camjs;
+      file >> camjs;
+      for (int j =0; j < mNumInputs; j++) {
+        std::string inputImg("cam_" + to_string(j));
+        int camId =  camjs[inputImg]["camId"];
         ofLog(OF_LOG_NOTICE)<<"Loading: " << j << ": CamId: " << camId;
 
 
-        mGridImg.at(j)->setCropUp(glm::vec2(cam[inputImg]["x1"], cam[inputImg]["y1"]));
-        mGridImg.at(j)->setCropDown(glm::vec2(cam[inputImg]["x2"], cam[inputImg]["y2"]));
-        mGridImg.at(j)->setCropDisp(glm::vec2(cam[inputImg]["disX"], cam[inputImg]["disY"]));
+        mGridImg.at(j)->setCropUp(glm::vec2(camjs[inputImg]["x1"], camjs[inputImg]["y1"]));
+        mGridImg.at(j)->setCropDown(glm::vec2(camjs[inputImg]["x2"], camjs[inputImg]["y2"]));
+        mGridImg.at(j)->setCropDisp(glm::vec2(camjs[inputImg]["disX"], camjs[inputImg]["disY"]));
 
-        float gm = float(cam[inputImg]["gamma"]);
+        float gm = float(camjs[inputImg]["gamma"]);
         mGridImg.at(j)->setGamma(gm);
 
         ofLog(OF_LOG_NOTICE) << "Loading cam devices:";
         mGridImg.at(j)->setupCam(camId, CAM_FRAMERATE);
 
         ofLog(OF_LOG_NOTICE) << "Gamma: " << gm;
-        j++;
       }
       ofLog(OF_LOG_NOTICE) << "Done crop values JSON";
       foundFile = true;
@@ -440,7 +387,11 @@ void ofApp::setupGridDetector() {
     ofLog(OF_LOG_NOTICE) << "setup grid: " << i << " " << mGridSizes.at(i);
     GridDetectorRef griD = GridDetector::create(mGridSizes.at(i));
     griD->setId(i);
-    griD->setupGridJsonPos("gridpos_0" + to_string(i + 1) + ".json");
+    if(INPUT_KNOB == 1){
+      griD->setupGridJsonPos("knobpos.json");
+    }else{
+      griD->setupGridJsonPos("gridpos_0" + to_string(i + 1) + ".json");
+    }
     griD->setMaxMarkers(mMaxMarkers.at(i));
     griD->setupCleaner();
     griD->setupBlocks();

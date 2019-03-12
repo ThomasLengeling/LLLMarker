@@ -91,6 +91,7 @@ void QRDetector::detectMarkers(cv::Mat &inputVideo, bool refiment) {
       cent = cent / 4.;
       QRBlockRef cva = QRBlock::create();
       cva->setPos(glm::vec2(cent.x, cent.y));
+      cva->setFirstCorner(glm::vec2(currentMarker.ptr<cv::Point2f>(0)[0].x, currentMarker.ptr<cv::Point2f>(0)[0].y));
 
       // get ids
       if (idsDetected.total() != 0) {

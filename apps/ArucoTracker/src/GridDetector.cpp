@@ -291,6 +291,26 @@ void GridDetector::drawMarkers() {
 }
 
 //-----------------------------------------------------------------------------
+void GridDetector::drawRotation(){
+  //draw rotation of the marker
+  for (auto & detectedMk : mCurrBlock) {
+    detectedMk->calculateRotation();
+    glm::vec2 corner = detectedMk->getFirstCorner();
+    glm::vec2 pos = detectedMk->getPos();
+
+    ofSetColor(255);
+    ofDrawLine(corner, pos);
+
+    float angle = detectedMk->getRot();
+
+    float px = cos(angle * TWO_PI) * 20 + pos.x;
+    float py = sin(angle * TWO_PI) * 20 + pos.y;
+
+    ofDrawLine(pos.x, pos.y, px, py);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void GridDetector::gridPosIdInc(){
   //disable current maker
   mMarkers.at(mCurrentGridId)->disableDebugPos();
