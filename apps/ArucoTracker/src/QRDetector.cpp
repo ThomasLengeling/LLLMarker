@@ -17,7 +17,7 @@ void QRDetector::resetMinMax() {
 void QRDetector::setupCalibration(int markersX, int markersY) {
   float markerLength     = 0.0162;     // 0.0165
   float markerSeparation = 0.0042; // 0045
-  int dictionaryId       = QR_4x4_25; //11
+  int dictionaryId       = QR_6x6_1000; //11
   std::string outputFile = "./cal.txt";
 
   int calibrationFlags = 0;

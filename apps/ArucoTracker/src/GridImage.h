@@ -124,7 +124,7 @@ private:
     glm::vec2 mDisp;
     cv::Mat   mCropMat;
 
-
+    //id of the Image
     int mId;
 
     //img correction
